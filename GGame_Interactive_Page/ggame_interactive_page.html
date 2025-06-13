@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGame - Gaming Experience</title>
+    <style>
+        /* === RESET E BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* === SCROLLBAR PERSONALIZZATA GGAME === */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+    border-radius: 10px;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #d4af37 0%, #ffeb3b 50%, #d4af37 100%);
+    border-radius: 10px;
+    box-shadow: 
+        0 0 10px rgba(212, 175, 55, 0.5),
+        inset 0 0 10px rgba(255, 235, 59, 0.3);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ffeb3b 0%, #d4af37 50%, #ffeb3b 100%);
+    box-shadow: 
+        0 0 20px rgba(212, 175, 55, 0.8),
+        inset 0 0 15px rgba(255, 235, 59, 0.5);
+    transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #b8941f 0%, #d4af37 50%, #b8941f 100%);
+    box-shadow: 
+        0 0 15px rgba(212, 175, 55, 0.6),
+        inset 0 0 20px rgba(184, 148, 31, 0.4);
+}
+
+::-webkit-scrollbar-corner {
+    background: #0a0a0a;
+}
+
+/* Firefox */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #d4af37 #1a1a2e;
+}
+
+/* Effetto glow aggiuntivo per la scrollbar */
+::-webkit-scrollbar-thumb::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+    border-radius: 10px;
+    animation: scrollGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes scrollGlow {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            /*   overflow: hidden; */
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* === LOADER SECTION === */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000000, #1a1a2e, #000000);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease-out;
+        }
+
+        .loader-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #d4af37;
+            text-shadow: 0 0 30px #d4af37, 0 0 60px #d4af37;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+            margin-bottom: 2rem;
+            transform: perspective(500px) rotateX(15deg);
+        }
+
+        .loader-progress {
+            width: 300px;
+            height: 6px;
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loader-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37, #ffeb3b, #d4af37);
+            border-radius: 10px;
+            width: 0%;
+            animation: loadingBar 3s ease-out forwards;
+            box-shadow: 0 0 20px #d4af37;
+        }
+
+        .loader-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #d4af37;
+            border-radius: 50%;
+            animation: floatParticle 3s infinite linear;
+            box-shadow: 0 0 10px #d4af37;
+        }
+
+        @keyframes logoGlow {
+            0% { 
+                text-shadow: 0 0 30px #d4af37, 0 0 60px #d4af37;
+                transform: perspective(500px) rotateX(15deg) scale(1);
+            }
+            100% { 
+                text-shadow: 0 0 50px #d4af37, 0 0 100px #d4af37, 0 0 150px #d4af37;
+                transform: perspective(500px) rotateX(15deg) scale(1.05);
+            }
+        }
+
+        @keyframes loadingBar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-100px) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease-out;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .main-content.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding-top: 2rem;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #d4af37, #ffeb3b, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #cccccc;
+            font-weight: 300;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* === GAMES GRID === */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+
+        .game-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .game-card:hover {
+            transform: perspective(1000px) rotateX(-5deg) rotateY(5deg) translateY(-10px);
+            border-color: #d4af37;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(212, 175, 55, 0.3),
+                inset 0 0 30px rgba(212, 175, 55, 0.1);
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        .game-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #2a2a3e, #3a3a5e);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            font-size: 0.9rem;
+            color: #888;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #d4af37;
+            margin-bottom: 1rem;
+            z-index: 2;
+            position: relative;
+        }
+
+        .game-description {
+            color: #cccccc;
+            line-height: 1.6;
+            font-size: 1rem;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* === CLICK ANIMATIONS === */
+        .game-card.clicked {
+            animation: clickBounce 0.6s ease-out;
+        }
+
+        @keyframes clickBounce {
+            0% { transform: perspective(1000px) scale(1) rotateX(0deg); }
+            20% { transform: perspective(1000px) scale(0.95) rotateX(-10deg); }
+            60% { transform: perspective(1000px) scale(1.05) rotateX(5deg); }
+            100% { transform: perspective(1000px) scale(1) rotateX(0deg); }
+        }
+
+        .trail-effect {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 20px;
+            background: linear-gradient(45deg, transparent, #d4af37, transparent);
+            opacity: 0;
+            z-index: -1;
+            animation: trailGlow 1s ease-out;
+        }
+
+        @keyframes trailGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.3);
+            }
+        }
+
+        /* === TRANSITION OVERLAY === */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 0%, #000000 70%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8888;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .transition-overlay.active {
+            opacity: 1;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 1rem;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .loader-logo {
+                font-size: 3rem;
+            }
+        }
+
+        /* === UTILS === */
+        .hidden {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOADER SECTION -->
+    <div class="loader-container" id="loader">
+        <div class="loader-particles" id="particles"></div>
+        <div class="loader-logo">GGame</div>
+        <div class="loader-progress">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <h1 class="main-title">GGame Universe</h1>
+            <p class="subtitle">Scopri mondi incredibili e vivi avventure epiche</p>
+        </header>
+
+        <div class="games-grid" id="gamesGrid">
+            <!-- I giochi verranno generati dinamicamente -->
+        </div>
+    </div>
+
+    <!-- TRANSITION OVERLAY -->
+    <div class="transition-overlay" id="transitionOverlay"></div>
+
+    <script>
+        // === CONFIGURAZIONE GIOCHI ===
+        const games = [
+            {
+                title: "Cosmic Defender",
+                description: "Difendi la galassia dalle invasioni aliene in questo shoot'em up spaziale ricco di azione e power-up incredibili.",
+                url: "cosmic-defender.html"
+            },
+            {
+                title: "Mystery Manor",
+                description: "Risolvi enigmi inquietanti e scopri i segreti nascosti in questa avventura investigativa piena di mistero.",
+                url: "mystery-manor.html"
+            },
+            {
+                title: "Speed Racer X",
+                description: "Corri a velocità supersonica su circuiti futuristici con auto modificabili e boost adrenalinici.",
+                url: "speed-racer.html"
+            },
+            {
+                title: "Dragon's Quest",
+                description: "Intraprendi un'epica avventura fantasy, combatti draghi leggendari e forgia il tuo destino da eroe.",
+                url: "dragons-quest.html"
+            },
+            {
+                title: "Cyber Hacker",
+                description: "Infiltrati nei sistemi più sicuri del cyberspazio in questo thriller futuristico pieno di adrenalina.",
+                url: "cyber-hacker.html"
+            },
+            {
+                title: "Puzzle Master",
+                description: "Metti alla prova la tua mente con rompicapi sempre più complessi e sfide logiche coinvolgenti.",
+                url: "puzzle-master.html"
+            }
+        ];
+
+        // === GESTIONE AUDIO ===
+        class AudioManager {
+            constructor() {
+                this.audioContext = null;
+                this.sounds = {};
+                this.initAudio();
+            }
+
+            initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Audio non supportato');
+                }
+            }
+
+            // Crea suono sintetizzato per il caricamento
+            playLoadingSound() {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(880, this.audioContext.currentTime + 0.3);
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.3);
+            }
+
+            // Suono per hover sui giochi
+            playHoverSound() {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(660, this.audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.1);
+            }
+
+            // Suono per selezione gioco
+            playSelectSound() {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(523, this.audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(659, this.audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(784, this.audioContext.currentTime + 0.2);
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.4);
+            }
+        }
+
+        // === GESTIONE PARTICELLE ===
+        class ParticleSystem {
+            constructor(container) {
+                this.container = container;
+                this.particles = [];
+                this.createParticles();
+            }
+
+            createParticles() {
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        this.addParticle();
+                    }, i * 150);
+                }
+            }
+
+            addParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                particle.style.animationDuration = (3 + Math.random() * 2) + 's';
+                
+                this.container.appendChild(particle);
+                
+                // Rimuovi particella dopo l'animazione
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 5000);
+            }
+        }
+
+        // === INIZIALIZZAZIONE ===
+        let audioManager;
+        let particleSystem;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            audioManager = new AudioManager();
+            
+            // Inizializza particelle del loader
+            const particlesContainer = document.getElementById('particles');
+            particleSystem = new ParticleSystem(particlesContainer);
+            
+            // Avvia sequenza di caricamento
+            startLoadingSequence();
+            
+            // Genera giochi
+            generateGames();
+        });
+
+        // === SEQUENZA DI CARICAMENTO ===
+        function startLoadingSequence() {
+            const loader = document.getElementById('loader');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Riproduci suono di caricamento
+            setTimeout(() => {
+                audioManager.playLoadingSound();
+            }, 1000);
+            
+            // Nascondi loader e mostra contenuto principale
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                mainContent.classList.add('show');
+            }, 3500);
+        }
+
+        // === GENERAZIONE GIOCHI ===
+        function generateGames() {
+            const gamesGrid = document.getElementById('gamesGrid');
+            
+            games.forEach((game, index) => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.style.animationDelay = (index * 0.1) + 's';
+                
+                gameCard.innerHTML = `
+                    <div class="game-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                    <h3 class="game-title">${game.title}</h3>
+                    <p class="game-description">${game.description}</p>
+                `;
+                
+                // Event listeners per interazioni
+                gameCard.addEventListener('mouseenter', () => {
+                    audioManager.playHoverSound();
+                });
+                
+                gameCard.addEventListener('click', () => {
+                    selectGame(gameCard, game);
+                });
+                
+                gamesGrid.appendChild(gameCard);
+            });
+        }
+
+        // === SELEZIONE GIOCO ===
+        function selectGame(cardElement, game) {
+            // Disabilita ulteriori click
+            cardElement.style.pointerEvents = 'none';
+            
+            // Riproduci suono di selezione
+            audioManager.playSelectSound();
+            
+            // Animazione di click
+            cardElement.classList.add('clicked');
+            
+            // Crea effetto scia
+            createTrailEffect(cardElement);
+            
+            // Avvia transizione
+            setTimeout(() => {
+                startGameTransition(game.url);
+            }, 600);
+        }
+
+        // === EFFETTO SCIA ===
+        function createTrailEffect(element) {
+            const trail = document.createElement('div');
+            trail.className = 'trail-effect';
+            
+            const rect = element.getBoundingClientRect();
+            trail.style.position = 'fixed';
+            trail.style.left = rect.left + 'px';
+            trail.style.top = rect.top + 'px';
+            trail.style.width = rect.width + 'px';
+            trail.style.height = rect.height + 'px';
+            
+            document.body.appendChild(trail);
+            
+            // Rimuovi dopo animazione
+            setTimeout(() => {
+                document.body.removeChild(trail);
+            }, 1000);
+        }
+
+        // === TRANSIZIONE VERSO GIOCO ===
+        function startGameTransition(gameUrl) {
+            const overlay = document.getElementById('transitionOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Attiva overlay di transizione
+            overlay.classList.add('active');
+            
+            // Sfoca contenuto principale
+            mainContent.style.filter = 'blur(10px)';
+            mainContent.style.transform = 'scale(0.9)';
+            
+            // Reindirizza dopo transizione
+            setTimeout(() => {
+                // In un ambiente reale, qui caricheresti il gioco
+                console.log(`Caricamento gioco: ${gameUrl}`);
+                
+                // Per demo, mostra un alert
+                alert(`Caricamento di ${gameUrl} - In un ambiente reale, qui si aprirebbe il gioco!`);
+                
+                // Reset della pagina per demo
+                resetPage();
+            }, 1500);
+        }
+
+        // === RESET PAGINA (per demo) ===
+        function resetPage() {
+            const overlay = document.getElementById('transitionOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            overlay.classList.remove('active');
+            mainContent.style.filter = 'none';
+            mainContent.style.transform = 'scale(1)';
+            
+            // Riabilita tutti i click
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.style.pointerEvents = 'auto';
+                card.classList.remove('clicked');
+            });
+        }
+
+        // === GESTIONE RESPONSIVE ===
+        window.addEventListener('resize', function() {
+            // Adatta layout per dispositivi mobili
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                document.body.style.fontSize = '14px';
+            } else {
+                document.body.style.fontSize = '16px';
+            }
+        });
+
+        // === PREVENZIONE ERRORI AUDIO ===
+        document.addEventListener('click', function() {
+            if (audioManager.audioContext && audioManager.audioContext.state === 'suspended') {
+                audioManager.audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>

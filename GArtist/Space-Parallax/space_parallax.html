@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viaggio Spaziale con Effetto Parallasse</title>
+    <style>
+        /* Stili di base e reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Stile personalizzato per la scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            background-color: rgba(0, 0, 15, 0.8);
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: linear-gradient(to right, rgba(0, 0, 40, 0.3), rgba(30, 0, 60, 0.5));
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(100, 100, 255, 0.1);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #4B0082, #8A2BE2, #4B0082);
+            border-radius: 10px;
+            border: 2px solid rgba(20, 0, 40, 0.8);
+            box-shadow: 0 0 8px rgba(138, 43, 226, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #6A5ACD, #9370DB, #6A5ACD);
+            box-shadow: 0 0 12px rgba(147, 112, 219, 0.7);
+        }
+        
+        /* Per Firefox */
+        html {
+            scrollbar-color: #8A2BE2 rgba(0, 0, 15, 0.8);
+            scrollbar-width: thin;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            height: 500vh; /* Altezza sufficiente per lo scrolling */
+            overflow-x: hidden;
+            perspective: 1000px;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            /*   overflow: hidden; */
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        /* Contenitore principale con overflow nascosto */
+        .space-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #000235, #0B0B2B, #000);
+        }
+        
+        /* Overlay con testo e contenuto */
+        .content {
+            position: relative;
+            z-index: 100;
+            padding: 2rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            animation: textGlow 4s infinite alternate;
+        }
+        
+        .content p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        /* Animazione del testo */
+        @keyframes textGlow {
+            0% {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            }
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 30px rgba(100, 100, 255, 0.8);
+            }
+        }
+        
+        /* Campo stellare - strato di base */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Generazione delle stelle di diversi strati */
+        .stars-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Strato di stelle lontane (movimento lento) */
+        .stars-far {
+            z-index: 1;
+            opacity: 0.7;
+        }
+        
+        /* Strato di stelle intermedie */
+        .stars-mid {
+            z-index: 2;
+            opacity: 0.8;
+        }
+        
+        /* Strato di stelle vicine (movimento rapido) */
+        .stars-near {
+            z-index: 3;
+            opacity: 1;
+        }
+        
+        /* Singola stella */
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            animation: twinkle var(--twinkle-duration) infinite alternate;
+        }
+        
+        /* Generazione di stelle con JavaScript */
+        /* Le stelle vengono create dinamicamente via JavaScript */
+        
+        /* Animazione delle stelle */
+        @keyframes twinkle {
+            0% {
+                opacity: 0.3;
+                box-shadow: 0 0 3px rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
+            }
+            100% {
+                opacity: 0.5;
+                box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+            }
+        }
+        
+        /* Pianeti */
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease-out;
+        }
+        
+        /* Quando si passa sopra un pianeta */
+        .planet:hover {
+            transform: scale(1.1);
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        /* Pianeta 1 - Gassoso con anello */
+        .planet-1 {
+            width: 200px;
+            height: 200px;
+            bottom: 20%;
+            right: 15%;
+            background: radial-gradient(circle at 30% 40%, #8A2BE2, #4B0082, #191970);
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.6);
+            animation: rotate 120s linear infinite, floatPlanet1 60s ease-in-out infinite;
+            z-index: 10;
+        }
+        
+        /* Anello del pianeta */
+        .planet-1::before {
+            content: '';
+            position: absolute;
+            width: 250px;
+            height: 40px;
+            left: -25px;
+            top: 50%;
+            margin-top: -20px;
+            background: linear-gradient(to right, rgba(255, 215, 0, 0), rgba(255, 215, 0, 0.8) 20%, rgba(255, 215, 0, 0.2) 80%, rgba(255, 215, 0, 0));
+            border-radius: 50%;
+            transform: rotateX(75deg);
+            z-index: -1;
+        }
+        
+        /* Pianeta 2 - Ghiacciato */
+        .planet-2 {
+            width: 120px;
+            height: 120px;
+            top: 25%;
+            left: 15%;
+            background: radial-gradient(circle at 60% 70%, #A5F2F3, #6495ED, #4169E1);
+            box-shadow: 0 0 25px rgba(100, 149, 237, 0.6);
+            animation: rotate 80s linear infinite reverse, floatPlanet2 40s ease-in-out infinite;
+            z-index: 9;
+        }
+        
+        /* Pianeta 3 - Sabbioso */
+        .planet-3 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            left: 20%;
+            background: radial-gradient(circle at 40% 30%, #D2691E, #8B4513, #654321);
+            box-shadow: 0 0 30px rgba(210, 105, 30, 0.5);
+            animation: rotate 100s linear infinite, floatPlanet3 50s ease-in-out infinite;
+            z-index: 8;
+        }
+        
+        /* Pianeta 4 - Gassoso piccolo */
+        .planet-4 {
+            width: 80px;
+            height: 80px;
+            bottom: 30%;
+            right: 30%;
+            background: radial-gradient(circle at 30% 40%, #FF6347, #DC143C, #800000);
+            box-shadow: 0 0 20px rgba(255, 99, 71, 0.6);
+            animation: rotate 60s linear infinite reverse, floatPlanet4 30s ease-in-out infinite;
+            z-index: 7;
+        }
+        
+        /* Piccolo satellite */
+        .moon {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            top: -40px;
+            left: 50%;
+            margin-left: -12.5px;
+            background: radial-gradient(circle at 40% 40%, #D3D3D3, #A9A9A9, #696969);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(211, 211, 211, 0.5);
+            animation: orbitMoon 8s linear infinite;
+        }
+        
+        /* Animazione di rotazione dei pianeti */
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Animazione di fluttuazione dei pianeti per l'effetto parallasse */
+        @keyframes floatPlanet1 {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            50% {
+                transform: translateY(30px) translateX(-20px);
+            }
+        }
+        
+        @keyframes floatPlanet2 {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            50% {
+                transform: translateY(-40px) translateX(15px);
+            }
+        }
+        
+        @keyframes floatPlanet3 {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            50% {
+                transform: translateY(25px) translateX(25px);
+            }
+        }
+        
+        @keyframes floatPlanet4 {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            50% {
+                transform: translateY(-20px) translateX(-15px);
+            }
+        }
+        
+        /* Animazione dell'orbita della luna */
+        @keyframes orbitMoon {
+            0% {
+                transform: rotate(0deg) translateX(50px) rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg) translateX(50px) rotate(-360deg);
+            }
+        }
+        
+        /* Cometa che passa occasionalmente */
+        .comet {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: white;
+            border-radius: 50%;
+            top: 30%;
+            left: -50px;
+            box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.6),
+                         0 0 40px 20px rgba(200, 220, 255, 0.4);
+            animation: cometMove 15s linear infinite;
+            opacity: 0;
+            z-index: 5;
+        }
+        
+        @keyframes cometMove {
+            0% {
+                transform: translateX(0) translateY(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(200px);
+                opacity: 0;
+            }
+        }
+        
+        /* Nebulosa colorata di sfondo */
+        .nebula {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(63, 0, 90, 0.2) 0%, rgba(0, 0, 50, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+            z-index: 0;
+            animation: nebulaGlow 10s infinite alternate;
+        }
+        
+        @keyframes nebulaGlow {
+            0% {
+                opacity: 0.2;
+            }
+            100% {
+                opacity: 0.4;
+            }
+        }
+        
+        /* Contenuti di sezione per scrolling */
+        .section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+        
+        .section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .section p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+        
+        /* Effetti di parallasse durante lo scrolling */
+        .parallax-element {
+            transform: translateZ(0);
+            will-change: transform;
+        }
+    </style>
+</head>
+<body>
+    <div class="space-container">
+        <!-- Nebulosa di sfondo -->
+        <div class="nebula"></div>
+        
+        <!-- Strati di stelle con profondità diverse -->
+        <div class="stars">
+            <div class="stars-layer stars-far" id="stars-far"></div>
+            <div class="stars-layer stars-mid" id="stars-mid"></div>
+            <div class="stars-layer stars-near" id="stars-near"></div>
+        </div>
+        
+        <!-- Pianeti con effetto parallasse -->
+        <div class="planet planet-1 parallax-element"></div>
+        <div class="planet planet-2 parallax-element">
+            <div class="moon"></div>
+        </div>
+        <div class="planet planet-3 parallax-element"></div>
+        <div class="planet planet-4 parallax-element"></div>
+        
+        <!-- Cometa che attraversa lo spazio -->
+        <div class="comet"></div>
+    </div>
+    
+    <!-- Contenuto della pagina -->
+    <div class="content">
+        <h1>Esplorazione Galattica</h1>
+        <p>Un viaggio tra le stelle e i pianeti dell'universo, creato con l'effetto parallasse in CSS puro.</p>
+    </div>
+    
+    <!-- Sezioni per lo scrolling -->
+    <section class="section" id="section1">
+        <h2>La Via Lattea</h2>
+        <p>La nostra galassia contiene miliardi di stelle e pianeti, ciascuno con le proprie caratteristiche uniche. Esplora questo sistema stellare generato con tecniche avanzate di CSS, dove ogni elemento si muove a velocità diverse creando una sensazione di profondità tridimensionale.</p>
+    </section>
+    
+    <section class="section" id="section2">
+        <h2>I Pianeti</h2>
+        <p>Ogni pianeta presente nella visualizzazione ha movimenti, dimensioni e caratteristiche diverse. Passa il mouse sopra un pianeta per vederlo ingrandire. Questa interazione è stata realizzata usando semplici proprietà CSS di transizione e trasformazione.</p>
+    </section>
+    
+    <section class="section" id="section3">
+        <h2>Effetto Parallasse</h2>
+        <p>Il parallasse è un effetto visivo dove gli oggetti più vicini sembrano muoversi più velocemente di quelli lontani. Questo crea l'illusione di profondità e movimento tridimensionale. Continua a scorrere per sperimentare come i diversi elementi si muovono a velocità diverse.</p>
+    </section>
+    
+    <section class="section" id="section4">
+        <h2>Animazioni CSS</h2>
+        <p>Tutte le animazioni presenti sono realizzate con CSS puro, senza l'uso di JavaScript per le animazioni. Le stelle lampeggiano casualmente, i pianeti ruotano e si muovono su traiettorie predefinite, creando un ecosistema spaziale dinamico e coinvolgente.</p>
+    </section>
+    
+    <!-- Script per la generazione delle stelle e l'effetto parallasse -->
+    <script>
+        // Funzione per generare stelle in diversi strati
+        function generateStars(layerId, count, minSize, maxSize, speedFactor) {
+            const layer = document.getElementById(layerId);
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Posizione casuale
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                
+                // Dimensione casuale
+                const size = minSize + Math.random() * (maxSize - minSize);
+                
+                // Durata di lampeggiamento casuale
+                const twinkleDuration = 2 + Math.random() * 5;
+                
+                // Applicazione delle proprietà
+                star.style.left = `${left}%`;
+                star.style.top = `${top}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--twinkle-duration', `${twinkleDuration}s`);
+                
+                // Aggiunta al layer
+                layer.appendChild(star);
+            }
+        }
+        
+        // Generazione delle stelle in diversi strati
+        generateStars('stars-far', 200, 0.5, 1.5, 0.2);  // Stelle lontane (piccole, movimento lento)
+        generateStars('stars-mid', 150, 1, 2, 0.5);      // Stelle intermedie
+        generateStars('stars-near', 75, 1.5, 3, 1);      // Stelle vicine (grandi, movimento rapido)
+        
+        // Effetto parallasse durante lo scrolling
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            
+            // Movimento delle stelle a diverse velocità
+            document.getElementById('stars-far').style.transform = `translateY(${scrollY * 0.1}px)`;
+            document.getElementById('stars-mid').style.transform = `translateY(${scrollY * 0.2}px)`;
+            document.getElementById('stars-near').style.transform = `translateY(${scrollY * 0.3}px)`;
+            
+            // Movimento dei pianeti
+            document.querySelector('.planet-1').style.transform = `translateY(${scrollY * 0.05}px) translateX(${-scrollY * 0.02}px)`;
+            document.querySelector('.planet-2').style.transform = `translateY(${-scrollY * 0.08}px) translateX(${scrollY * 0.03}px)`;
+            document.querySelector('.planet-3').style.transform = `translateY(${scrollY * 0.06}px) translateX(${scrollY * 0.05}px)`;
+            document.querySelector('.planet-4').style.transform = `translateY(${-scrollY * 0.04}px) translateX(${-scrollY * 0.03}px)`;
+            
+            // Animazione delle sezioni al scroll
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (sectionTop < windowHeight * 0.75) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+        });
+        
+        // Inizializzazione cometa periodica
+        function initComet() {
+            setInterval(() => {
+                const comet = document.querySelector('.comet');
+                comet.style.animation = 'none';
+                comet.offsetHeight; // Trigger reflow
+                comet.style.animation = 'cometMove 15s linear';
+                
+                // Posizione iniziale casuale
+                const startY = Math.random() * 60;
+                comet.style.top = `${startY}%`;
+            }, 20000);
+        }
+        
+        // Esecuzione iniziale
+        window.addEventListener('load', () => {
+            initComet();
+            // Attivazione della prima sezione all'avvio
+            setTimeout(() => {
+                document.getElementById('section1').classList.add('active');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

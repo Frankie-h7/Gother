@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>createCanvas</title> <!-- Gioco Pallina e Piattaforma -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script> <!-- Libreria p5.js -->
+    <style>
+        /* Stile per centrare la grafica */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Contenitore per il Canvas -->
+    <div id="canvas-container"></div>
+    <script>
+        var x = 200;
+        var y = 200;
+        var speedX = 3;
+        var speedY = 4;
+        var diametro = 20;
+
+        var paddleLarghezza = 100;
+        var paddleAltezza = 20;
+        var gameOver = false;
+
+        function setup() {
+            createCanvas(400, 400);
+            /* ERROR: canvas.parent is not a function */
+            // canvas.parent('canvas-container'); // inserisce il canvas nel contenitore
+        }
+
+        function draw() {
+            background(220);
+
+            if (gameOver) {
+                textSize(32);
+                fill(255, 0, 0);
+                text("Game Over", 120, 200);
+                noLoop();
+                return;
+            }
+
+            // pallina
+            ellipse(x, y, diametro, diametro);
+
+            // movimento pallina
+            x = x + speedX;
+            y = y + speedY;
+
+            // rimbalzi pareti laterali
+            if (x > width || x < 0) {
+                speedX = -speedX;
+            }
+
+            // rimbalzo contro il soffitto
+            if (y < 0) {
+                speedY = -speedY;
+            }
+
+            // paddle
+            rect(mouseX - paddleLarghezza / 2, height - paddleAltezza, paddleLarghezza, paddleAltezza);
+
+            // controllo collisione paddle
+            if (
+                y + diametro / 2 > height - paddleAltezza &&
+                x > mouseX - paddleLarghezza / 2 &&
+                x < mouseX + paddleLarghezza / 2
+            ) {
+                speedY = -speedY;
+            }
+
+            // Game over se la pallina cade nel vuoto
+            if (y > height) {
+                gameOver = true;
+            }
+        }
+    </script>
+</body>
+</html>

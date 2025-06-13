@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giordano Anime</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">🎌 Giordano Anime</div>
+    <nav class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#trending">In Evidenza</a>
+      <a href="#contatti">Contatti</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="home">
+    <h1>Benvenuto su Giordano Anime</h1>
+    <p>Il tuo portale otaku per gli anime più epici!</p>
+    <button class="cta-button">Scopri ora</button>
+  </section>
+
+  <section class="featured" id="trending">
+    <h2>Anime in Evidenza</h2>
+    <div class="anime-grid">
+      <div class="anime-card" data-src="Anime/NazotokiwaDinnernoAtode_Ep_05_ITA.mp4">
+        <img src="Anime/nezuko-kamado-anime-girl-2560x2560-11937.jpeg" alt="Anime 1">
+        <h3>Nazotoki wa Dinner no Atode - Ep 5</h3>
+      </div>
+      <div class="anime-card" data-src="Anime/AltroAnime_Ep_01.mp4">
+        <img src="https://placehold.co/300x400?text=Anime+2" alt="Anime 2">
+        <h3>Altro Anime - Ep 1</h3>
+      </div>
+      <div class="anime-card" data-src="Anime/AltroAnime_Ep_01.mp4">
+        <img src="https://placehold.co/300x400?text=Anime+2" alt="Anime 3">
+        <h3>Altro Anime - Ep 2</h3>
+      </div>
+    </div>
+
+    <div class="anime-card">
+        <a href="nazotoki.html">
+          <img src="https://placehold.co/300x400?text=Anime+1" alt="Nazotoki wa Dinner no Atode">
+          <h3>Nazotoki wa Dinner no Atode</h3>
+        </a>
+      </div>
+      
+  </section>  
+
+  <!-- Modale Player Video -->
+<div class="video-modal" id="videoModal">
+    <div class="video-modal-content">
+      <span class="close-btn" id="closeModal">&times;</span>
+      <video id="animeModalVideo" controls>
+        <source src="" type="video/mp4">
+        Il tuo browser non supporta il tag video.
+      </video>
+    </div>
+  </div>  
+
+  <footer class="footer" id="contatti">
+    <p>&copy; 2025 Giordano Anime. Tutti i diritti riservati.</p>
+  </footer>
+</body>
+</html>

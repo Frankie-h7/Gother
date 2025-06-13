@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gioco Pallina Verticale</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  </head>
+  <body>
+    <script>
+      var x = 200; // x resta fissa
+      var y = 100; // y cambia per far salire e scendere la pallina
+      var velocitaY = 4;
+
+      var larghezzaPiattaforma = 100;
+      var altezzaPiattaforma = 15;
+
+      var fine = false;
+
+      function setup() {
+        createCanvas(400, 400);
+      }
+
+      function draw() {
+        background(220);
+
+     /*   if (fine == true) {
+          textSize(30);
+          fill(255, 0, 0);
+          text("Game Over", 120, 200);
+          noLoop();
+        } */
+
+        // pallina
+        ellipse(x, y, 20, 20);
+
+        // movimento su e giù
+        y = y + velocitaY;
+
+        // rimbalzo sul soffitto
+        if (y < 0) {
+          velocitaY = velocitaY * -1;
+        }
+
+        // paddle
+        rect(mouseX - larghezzaPiattaforma / 2, height - altezzaPiattaforma, larghezzaPiattaforma, altezzaPiattaforma);
+
+        // rimbalzo sulla piattaforma
+        if (
+          y + 10 > height - altezzaPiattaforma &&
+          x > mouseX - larghezzaPiattaforma / 2 &&
+          x < mouseX + larghezzaPiattaforma / 2
+        ) {
+          velocitaY = velocitaY * -1;
+        }
+
+        // se va oltre lo schermo sotto
+     /*   if (y > height) {
+          fine = true;
+        } */
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Specchio Interattivo CSS</title>
+  <style>
+    /* Reset base e configurazione pagina */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* Sfondo ambiente con gradiente per simulare illuminazione ambientale */
+      background: linear-gradient(135deg, #092140 0%, #274060 50%, #1b365d 100%);
+      font-family: 'Arial', sans-serif;
+      overflow: hidden;
+      perspective: 1000px;
+      transition: background 0.5s ease;
+    }
+
+    /* Contenitore principale dello specchio */
+    .mirror-container {
+      position: relative;
+      width: 400px;
+      height: 500px;
+      /* Leggera inclinazione per dare profondità */
+      transform: perspective(1000px) rotateY(-5deg);
+      transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Contenitore che ruota al passaggio del mouse */
+    .mirror-container:hover {
+      transform: perspective(1000px) rotateY(2deg) rotateX(2deg);
+    }
+
+    /* Lo specchio stesso */
+    .mirror {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      /* Base del vetro con effetto riflessivo */
+      background: rgba(200, 200, 220, 0.15);
+      /* Effetto di riflesso principale */
+      backdrop-filter: blur(6px);
+      /* Effetto bordo del vetro */
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 
+        /* Ombra esterna del bordo */
+        0 0 20px rgba(255, 255, 255, 0.2),
+        /* Effetto profondità interno */
+        inset 0 0 50px rgba(255, 255, 255, 0.1);
+      /* Miscelazione colori per effetto vetro */
+      mix-blend-mode: screen;
+      transform-style: preserve-3d;
+      overflow: hidden;
+      transition: all 0.5s ease;
+    }
+
+    /* Effetto superficie riflettente */
+    .mirror::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        125deg, 
+        rgba(255, 255, 255, 0.3) 0%, 
+        rgba(255, 255, 255, 0.1) 40%,
+        rgba(255, 255, 255, 0.05) 60%, 
+        rgba(255, 255, 255, 0.02) 100%
+      );
+      /* Leggera distorsione nella superficie */
+      transform: translateZ(5px);
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    /* Secondo strato per effetto profondità */
+    .mirror::after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+      border-radius: 15px;
+      filter: blur(15px);
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Attivazione effetto luminosità al bordo al passaggio del mouse */
+    .mirror-container:hover .mirror::after {
+      opacity: 0.5;
+    }
+
+    /* Distorsione dello strato superiore al passaggio del mouse */
+    .mirror-container:hover .mirror::before {
+      background: linear-gradient(
+        125deg, 
+        rgba(255, 255, 255, 0.4) 0%, 
+        rgba(255, 255, 255, 0.2) 30%,
+        rgba(255, 255, 255, 0.05) 70%, 
+        rgba(255, 255, 255, 0.02) 100%
+      );
+      /* Effetto distorsione ottica */
+      transform: translateZ(5px) skew(-2deg, -1deg);
+    }
+
+    /* Effetto cornice decorativa */
+    .mirror-frame {
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -15px;
+      bottom: -15px;
+      border-radius: 20px;
+      border: 10px solid;
+      border-image: linear-gradient(
+        45deg, 
+        #886644, 
+        #ddbb77, 
+        #ffeecc, 
+        #ddbb77, 
+        #886644
+      ) 1;
+      box-shadow: 
+        /* Ombra esterna */
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        /* Ombra interna */
+        inset 0 0 15px rgba(255, 255, 255, 0.3);
+      z-index: -1;
+      transform: translateZ(-10px);
+    }
+
+    /* Riflessi di luce dinamici */
+    .light-reflection {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
+      background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0) 70%
+      );
+      transform: rotate(-45deg);
+      opacity: 0.3;
+      pointer-events: none;
+      transition: all 1s ease;
+    }
+
+    /* Movimento del riflesso di luce al passaggio del mouse */
+    .mirror-container:hover .light-reflection {
+      transform: rotate(-25deg) translateY(-30%);
+      opacity: 0.5;
+    }
+
+    /* Secondo riflesso di luce per effetto dinamico */
+    .light-reflection-alt {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: linear-gradient(
+        135deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 40%,
+        rgba(255, 255, 255, 0.2) 49%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.05) 60%,
+        transparent 100%
+      );
+      transform: translateY(100%) rotate(45deg) scale(2);
+      transition: transform 0.5s ease;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* Animazione del secondo riflesso al passaggio del mouse */
+    .mirror-container:hover .light-reflection-alt {
+      transform: translateY(-100%) rotate(45deg) scale(2);
+    }
+
+    /* Elementi decorativi agli angoli */
+    .corner {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: rgba(210, 180, 140, 0.8);
+      z-index: 2;
+    }
+
+    .corner-tl {
+      top: -5px;
+      left: -5px;
+      border-radius: 10px 0 0 0;
+    }
+
+    .corner-tr {
+      top: -5px;
+      right: -5px;
+      border-radius: 0 10px 0 0;
+    }
+
+    .corner-bl {
+      bottom: -5px;
+      left: -5px;
+      border-radius: 0 0 0 10px;
+    }
+
+    .corner-br {
+      bottom: -5px;
+      right: -5px;
+      border-radius: 0 0 10px 0;
+    }
+
+    /* Effetto di contenuto riflesso nello specchio */
+    .mirror-content {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 1.5rem;
+      text-align: center;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      padding: 20px;
+      transform: scale(-1, 1); /* Effetto specchio inverso */
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Mostra il contenuto al passaggio del mouse */
+    .mirror-container:hover .mirror-content {
+      opacity: 0.6;
+    }
+
+    /* Informazioni descrittive */
+    .info {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="mirror-container">
+    <!-- Cornice decorativa -->
+    <div class="mirror-frame"></div>
+    
+    <!-- Lo specchio stesso -->
+    <div class="mirror">
+      <!-- Effetti di luce -->
+      <div class="light-reflection"></div>
+      <div class="light-reflection-alt"></div>
+      
+      <!-- Contenuto riflesso nello specchio -->
+      <div class="mirror-content">
+        Specchio magico, specchio delle mie brame...
+      </div>
+    </div>
+    
+    <!-- Elementi decorativi agli angoli -->
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+  </div>
+  
+  <div class="info">
+    Passa il mouse sopra lo specchio per vedere l'effetto interattivo
+  </div>
+</body>
+</html>

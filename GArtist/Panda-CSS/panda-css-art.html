@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adorabile Panda CSS Art</title>
+    <style>
+        /* Reset e stile di base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        /* Sfondo naturale con cielo sfumato */
+        .scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FF 60%, #7CFC00);
+            overflow: hidden;
+        }
+        
+        /* Nuvole leggere */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        
+        .cloud-1 {
+            width: 120px;
+            height: 50px;
+            top: 10%;
+            left: 15%;
+            animation: float 30s infinite linear;
+        }
+        
+        .cloud-2 {
+            width: 150px;
+            height: 60px;
+            top: 15%;
+            right: 20%;
+            animation: float 35s infinite linear reverse;
+        }
+        
+        .cloud-3 {
+            width: 100px;
+            height: 40px;
+            top: 25%;
+            left: 60%;
+            animation: float 40s infinite linear;
+        }
+        
+        /* Terreno/Prato */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to bottom, #7CFC00, #228B22);
+            border-top-left-radius: 50% 20%;
+            border-top-right-radius: 50% 20%;
+        }
+        
+        /* Dettagli dell'erba */
+        .grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            z-index: 2;
+        }
+        
+        .grass-blade {
+            position: absolute;
+            bottom: 0;
+            width: 6px;
+            height: 40px;
+            background: linear-gradient(to top, #228B22, #32CD32);
+            border-radius: 10px 10px 0 0;
+            transform-origin: bottom center;
+            z-index: 2;
+        }
+        
+        /* Creazione dei fili d'erba */
+        .grass-blade:nth-child(1) { left: 5%; transform: rotate(-5deg); height: 35px; }
+        .grass-blade:nth-child(2) { left: 7%; transform: rotate(5deg); height: 30px; }
+        .grass-blade:nth-child(3) { left: 10%; transform: rotate(-3deg); height: 40px; }
+        .grass-blade:nth-child(4) { left: 15%; transform: rotate(8deg); height: 25px; }
+        .grass-blade:nth-child(5) { left: 20%; transform: rotate(-7deg); height: 38px; }
+        .grass-blade:nth-child(6) { left: 25%; transform: rotate(0deg); height: 32px; }
+        .grass-blade:nth-child(7) { left: 30%; transform: rotate(-5deg); height: 36px; }
+        .grass-blade:nth-child(8) { left: 35%; transform: rotate(4deg); height: 28px; }
+        .grass-blade:nth-child(9) { left: 40%; transform: rotate(-2deg); height: 34px; }
+        .grass-blade:nth-child(10) { left: 45%; transform: rotate(6deg); height: 30px; }
+        .grass-blade:nth-child(11) { left: 60%; transform: rotate(-4deg); height: 40px; }
+        .grass-blade:nth-child(12) { left: 65%; transform: rotate(3deg); height: 35px; }
+        .grass-blade:nth-child(13) { left: 70%; transform: rotate(-6deg); height: 38px; }
+        .grass-blade:nth-child(14) { left: 75%; transform: rotate(2deg); height: 33px; }
+        .grass-blade:nth-child(15) { left: 80%; transform: rotate(-3deg); height: 39px; }
+        .grass-blade:nth-child(16) { left: 85%; transform: rotate(7deg); height: 29px; }
+        .grass-blade:nth-child(17) { left: 90%; transform: rotate(-5deg); height: 37px; }
+        .grass-blade:nth-child(18) { left: 95%; transform: rotate(0deg); height: 31px; }
+        
+        /* Container del panda */
+        .panda-container {
+            position: absolute;
+            left: 50%;
+            bottom: 25%;
+            transform: translateX(-50%);
+            z-index: 10;
+            cursor: pointer;
+        }
+        
+        /* Corpo del panda */
+        .panda {
+            position: relative;
+            width: 200px;
+            height: 240px;
+            z-index: 3;
+        }
+        
+        /* Testa del panda */
+        .head {
+            position: absolute;
+            width: 140px;
+            height: 120px;
+            background-color: white;
+            border-radius: 70px 70px 60px 60px;
+            top: 0;
+            left: 30px;
+            overflow: visible;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            z-index: 3;  /* Aggiunto per garantire il corretto ordine di sovrapposizione */
+        }
+        
+        /* Orecchie del panda */
+        .ear {
+            position: absolute;
+            width: 60px;       /* Aumentato da 50px */
+            height: 60px;      /* Aumentato da 50px */
+            background-color: #333;
+            border-radius: 50% 50% 50% 50%;  /* Forma più circolare */
+            z-index: -1;
+        }
+        
+        /* Orecchia Panda Sinistra */
+        .ear.left {
+            top: -20px;        /* Spostato leggermente più in alto */
+            left: 30px;         /* Spostato leggermente più a sinistra */
+            transform: rotate(-15deg);
+            z-index: -1;
+        }
+        
+        /* Orecchia Panda Sinistra */
+        .ear.right {
+            top: -20px;        /* Spostato leggermente più in alto */
+            right: 30px;        /* Spostato leggermente più a destra */
+            transform: rotate(15deg);
+        }
+
+        /* Interno delle orecchie */
+.ear-inner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #FF9494; /* Colore rosa chiaro per l'interno */
+    border-radius: 50%;
+    top: 15px;
+    left: 15px;
+    opacity: 0.8;
+}
+
+/* Assicuriamoci che il resto degli elementi facciali stiano sopra */
+.eye-patch, .eye, .nose, .mouth {
+    z-index: 3;  /* Assicura che questi elementi stiano sopra la testa e le orecchie */
+}
+        
+        /* Macchie nere degli occhi */
+        .eye-patch {
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 25px;
+        }
+        
+        .eye-patch.left {
+            left: 10px;
+            transform: rotate(-15deg);
+        }
+        
+        .eye-patch.right {
+            right: 10px;
+            transform: rotate(15deg);
+        }
+        
+        /* Occhi del panda */
+        .eye {
+            position: absolute;
+            width: 24px;
+            height: 28px;
+            background-color: white;
+            border-radius: 50%;
+            top: 38px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .eye.left {
+            left: 26px;
+        }
+        
+        .eye.right {
+            right: 26px;
+        }
+        
+        /* Pupille degli occhi */
+        .pupil {
+            position: absolute;
+            width: 12px;
+            height: 16px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 6px;
+            left: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Naso del panda */
+        .nose {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 60px;
+            left: 55px;
+        }
+        
+        /* Bocca del panda */
+        .mouth {
+            position: absolute;
+            width: 40px;
+            height: 15px;
+            top: 80px;
+            left: 50px;
+            border-radius: 0 0 20px 20px;
+            background-color: #333;
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+            transition: all 0.3s ease;
+            transform: scaleY(0.3);
+        }
+        
+        /* Corpo del panda */
+        .body {
+            position: absolute;
+            width: 160px;
+            height: 140px;
+            background-color: white;
+            border-radius: 80px 80px 70px 70px;
+            top: 90px;
+            left: 20px;
+            z-index: 2;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Zampe frontali del panda */
+        .paw {
+            position: absolute;
+            width: 50px;
+            height: 60px;
+            background-color: #333;
+            border-radius: 25px;
+            z-index: 1;
+        }
+        
+        .paw.left {
+            top: 150px;
+            left: 0;
+            transform: rotate(15deg);
+        }
+        
+        .paw.right {
+            top: 150px;
+            right: 0;
+            transform: rotate(-15deg);
+        }
+        
+        /* Zampe posteriori */
+        .leg {
+            position: absolute;
+            width: 55px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 25px;
+            bottom: 0;
+            z-index: 1;
+        }
+        
+        .leg.left {
+            left: 20px;
+        }
+        
+        .leg.right {
+            right: 20px;
+        }
+        
+        /* Ramo di bambù */
+        .bamboo {
+            position: absolute;
+            top: 130px;
+            left: -20px;
+            z-index: 4;
+            transform-origin: bottom right;
+            transition: transform 0.3s ease;
+        }
+        
+        .bamboo-stick {
+            position: absolute;
+            width: 12px;
+            height: 120px;
+            background: linear-gradient(to right, #92D14F, #6C9B3D, #92D14F);
+            border-radius: 6px;
+            transform: rotate(-45deg);
+        }
+        
+        .bamboo-joint {
+            position: absolute;
+            width: 16px;
+            height: 4px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+            left: -2px;
+            transform: rotate(-45deg);
+        }
+        
+        .bamboo-joint:nth-child(2) { top: 20px; }
+        .bamboo-joint:nth-child(3) { top: 40px; }
+        .bamboo-joint:nth-child(4) { top: 60px; }
+        .bamboo-joint:nth-child(5) { top: 80px; }
+        .bamboo-joint:nth-child(6) { top: 100px; }
+        
+        .bamboo-leaf {
+            position: absolute;
+            width: 40px;
+            height: 15px;
+            background-color: #92D14F;
+            border-radius: 50%;
+            transform: rotate(-45deg);
+            transform-origin: left center;
+        }
+        
+        .bamboo-leaf:nth-child(7) { top: 10px; left: 10px; }
+        .bamboo-leaf:nth-child(8) { top: 30px; left: 10px; transform: rotate(-55deg); }
+        .bamboo-leaf:nth-child(9) { top: 50px; left: 10px; transform: rotate(-35deg); }
+        .bamboo-leaf:nth-child(10) { top: 70px; left: 10px; transform: rotate(-60deg); }
+        
+        /* Animazioni */
+        @keyframes float {
+            0% { transform: translateX(-200px); }
+            100% { transform: translateX(calc(100vw + 200px)); }
+        }
+        
+        @keyframes grassSwing {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        /* Interattività al passaggio del mouse */
+        .panda-container:hover .mouth {
+            transform: scaleY(1);
+            height: 20px;
+        }
+        
+        .panda-container:hover .bamboo {
+            transform: rotate(10deg) translateY(-5px);
+        }
+        
+        .panda-container:hover .pupil.left {
+            transform: translateX(-2px);
+        }
+        
+        .panda-container:hover .pupil.right {
+            transform: translateX(2px);
+        }
+        
+        /* Animazione degli occhi */
+        @keyframes blinking {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+        
+        .eye {
+            animation: blinking 4s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="scene">
+        <!-- Nuvole -->
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        
+        <!-- Terreno -->
+        <div class="ground"></div>
+        
+        <!-- Erba -->
+        <div class="grass">
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+            <div class="grass-blade"></div>
+        </div>
+        
+        <!-- Panda e bambù -->
+        <div class="panda-container">
+            <div class="panda">
+                <!-- Orecchie dietro la Testa -->
+                <div class="ear left">
+                    <div class="ear-inner"></div>
+                </div>
+                <div class="ear right">
+                    <div class="ear-inner"></div>
+                </div>
+                <!-- Testa -->
+                <div class="head">
+                    <!-- Occhi sulla testa -->
+                    <div class="eye-patch left"></div>
+                    <div class="eye-patch right"></div>
+                    <div class="eye left">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="eye right">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="nose"></div>
+                    <div class="mouth"></div>
+                </div>
+                
+                <!-- Corpo -->
+                <div class="body"></div>
+                <div class="paw left"></div>
+                <div class="paw right"></div>
+                <div class="leg left"></div>
+                <div class="leg right"></div>
+                
+                <!-- Bambù -->
+                <div class="bamboo">
+                    <div class="bamboo-stick"></div>
+                    <div class="bamboo-joint"></div>
+                    <div class="bamboo-joint"></div>
+                    <div class="bamboo-joint"></div>
+                    <div class="bamboo-joint"></div>
+                    <div class="bamboo-joint"></div>
+                    <div class="bamboo-leaf"></div>
+                    <div class="bamboo-leaf"></div>
+                    <div class="bamboo-leaf"></div>
+                    <div class="bamboo-leaf"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Aggiunge movimento leggero agli occhi per renderli più espressivi
+        document.addEventListener('mousemove', function(e) {
+            const eyeArea = document.querySelector('.head');
+            const eyeRect = eyeArea.getBoundingClientRect();
+            const leftPupil = document.querySelector('.pupil.left');
+            const rightPupil = document.querySelector('.pupil.right');
+            
+            // Calcolo della posizione relativa del mouse rispetto al contenitore del panda
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            const centerX = eyeRect.left + eyeRect.width / 2;
+            const centerY = eyeRect.top + eyeRect.height / 2;
+            
+            // Limitiamo il movimento della pupilla a pochi pixel
+            const maxMove = 3;
+            const angleX = (mouseX - centerX) / (window.innerWidth / 2);
+            const angleY = (mouseY - centerY) / (window.innerHeight / 2);
+            const moveX = maxMove * angleX;
+            const moveY = maxMove * angleY;
+            
+            // Applichiamo lo spostamento con dei limiti
+            if (leftPupil && rightPupil) {
+                leftPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                rightPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+    </script>
+</body>
+</html>

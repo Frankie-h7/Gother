@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird Semplificato</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+            color: #d7be69; /* Giallo ocra */
+            overflow: hidden;
+
+                        /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+        }
+
+        canvas {
+            border: 3px solid #d7be69;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(215, 190, 105, 0.3);
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .game-over.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .game-over h1 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-over p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            background-color: #d7be69;
+            color: #121212;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(215, 190, 105, 0.7);
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .start-btn {
+            background-color: #d7be69;
+            color: #121212;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(215, 190, 105, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div class="game-ui">
+            <div class="score" id="score">0</div>
+            <div class="instructions" id="instructions">Premi SPAZIO o CLICK per saltare</div>
+        </div>
+        <div class="game-over" id="gameOver">
+            <h1>Game Over</h1>
+            <p>Punteggio: <span id="finalScore">0</span></p>
+            <button class="restart-btn" id="restartBtn">Rigioca</button>
+        </div>
+        <div class="start-screen" id="startScreen">
+            <h1>Flappy Bird</h1>
+            <p>Evita gli ostacoli e sopravvivi il più a lungo possibile!</p>
+            <p>Usa SPAZIO o CLICK per saltare</p>
+            <button class="start-btn" id="startBtn">Inizia a giocare</button>
+        </div>
+    </div>
+
+    <script>
+        // =================== CONFIGURAZIONE DEL GIOCO ===================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Dimensioni e Colori
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const DARK_BG = '#121212';
+        const YELLOW_OCHRE = '#d7be69';
+        
+        // Elementi UI
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('finalScore');
+        const gameOverScreen = document.getElementById('gameOver');
+        const startScreen = document.getElementById('startScreen');
+        const restartBtn = document.getElementById('restartBtn');
+        const startBtn = document.getElementById('startBtn');
+        const instructionsElement = document.getElementById('instructions');
+        
+        // Parametri di gioco
+        const GRAVITY = 0.5;
+        const JUMP_FORCE = -10;
+        const PIPE_SPEED = 3;
+        const PIPE_SPAWN_INTERVAL = 1500; // millisecondi
+        const PIPE_WIDTH = 80;
+        const PIPE_GAP = 170;
+        const PIPE_MIN_HEIGHT = 50;
+        const DIFFICULTY_INCREASE_INTERVAL = 10000; // millisecondi
+        const DIFFICULTY_INCREASE_AMOUNT = 0.2;
+        
+        // =================== STATO DEL GIOCO ===================
+        let gameState = {
+            running: false,
+            bird: {
+                x: WIDTH / 3,
+                y: HEIGHT / 2,
+                width: 30,
+                height: 30,
+                velocity: 0,
+                rotation: 0
+            },
+            pipes: [],
+            score: 0,
+            frameCount: 0,
+            pipeSpawnTimer: 0,
+            difficultyTimer: 0,
+            currentSpeed: PIPE_SPEED,
+            lastTime: 0,
+            gameTick: 0
+        };
+        
+        // =================== LOGICA DI GIOCO ===================
+        /**
+         * Inizializza lo stato di gioco
+         */
+        function initGame() {
+            gameState = {
+                running: true,
+                bird: {
+                    x: WIDTH / 3,
+                    y: HEIGHT / 2,
+                    width: 30,
+                    height: 30,
+                    velocity: 0,
+                    rotation: 0
+                },
+                pipes: [],
+                score: 0,
+                frameCount: 0,
+                pipeSpawnTimer: 0,
+                difficultyTimer: 0,
+                currentSpeed: PIPE_SPEED,
+                lastTime: 0,
+                gameTick: 0
+            };
+            
+            updateScore(0);
+            gameOverScreen.classList.remove('visible');
+        }
+        
+        /**
+         * Aggiorna la posizione e lo stato dell'uccello
+         * @param {number} deltaTime - Tempo trascorso dall'ultimo frame
+         */
+        function updateBird(deltaTime) {
+            const bird = gameState.bird;
+            
+            // Applica gravità
+            bird.velocity += GRAVITY;
+            bird.y += bird.velocity;
+            
+            // Imposta la rotazione in base alla velocità
+            bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.velocity * 0.05));
+            
+            // Controllo dei limiti dello schermo
+            if (bird.y < 0) {
+                bird.y = 0;
+                bird.velocity = 0;
+            }
+            
+            if (bird.y + bird.height > HEIGHT) {
+                gameOver();
+            }
+        }
+        
+        /**
+         * Fa saltare l'uccello quando il giocatore preme un tasto o clicca
+         */
+        function jump() {
+            if (!gameState.running) return;
+            
+            gameState.bird.velocity = JUMP_FORCE;
+            // Suono di salto potrebbe essere aggiunto qui
+        }
+        
+        /**
+         * Genera un nuovo tubo
+         */
+        function spawnPipe() {
+            const gapY = Math.random() * (HEIGHT - PIPE_GAP - PIPE_MIN_HEIGHT * 2) + PIPE_MIN_HEIGHT;
+            
+            gameState.pipes.push({
+                x: WIDTH,
+                topHeight: gapY,
+                bottomY: gapY + PIPE_GAP,
+                width: PIPE_WIDTH,
+                passed: false
+            });
+        }
+        
+        /**
+         * Aggiorna la posizione dei tubi e ne rimuove quelli fuori dallo schermo
+         * @param {number} deltaTime - Tempo trascorso dall'ultimo frame
+         */
+        function updatePipes(deltaTime) {
+            // Aggiorna la posizione dei tubi esistenti
+            for (let i = gameState.pipes.length - 1; i >= 0; i--) {
+                const pipe = gameState.pipes[i];
+                pipe.x -= gameState.currentSpeed;
+                
+                // Incrementa il punteggio quando l'uccello supera un tubo
+                if (!pipe.passed && pipe.x + pipe.width < gameState.bird.x) {
+                    pipe.passed = true;
+                    updateScore(gameState.score + 1);
+                }
+                
+                // Rimuovi i tubi che sono usciti dallo schermo
+                if (pipe.x + pipe.width < 0) {
+                    gameState.pipes.splice(i, 1);
+                }
+            }
+            
+            // Genera nuovi tubi a intervalli regolari
+            gameState.pipeSpawnTimer += deltaTime;
+            if (gameState.pipeSpawnTimer >= PIPE_SPAWN_INTERVAL) {
+                spawnPipe();
+                gameState.pipeSpawnTimer = 0;
+            }
+            
+            // Aumenta la difficoltà nel tempo
+            gameState.difficultyTimer += deltaTime;
+            if (gameState.difficultyTimer >= DIFFICULTY_INCREASE_INTERVAL) {
+                gameState.currentSpeed += DIFFICULTY_INCREASE_AMOUNT;
+                gameState.difficultyTimer = 0;
+            }
+        }
+        
+        /**
+         * Verifica le collisioni tra l'uccello e i tubi
+         */
+        function checkCollisions() {
+            const bird = gameState.bird;
+            
+            for (const pipe of gameState.pipes) {
+                // Collisione con pipe superiore
+                if (
+                    bird.x + bird.width > pipe.x &&
+                    bird.x < pipe.x + pipe.width &&
+                    bird.y < pipe.topHeight
+                ) {
+                    gameOver();
+                    return;
+                }
+                
+                // Collisione con pipe inferiore
+                if (
+                    bird.x + bird.width > pipe.x &&
+                    bird.x < pipe.x + pipe.width &&
+                    bird.y + bird.height > pipe.bottomY
+                ) {
+                    gameOver();
+                    return;
+                }
+            }
+        }
+        
+        /**
+         * Aggiorna il punteggio visualizzato
+         * @param {number} newScore - Il nuovo punteggio
+         */
+        function updateScore(newScore) {
+            gameState.score = newScore;
+            scoreElement.textContent = newScore;
+            finalScoreElement.textContent = newScore;
+        }
+        
+        /**
+         * Termina il gioco e mostra la schermata di Game Over
+         */
+        function gameOver() {
+            gameState.running = false;
+            gameOverScreen.classList.add('visible');
+        }
+        
+        // =================== RENDERING ===================
+        /**
+         * Disegna l'uccello sul canvas
+         */
+        function drawBird() {
+            const bird = gameState.bird;
+            
+            ctx.save();
+            ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
+            ctx.rotate(bird.rotation);
+            
+            // Corpo dell'uccello
+            ctx.fillStyle = YELLOW_OCHRE;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Occhio
+            ctx.fillStyle = DARK_BG;
+            ctx.beginPath();
+            ctx.arc(bird.width / 4, -bird.height / 8, bird.width / 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Becco
+            ctx.fillStyle = '#ff9c00';
+            ctx.beginPath();
+            ctx.moveTo(bird.width / 2, 0);
+            ctx.lineTo(bird.width / 2 + 10, -5);
+            ctx.lineTo(bird.width / 2 + 10, 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Ala
+            ctx.fillStyle = '#c4a85a';
+            ctx.beginPath();
+            
+            // Animazione dell'ala basata sul ciclo di gioco
+            const wingOffset = Math.sin(gameState.gameTick * 0.3) * 3;
+            
+            ctx.ellipse(
+                -bird.width / 6,
+                wingOffset,
+                bird.width / 3,
+                bird.height / 4,
+                Math.PI / 4,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        /**
+         * Disegna i tubi sul canvas
+         */
+        function drawPipes() {
+            for (const pipe of gameState.pipes) {
+                // Tubo superiore
+                ctx.fillStyle = YELLOW_OCHRE;
+                ctx.fillRect(pipe.x, 0, pipe.width, pipe.topHeight);
+                
+                // Bordo inferiore del tubo superiore
+                ctx.fillStyle = '#c4a85a';
+                ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipe.width + 10, 20);
+                
+                // Tubo inferiore
+                ctx.fillStyle = YELLOW_OCHRE;
+                ctx.fillRect(pipe.x, pipe.bottomY, pipe.width, HEIGHT - pipe.bottomY);
+                
+                // Bordo superiore del tubo inferiore
+                ctx.fillStyle = '#c4a85a';
+                ctx.fillRect(pipe.x - 5, pipe.bottomY, pipe.width + 10, 20);
+            }
+        }
+        
+        /**
+         * Disegna lo sfondo sul canvas
+         */
+        function drawBackground() {
+            // Sfondo scuro
+            ctx.fillStyle = DARK_BG;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            
+            // Pattern di sfondo sottile
+            ctx.fillStyle = '#181818';
+            for (let i = 0; i < WIDTH / 20; i++) {
+                for (let j = 0; j < HEIGHT / 20; j++) {
+                    if ((i + j) % 2 === 0) {
+                        ctx.fillRect(i * 20, j * 20, 10, 10);
+                    }
+                }
+            }
+            
+            // Terra
+            const groundHeight = 20;
+            ctx.fillStyle = '#202020';
+            ctx.fillRect(0, HEIGHT - groundHeight, WIDTH, groundHeight);
+            
+            // Pattern sulla terra
+            ctx.fillStyle = '#2a2a2a';
+            for (let i = 0; i < WIDTH / 20; i++) {
+                ctx.fillRect(i * 20, HEIGHT - groundHeight, 10, groundHeight);
+            }
+        }
+        
+        /**
+         * Disegna effetti particellari per migliorare l'esperienza visiva
+         */
+        function drawParticles() {
+            // Se l'uccello sta saltando, disegna particelle sotto di esso
+            if (gameState.bird.velocity < 0) {
+                ctx.fillStyle = 'rgba(215, 190, 105, 0.5)';
+                
+                for (let i = 0; i < 3; i++) {
+                    const size = Math.random() * 5 + 2;
+                    const x = gameState.bird.x + gameState.bird.width / 2 - size / 2;
+                    const y = gameState.bird.y + gameState.bird.height + Math.random() * 10;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // =================== CICLO DI GIOCO ===================
+        /**
+         * Loop principale del gioco
+         * @param {number} timestamp - Il timestamp corrente
+         */
+        function gameLoop(timestamp) {
+            // Calcola il deltaTime per un'animazione fluida
+            const deltaTime = timestamp - gameState.lastTime;
+            gameState.lastTime = timestamp;
+            
+            // Incrementa il contatore di tick del gioco
+            gameState.gameTick++;
+            
+            // Pulisci il canvas
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            
+            // Disegna lo sfondo
+            drawBackground();
+            
+            // Aggiorna e disegna gli elementi di gioco solo se il gioco è in esecuzione
+            if (gameState.running) {
+                updateBird(deltaTime);
+                updatePipes(deltaTime);
+                checkCollisions();
+                
+                drawPipes();
+                drawParticles();
+                drawBird();
+            }
+            
+            // Continua il loop di gioco
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // =================== GESTIONE EVENTI ===================
+        // Inizia il gioco quando si preme il pulsante "Inizia"
+        startBtn.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            initGame();
+            gameLoop(0);
+        });
+        
+        // Riavvia il gioco quando si preme il pulsante "Rigioca"
+        restartBtn.addEventListener('click', () => {
+            initGame();
+        });
+        
+        // Gestione degli input del giocatore
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Previene lo scroll della pagina
+                jump();
+            }
+        });
+        
+        canvas.addEventListener('click', () => {
+            jump();
+        });
+        
+        // Gestisce il tocco per i dispositivi mobili
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Previene lo zoom o altre azioni predefinite
+            jump();
+        });
+        
+        // Nascondi le istruzioni dopo un po' di tempo
+        setTimeout(() => {
+            instructionsElement.style.opacity = '0.5';
+        }, 3000);
+    </script>
+</body>
+</html>

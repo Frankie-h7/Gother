@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nazotoki wa Dinner no Atode</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="dark-theme">
+
+  <header class="navbar">
+    <h1>Giordano Anime</h1>
+    <nav>
+      <a href="index.html">Home</a>
+    </nav>
+  </header>
+
+  <main class="anime-page">
+    <h2>Nazotoki wa Dinner no Atode</h2>
+
+    <div class="video-container">
+      <video id="episodePlayer" controls>
+        <source src="Anime/NazotokiwaDinnernoAtode_Ep_01_ITA.mp4" type="video/mp4" />
+        Il tuo browser non supporta il video.
+      </video>
+    </div>
+
+    <h3>Episodi</h3>
+    <ul class="episode-list">
+      <li><button data-src="Anime/NazotokiwaDinnernoAtode_Ep_01_ITA.mp4">Episodio 1</button></li>
+      <li><button data-src="Anime/NazotokiwaDinnernoAtode_Ep_02_ITA.mp4">Episodio 2</button></li>
+      <li><button data-src="Anime/NazotokiwaDinnernoAtode_Ep_03_ITA.mp4">Episodio 3</button></li>
+      <li><button data-src="Anime/NazotokiwaDinnernoAtode_Ep_04_ITA.mp4">Episodio 4</button></li>
+      <li><button data-src="Anime/NazotokiwaDinnernoAtode_Ep_05_ITA.mp4">Episodio 5</button></li>
+    </ul>
+  </main>
+
+  <script>
+    const buttons = document.querySelectorAll('.episode-list button');
+    const video = document.getElementById('episodePlayer');
+    const source = video.querySelector('source');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const src = btn.getAttribute('data-src');
+        source.setAttribute('src', src);
+        video.load();
+        video.play();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machiavelli Professionale</title>
+    <style>
+        /* Reset e stili base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Scrollbar personalizzata per il tema Machiavelli */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 10px;
+    border: 2px solid var(--dark-bg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    box-shadow: 0 4px 10px rgba(212, 167, 44, 0.5);
+    transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--primary-color);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--dark-bg);
+    border: 1px solid var(--border-color);
+}
+
+/* Scrollbar per Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--dark-bg);
+}
+
+/* Scrollbar specifica per le aree delle carte */
+.cards-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.cards-container::-webkit-scrollbar-thumb {
+    background: rgba(212, 167, 44, 0.7);
+    border-radius: 6px;
+    border: 1px solid var(--dark-bg);
+}
+
+.cards-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(212, 167, 44, 0.6);
+}
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            /*   overflow: hidden; */
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* Variabili CSS */
+        :root {
+            --primary-color: #d4a72c;
+            --secondary-color: #f4d03f;
+            --dark-bg: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --hover-color: #3d3d3d;
+            --border-color: #555;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+
+        /* Menu principale */
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 10px var(--primary-color); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-btn {
+            padding: 15px 40px;
+            background: linear-gradient(45deg, var(--card-bg), var(--hover-color));
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .menu-btn:hover {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--dark-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 167, 44, 0.4);
+        }
+
+        /* Area di gioco */
+        .game-area {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(45, 45, 45, 0.9);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .card-count {
+            background: var(--card-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .current-turn {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            text-align: center;
+            padding: 10px;
+            background: rgba(212, 167, 44, 0.2);
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--danger-color);
+            min-width: 80px;
+        }
+
+        /* Tavolo da gioco */
+        .game-board {
+            display: grid;
+            grid-template-rows: 1fr auto 1fr;
+            gap: 20px;
+            min-height: 60vh;
+        }
+
+        .opponent-area, .player-area {
+            padding: 20px;
+            background: rgba(45, 45, 45, 0.3);
+            border-radius: 15px;
+            border: 2px solid var(--border-color);
+        }
+
+        .table-area {
+            background: radial-gradient(ellipse at center, rgba(212, 167, 44, 0.1) 0%, rgba(45, 45, 45, 0.5) 100%);
+            border: 3px solid var(--primary-color);
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 200px;
+            position: relative;
+        }
+
+        .table-label {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark-bg);
+            color: var(--primary-color);
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            border: 2px solid var(--primary-color);
+        }
+
+        /* Carte */
+        .card {
+            width: 60px;
+            height: 90px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 5px 20px rgba(212, 167, 44, 0.5);
+            z-index: 10;
+        }
+
+        .card.selected {
+            transform: translateY(-10px) scale(1.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(212, 167, 44, 0.8);
+            z-index: 15;
+        }
+
+        .card.dragging {
+            transform: rotate(5deg) scale(1.1);
+            opacity: 0.8;
+            z-index: 20;
+        }
+
+        .card-value {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .card-suit {
+            font-size: 18px;
+            margin-top: 5px;
+        }
+
+        .card.hearts .card-value,
+        .card.hearts .card-suit,
+        .card.diamonds .card-value,
+        .card.diamonds .card-suit {
+            color: #e74c3c;
+        }
+
+        .card.clubs .card-value,
+        .card.clubs .card-suit,
+        .card.spades .card-value,
+        .card.spades .card-suit {
+            color: #2c3e50;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--dark-bg);
+        }
+
+        /* Aree per le carte */
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 100px;
+            padding: 10px;
+            border: 2px dashed transparent;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .cards-container.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(212, 167, 44, 0.1);
+        }
+
+        .hand-area {
+            background: rgba(45, 45, 45, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .hand-label {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Combinazioni sul tavolo */
+        .combination {
+            display: flex;
+            gap: 5px;
+            margin: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            min-height: 110px;
+            align-items: center;
+        }
+
+        .combination:empty {
+            border-style: dashed;
+            border-color: var(--primary-color);
+        }
+
+        /* Pulsanti di controllo */
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .control-btn {
+            padding: 10px 25px;
+            background: var(--card-bg);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Overlay per AI */
+        .ai-thinking {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .thinking-message {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid var(--primary-color);
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            animation: thinking 1.5s ease-in-out infinite;
+        }
+
+        @keyframes thinking {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .card {
+                width: 45px;
+                height: 70px;
+            }
+
+            .card-value {
+                font-size: 10px;
+            }
+
+            .card-suit {
+                font-size: 14px;
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .menu-buttons {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Animazioni di vittoria */
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .victory-message {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--dark-bg);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            animation: victory 2s ease-in-out infinite;
+        }
+
+        @keyframes victory {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(1deg); }
+            75% { transform: scale(1.1) rotate(-1deg); }
+        }
+
+        /* Effetto drop zone */
+        .drop-zone {
+            border: 3px dashed var(--primary-color);
+            background: rgba(212, 167, 44, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .deck-area {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .deck {
+            width: 60px;
+            height: 90px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .deck .card {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .deck-label {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu principale -->
+    <div class="main-menu" id="mainMenu">
+        <h1 class="game-title">MACHIAVELLI</h1>
+        <div class="menu-buttons">
+            <button class="menu-btn" onclick="startGame('pvp')">Giocatore vs Giocatore</button>
+            <button class="menu-btn" onclick="startGame('ai')">Giocatore vs AI</button>
+            <button class="menu-btn" onclick="showSettings()">Impostazioni</button>
+        </div>
+    </div>
+
+    <!-- Area di gioco -->
+    <div class="game-area" id="gameArea">
+        <!-- Header del gioco -->
+        <div class="game-header">
+            <div class="player-info">
+                <div class="player-name" id="player1Name">Giocatore 1</div>
+                <div class="card-count" id="player1Cards">Carte: 0</div>
+            </div>
+            <div class="current-turn" id="currentTurn">Turno di: Giocatore 1</div>
+            <div class="player-info">
+                <div class="player-name" id="player2Name">Giocatore 2</div>
+                <div class="card-count" id="player2Cards">Carte: 0</div>
+                <div class="timer" id="gameTimer">00:00</div>
+            </div>
+        </div>
+
+        <!-- Tavolo da gioco -->
+        <div class="game-board" id="gameBoard">
+            <!-- Area avversario -->
+            <div class="opponent-area">
+                <div class="hand-label">Mano Avversario</div>
+                <div class="cards-container" id="opponentHand"></div>
+            </div>
+
+            <!-- Area centrale del tavolo -->
+            <div class="table-area">
+                <div class="table-label">Tavolo di Gioco</div>
+                <div class="cards-container" id="tableArea">
+                    <div class="combination" data-combination="0"></div>
+                    <div class="combination" data-combination="1"></div>
+                    <div class="combination" data-combination="2"></div>
+                    <div class="combination" data-combination="3"></div>
+                </div>
+                
+                <!-- Mazzo e scarti -->
+                <div class="deck-area">
+                    <div class="deck" id="drawDeck" onclick="drawCard()">
+                        <div class="card card-back"></div>
+                        <div class="card card-back" style="top: -2px; left: -2px;"></div>
+                        <div class="card card-back" style="top: -4px; left: -4px;"></div>
+                    </div>
+                    <div class="deck-label">Mazzo (<span id="deckCount">52</span>)</div>
+                </div>
+            </div>
+
+            <!-- Area giocatore -->
+            <div class="player-area">
+                <div class="hand-label">La Tua Mano</div>
+                <div class="hand-area">
+                    <div class="cards-container" id="playerHand"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controlli di gioco -->
+        <div class="game-controls">
+            <button class="control-btn" id="drawBtn" onclick="drawCard()">Pesca Carta</button>
+            <button class="control-btn" id="playBtn" onclick="playSelectedCards()">Gioca Carte</button>
+            <button class="control-btn" id="endTurnBtn" onclick="endTurn()">Fine Turno</button>
+            <button class="control-btn" onclick="backToMenu()">Menu Principale</button>
+        </div>
+    </div>
+
+    <!-- Overlay AI che pensa -->
+    <div class="ai-thinking" id="aiThinking">
+        <div class="thinking-message">
+            Sto Pensando...
+            <div style="font-size: 1rem; margin-top: 10px; opacity: 0.8;">
+                L'IA sta elaborando la sua mossa
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay vittoria -->
+    <div class="victory-overlay" id="victoryOverlay">
+        <div class="victory-message" id="victoryMessage">
+            🎉 VITTORIA! 🎉
+            <div style="font-size: 1.5rem; margin-top: 20px;">
+                <button class="control-btn" onclick="backToMenu()" style="font-size: 1rem;">Torna al Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stato del gioco
+        let gameState = {
+            mode: null, // 'pvp' o 'ai'
+            currentPlayer: 1, // 1 o 2
+            players: {
+                1: { name: 'Giocatore 1', hand: [], isAI: false },
+                2: { name: 'Giocatore 2', hand: [], isAI: false }
+            },
+            deck: [],
+            table: [[], [], [], []], // 4 combinazioni possibili
+            selectedCards: [],
+            gameStartTime: null,
+            isGameOver: false
+        };
+
+        // Suoni del gioco (utilizzando Web Audio API)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(frequency, duration, type = 'sine') {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Suoni specifici del gioco
+        const sounds = {
+            cardFlip: () => playSound(800, 0.1),
+            cardPlace: () => playSound(400, 0.2),
+            turnChange: () => playSound(600, 0.3),
+            victory: () => {
+                playSound(523, 0.2); // Do
+                setTimeout(() => playSound(659, 0.2), 100); // Mi
+                setTimeout(() => playSound(784, 0.4), 200); // Sol
+            },
+            invalidMove: () => playSound(200, 0.5, 'sawtooth')
+        };
+
+        // Creazione del mazzo
+        function createDeck() {
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
+            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const deck = [];
+
+            // Creiamo un mazzo con due mazzi standard (104 carte totali)
+            for (let deckNum = 0; deckNum < 2; deckNum++) {
+                for (let suit of suits) {
+                    for (let i = 0; i < values.length; i++) {
+                        deck.push({
+                            suit: suit,
+                            value: values[i],
+                            numericValue: i + 1, // A=1, 2=2, ..., K=13
+                            symbol: suitSymbols[suit],
+                            id: `${suit}-${values[i]}-${deckNum}`
+                        });
+                    }
+                }
+            }
+
+            return shuffleDeck(deck);
+        }
+
+        // Mischia il mazzo
+        function shuffleDeck(deck) {
+            const shuffled = [...deck];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Avvia il gioco
+        function startGame(mode) {
+            gameState.mode = mode;
+            gameState.currentPlayer = 1;
+            gameState.isGameOver = false;
+            gameState.gameStartTime = Date.now();
+            gameState.deck = createDeck();
+            gameState.table = [[], [], [], []];
+            gameState.selectedCards = [];
+
+            // Configura i giocatori
+            gameState.players[1] = { name: 'Giocatore 1', hand: [], isAI: false };
+            gameState.players[2] = { 
+                name: mode === 'ai' ? 'IA Machiavelli' : 'Giocatore 2', 
+                hand: [], 
+                isAI: mode === 'ai' 
+            };
+
+            // Distribuisci le carte iniziali (13 carte per giocatore)
+            for (let i = 0; i < 13; i++) {
+                gameState.players[1].hand.push(gameState.deck.pop());
+                gameState.players[2].hand.push(gameState.deck.pop());
+            }
+
+            // Ordina le mani dei giocatori
+            sortHand(gameState.players[1].hand);
+            sortHand(gameState.players[2].hand);
+
+            // Mostra l'area di gioco
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+
+            // Aggiorna l'interfaccia
+            updateUI();
+            updateTimer();
+
+            sounds.cardFlip();
+        }
+
+        // Ordina una mano di carte
+        function sortHand(hand) {
+            hand.sort((a, b) => {
+                if (a.suit !== b.suit) {
+                    const suitOrder = { hearts: 0, diamonds: 1, clubs: 2, spades: 3 };
+                    return suitOrder[a.suit] - suitOrder[b.suit];
+                }
+                return a.numericValue - b.numericValue;
+            });
+        }
+
+        // Aggiorna l'interfaccia utente
+        function updateUI() {
+            // Aggiorna i nomi e il conteggio delle carte
+            document.getElementById('player1Name').textContent = gameState.players[1].name;
+            document.getElementById('player2Name').textContent = gameState.players[2].name;
+            document.getElementById('player1Cards').textContent = `Carte: ${gameState.players[1].hand.length}`;
+            document.getElementById('player2Cards').textContent = `Carte: ${gameState.players[2].hand.length}`;
+            document.getElementById('deckCount').textContent = gameState.deck.length;
+
+            // Aggiorna il turno corrente
+            const currentPlayerName = gameState.players[gameState.currentPlayer].name;
+            document.getElementById('currentTurn').textContent = `Turno di: ${currentPlayerName}`;
+
+            // Aggiorna le mani dei giocatori
+            updatePlayerHand();
+            updateOpponentHand();
+            updateTable();
+
+            // Controlla la vittoria
+            checkVictory();
+        }
+
+        // Aggiorna la mano del giocatore
+        function updatePlayerHand() {
+            const handElement = document.getElementById('playerHand');
+            handElement.innerHTML = '';
+
+            gameState.players[1].hand.forEach((card, index) => {
+                const cardElement = createCardElement(card, true);
+                cardElement.addEventListener('click', () => toggleCardSelection(card, cardElement));
+                handElement.appendChild(cardElement);
+            });
+        }
+
+        // Aggiorna la mano dell'avversario
+        function updateOpponentHand() {
+            const handElement = document.getElementById('opponentHand');
+            handElement.innerHTML = '';
+
+            const isAI = gameState.players[2].isAI;
+            
+            gameState.players[2].hand.forEach((card, index) => {
+                const cardElement = createCardElement(isAI ? null : card, !isAI);
+                handElement.appendChild(cardElement);
+            });
+        }
+
+        // Aggiorna il tavolo
+        function updateTable() {
+            const tableElement = document.getElementById('tableArea');
+            const combinations = tableElement.querySelectorAll('.combination');
+
+            combinations.forEach((combo, index) => {
+                combo.innerHTML = '';
+                gameState.table[index].forEach(card => {
+                    const cardElement = createCardElement(card, true);
+                    combo.appendChild(cardElement);
+                });
+            });
+        }
+
+        // Crea un elemento carta
+        function createCardElement(card, faceUp = true) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+
+            if (!faceUp || !card) {
+                // Carta coperta
+                cardDiv.classList.add('card-back');
+                cardDiv.innerHTML = '<div style="font-size: 12px; font-weight: bold;">M</div>';
+            } else {
+                // Carta scoperta
+                cardDiv.classList.add(card.suit);
+                cardDiv.innerHTML = `
+                    <div class="card-value">${card.value}</div>
+                    <div class="card-suit">${card.symbol}</div>
+                `;
+                cardDiv.dataset.cardId = card.id;
+            }
+
+            // Aggiungi drag and drop
+            if (faceUp && card) {
+                cardDiv.draggable = true;
+                cardDiv.addEventListener('dragstart', handleDragStart);
+                cardDiv.addEventListener('dragend', handleDragEnd);
+            }
+
+            return cardDiv;
+        }
+
+        // Gestione selezione carte
+        function toggleCardSelection(card, cardElement) {
+            if (gameState.currentPlayer !== 1 || gameState.isGameOver) return;
+
+            const cardIndex = gameState.selectedCards.findIndex(c => c.id === card.id);
+            
+            if (cardIndex === -1) {
+                // Seleziona la carta
+                gameState.selectedCards.push(card);
+                cardElement.classList.add('selected');
+                sounds.cardFlip();
+            } else {
+                // Deseleziona la carta
+                gameState.selectedCards.splice(cardIndex, 1);
+                cardElement.classList.remove('selected');
+            }
+        }
+
+        // Gestione drag and drop
+        let draggedCard = null;
+
+        function handleDragStart(e) {
+            draggedCard = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedCard = null;
+        }
+
+        // Pesca una carta
+        function drawCard() {
+            if (gameState.deck.length === 0 || gameState.isGameOver) return;
+            
+            const currentPlayerData = gameState.players[gameState.currentPlayer];
+            
+            if (currentPlayerData.isAI && gameState.currentPlayer === 2) {
+                // L'IA pesca automaticamente
+                return;
+            }
+
+            if (gameState.currentPlayer === 1) {
+                const card = gameState.deck.pop();
+                gameState.players[1].hand.push(card);
+                sortHand(gameState.players[1].hand);
+                sounds.cardFlip();
+                updateUI();
+                
+                // Termina automaticamente il turno dopo aver pescato
+                setTimeout(() => endTurn(), 500);
+            }
+        }
+
+        // Gioca le carte selezionate
+        function playSelectedCards() {
+            if (gameState.currentPlayer !== 1 || gameState.selectedCards.length === 0 || gameState.isGameOver) {
+                sounds.invalidMove();
+                return;
+            }
+
+            // Verifica se le carte selezionate formano una combinazione valida
+            const combination = validateCombination(gameState.selectedCards);
+            
+            if (combination.isValid) {
+                // Trova uno slot libero sul tavolo
+                let emptySlot = -1;
+                for (let i = 0; i < gameState.table.length; i++) {
+                    if (gameState.table[i].length === 0) {
+                        emptySlot = i;
+                        break;
+                    }
+                }
+
+                if (emptySlot !== -1) {
+                    // Sposta le carte dalla mano al tavolo
+                    gameState.table[emptySlot] = [...gameState.selectedCards];
+                    
+                    // Rimuovi le carte dalla mano del giocatore
+                    gameState.selectedCards.forEach(selectedCard => {
+                        const handIndex = gameState.players[1].hand.findIndex(card => card.id === selectedCard.id);
+                        if (handIndex !== -1) {
+                            gameState.players[1].hand.splice(handIndex, 1);
+                        }
+                    });
+
+                    gameState.selectedCards = [];
+                    sounds.cardPlace();
+                    updateUI();
+
+                    // Controlla se il giocatore ha vinto
+                    if (gameState.players[1].hand.length === 0) {
+                        endGame(1);
+                        return;
+                    }
+
+                    // Termina il turno
+                    setTimeout(() => endTurn(), 1000);
+                } else {
+                    sounds.invalidMove();
+                    alert('Non ci sono slot liberi sul tavolo!');
+                }
+            } else {
+                sounds.invalidMove();
+                alert('Le carte selezionate non formano una combinazione valida!');
+            }
+        }
+
+        // Valida una combinazione di carte
+        function validateCombination(cards) {
+            if (cards.length < 3) {
+                return { isValid: false, type: null };
+            }
+
+            // Ordina le carte per valore
+            const sortedCards = [...cards].sort((a, b) => a.numericValue - b.numericValue);
+
+            // Controlla se è una scala
+            const isSequence = checkSequence(sortedCards);
+            if (isSequence.isValid) {
+                return { isValid: true, type: 'sequence', cards: sortedCards };
+            }
+
+            // Controlla se è un tris o poker
+            const isSet = checkSet(sortedCards);
+            if (isSet.isValid) {
+                return { isValid: true, type: 'set', cards: sortedCards };
+            }
+
+            return { isValid: false, type: null };
+        }
+
+        // Controlla se le carte formano una scala
+        function checkSequence(cards) {
+            if (cards.length < 3) return { isValid: false };
+
+            // Controlla se tutte le carte sono dello stesso seme
+            const firstSuit = cards[0].suit;
+            if (!cards.every(card => card.suit === firstSuit)) {
+                return { isValid: false };
+            }
+
+            // Controlla se i valori sono consecutivi
+            for (let i = 1; i < cards.length; i++) {
+                if (cards[i].numericValue !== cards[i-1].numericValue + 1) {
+                    return { isValid: false };
+                }
+            }
+
+            return { isValid: true };
+        }
+
+        // Controlla se le carte formano un tris o poker
+        function checkSet(cards) {
+            if (cards.length < 3) return { isValid: false };
+
+            // Conta le occorrenze di ogni valore
+            const valueCounts = {};
+            cards.forEach(card => {
+                valueCounts[card.numericValue] = (valueCounts[card.numericValue] || 0) + 1;
+            });
+
+            const counts = Object.values(valueCounts);
+            
+            // Deve esserci almeno un gruppo di 3 o più carte dello stesso valore
+            if (counts.some(count => count >= 3)) {
+                return { isValid: true };
+            }
+
+            return { isValid: false };
+        }
+
+        // Termina il turno
+        function endTurn() {
+            if (gameState.isGameOver) return;
+
+            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+            gameState.selectedCards = [];
+            
+            sounds.turnChange();
+            updateUI();
+
+            // Se è il turno dell'IA, fai la sua mossa
+            if (gameState.players[gameState.currentPlayer].isAI) {
+                setTimeout(() => aiTurn(), 1000);
+            }
+        }
+
+        // Turno dell'IA
+        function aiTurn() {
+            if (gameState.isGameOver) return;
+
+            // Mostra l'overlay "Sto pensando"
+            document.getElementById('aiThinking').style.display = 'flex';
+
+            setTimeout(() => {
+                // Nascondi l'overlay
+                document.getElementById('aiThinking').style.display = 'none';
+
+                // Logica dell'IA
+                const aiHand = gameState.players[2].hand;
+                const bestMove = findBestAIMove(aiHand);
+
+                if (bestMove) {
+                    // L'IA gioca una combinazione
+                    let emptySlot = -1;
+                    for (let i = 0; i < gameState.table.length; i++) {
+                        if (gameState.table[i].length === 0) {
+                            emptySlot = i;
+                            break;
+                        }
+                    }
+
+                    if (emptySlot !== -1) {
+                        gameState.table[emptySlot] = [...bestMove.cards];
+                        
+                        // Rimuovi le carte dalla mano dell'IA
+                        bestMove.cards.forEach(playedCard => {
+                            const handIndex = aiHand.findIndex(card => card.id === playedCard.id);
+                            if (handIndex !== -1) {
+                                aiHand.splice(handIndex, 1);
+                            }
+                        });
+
+                        sounds.cardPlace();
+                        updateUI();
+
+                        // Controlla se l'IA ha vinto
+                        if (aiHand.length === 0) {
+                            endGame(2);
+                            return;
+                        }
+                    }
+                } else {
+                    // L'IA pesca una carta
+                    if (gameState.deck.length > 0) {
+                        const card = gameState.deck.pop();
+                        aiHand.push(card);
+                        sortHand(aiHand);
+                        sounds.cardFlip();
+                        updateUI();
+                    }
+                }
+
+                // Termina il turno dell'IA
+                setTimeout(() => endTurn(), 1000);
+            }, 2000); // L'IA "pensa" per 2 secondi
+        }
+
+        // Trova la migliore mossa per l'IA
+        function findBestAIMove(hand) {
+            // Genera tutte le combinazioni possibili di 3 o più carte
+            const allCombinations = [];
+            
+            // Prova combinazioni di lunghezza crescente
+            for (let length = 3; length <= Math.min(hand.length, 7); length++) {
+                const combinations = getCombinations(hand, length);
+                allCombinations.push(...combinations);
+            }
+
+            // Trova la migliore combinazione valida
+            let bestMove = null;
+            let bestScore = 0;
+
+            allCombinations.forEach(combination => {
+                const validation = validateCombination(combination);
+                if (validation.isValid) {
+                    // Calcola il punteggio della mossa (preferisce combinazioni più lunghe)
+                    const score = combination.length * 10 + combination.reduce((sum, card) => sum + card.numericValue, 0);
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = { cards: combination, type: validation.type };
+                    }
+                }
+            });
+
+            return bestMove;
+        }
+
+        // Genera tutte le combinazioni di carte di una data lunghezza
+        function getCombinations(array, length) {
+            if (length === 1) return array.map(item => [item]);
+            if (length > array.length) return [];
+
+            const combinations = [];
+            for (let i = 0; i <= array.length - length; i++) {
+                const head = array[i];
+                const tailCombinations = getCombinations(array.slice(i + 1), length - 1);
+                tailCombinations.forEach(tail => combinations.push([head, ...tail]));
+            }
+            return combinations;
+        }
+
+        // Controlla la vittoria
+        function checkVictory() {
+            if (gameState.players[1].hand.length === 0) {
+                endGame(1);
+            } else if (gameState.players[2].hand.length === 0) {
+                endGame(2);
+            }
+        }
+
+        // Termina il gioco
+        function endGame(winner) {
+            gameState.isGameOver = true;
+            const winnerName = gameState.players[winner].name;
+            
+            document.getElementById('victoryMessage').innerHTML = `
+                🎉 VITTORIA! 🎉
+                <div style="font-size: 1.8rem; margin: 20px 0; color: var(--dark-bg);">
+                    ${winnerName} ha vinto!
+                </div>
+                <div style="font-size: 1rem; margin-bottom: 20px; opacity: 0.8;">
+                    Tempo di gioco: ${formatTime(Date.now() - gameState.gameStartTime)}
+                </div>
+                <button class="control-btn" onclick="backToMenu()" style="font-size: 1rem; background: var(--dark-bg); color: var(--primary-color);">
+                    Torna al Menu
+                </button>
+            `;
+            
+            document.getElementById('victoryOverlay').style.display = 'flex';
+            sounds.victory();
+        }
+
+        // Formatta il tempo in mm:ss
+        function formatTime(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Aggiorna il timer
+        function updateTimer() {
+            if (!gameState.gameStartTime || gameState.isGameOver) return;
+
+            const elapsed = Date.now() - gameState.gameStartTime;
+            document.getElementById('gameTimer').textContent = formatTime(elapsed);
+            
+            setTimeout(updateTimer, 1000);
+        }
+
+        // Torna al menu principale
+        function backToMenu() {
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('victoryOverlay').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+            
+            // Reset del gioco
+            gameState = {
+                mode: null,
+                currentPlayer: 1,
+                players: {
+                    1: { name: 'Giocatore 1', hand: [], isAI: false },
+                    2: { name: 'Giocatore 2', hand: [], isAI: false }
+                },
+                deck: [],
+                table: [[], [], [], []],
+                selectedCards: [],
+                gameStartTime: null,
+                isGameOver: false
+            };
+        }
+
+        // Mostra le impostazioni (placeholder)
+        function showSettings() {
+            alert('Impostazioni non ancora implementate. Funzionalità disponibili nella versione completa!');
+        }
+
+        // Inizializzazione dell'audio context al primo click
+        document.addEventListener('click', function initAudio() {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            document.removeEventListener('click', initAudio);
+        }, { once: true });
+
+        // Setup drag and drop per le aree del tavolo
+        document.addEventListener('DOMContentLoaded', function() {
+            const combinations = document.querySelectorAll('.combination');
+            
+            combinations.forEach(combo => {
+                combo.addEventListener('dragover', handleDragOver);
+                combo.addEventListener('drop', handleDrop);
+                combo.addEventListener('dragenter', handleDragEnter);
+                combo.addEventListener('dragleave', handleDragLeave);
+            });
+        });
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (e.target.classList.contains('combination')) {
+                e.target.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('combination')) {
+                e.target.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const combination = e.target.closest('.combination');
+            if (!combination) return;
+
+            combination.classList.remove('drag-over');
+
+            // Verifica se è possibile aggiungere la carta a questa combinazione
+            const cardId = draggedCard.dataset.cardId;
+            const card = gameState.players[1].hand.find(c => c.id === cardId);
+            
+            if (card && combination.children.length === 0) {
+                // Per ora, gestisce solo il drop su combinazioni vuote
+                // In una versione più avanzata, si potrebbe permettere l'aggiunta a combinazioni esistenti
+                gameState.selectedCards = [card];
+                playSelectedCards();
+            }
+        }
+
+        // Gestione dei tasti di scelta rapida
+        document.addEventListener('keydown', function(e) {
+            if (gameState.isGameOver) return;
+
+            switch(e.key) {
+                case ' ': // Spacebar per pescare
+                    e.preventDefault();
+                    if (gameState.currentPlayer === 1) {
+                        drawCard();
+                    }
+                    break;
+                case 'Enter': // Enter per giocare le carte selezionate
+                    e.preventDefault();
+                    if (gameState.currentPlayer === 1) {
+                        playSelectedCards();
+                    }
+                    break;
+                case 'Escape': // ESC per deselezionare tutte le carte
+                    e.preventDefault();
+                    gameState.selectedCards = [];
+                    document.querySelectorAll('.card.selected').forEach(card => {
+                        card.classList.remove('selected');
+                    });
+                    break;
+            }
+        });
+
+        // Effetti particellari per la vittoria (bonus)
+        function createVictoryParticles() {
+            const colors = ['#d4a72c', '#f4d03f', '#ffffff'];
+            const particles = [];
+
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: fixed;
+                    width: 8px;
+                    height: 8px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 3000;
+                    left: ${Math.random() * window.innerWidth}px;
+                    top: ${Math.random() * window.innerHeight}px;
+                    animation: float ${2 + Math.random() * 3}s ease-in-out infinite;
+                `;
+                
+                document.body.appendChild(particle);
+                particles.push(particle);
+                
+                // Rimuovi le particelle dopo l'animazione
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 5000);
+            }
+        }
+
+        // Aggiungi CSS per le particelle
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+                25% { transform: translateY(-20px) rotate(90deg); opacity: 0.8; }
+                50% { transform: translateY(-40px) rotate(180deg); opacity: 0.6; }
+                75% { transform: translateY(-20px) rotate(270deg); opacity: 0.8; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Tutorial rapido per nuovi giocatori
+        function showTutorial() {
+            const tutorial = `
+                🎯 COME GIOCARE A MACHIAVELLI:
+                
+                📋 OBIETTIVO:
+                Sbarazzati di tutte le tue carte per primo!
+                
+                🃏 COMBINAZIONI VALIDE:
+                • TRIS/POKER: 3+ carte dello stesso valore
+                • SCALA: 3+ carte consecutive dello stesso seme
+                
+                🎮 CONTROLLI:
+                • Click per selezionare le carte
+                • "Gioca Carte" per mettere le combinazioni sul tavolo  
+                • "Pesca Carta" se non puoi giocare
+                • "Fine Turno" per passare il turno
+                
+                ⌨️ SCORCIATOIE:
+                • SPAZIO: Pesca carta
+                • INVIO: Gioca carte selezionate
+                • ESC: Deseleziona tutte le carte
+                
+                Buona fortuna! 🍀
+            `;
+            
+            alert(tutorial);
+        }
+
+        // Aggiungi pulsante tutorial al menu
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButtons = document.querySelector('.menu-buttons');
+            const tutorialBtn = document.createElement('button');
+            tutorialBtn.className = 'menu-btn';
+            tutorialBtn.textContent = 'Come Giocare';
+            tutorialBtn.onclick = showTutorial;
+            menuButtons.appendChild(tutorialBtn);
+        });
+
+        console.log('🎮 Machiavelli Professionale caricato con successo!');
+        console.log('🎯 Sviluppato con amore per i giocatori di carte');
+    </script>
+</body>
+</html>

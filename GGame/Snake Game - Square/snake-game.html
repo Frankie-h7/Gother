@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #game-hub {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+        
+        .hub-title {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #DAA520; /* Giallo ocra */
+            text-shadow: 0 0 10px rgba(218, 165, 32, 0.6);
+        }
+        
+        .button {
+            padding: 15px 30px;
+            font-size: 24px;
+            background-color: #1a1a1a;
+            color: #DAA520;
+            border: 2px solid #DAA520;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button:hover {
+            background-color: #2a2a2a;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(218, 165, 32, 0.3);
+        }
+        
+        .button:active {
+            transform: scale(0.95);
+        }
+        
+        .button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(218, 165, 32, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(30, 30);
+                opacity: 0;
+            }
+        }
+        
+        canvas {
+            background-color: #1a1a1a;
+            border: 3px solid #DAA520;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
+        }
+        
+        #score-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            font-size: 24px;
+            color: #DAA520;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 5;
+        }
+        
+        .game-over-text {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff3333;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.6);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shine {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .controls-info {
+            margin-top: 20px;
+            font-size: 16px;
+            opacity: 0.7;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="score-container">
+            <div>Punteggio: <span id="score">0</span></div>
+            <div>Record: <span id="high-score">0</span></div>
+        </div>
+        
+        <canvas id="game-canvas" width="500" height="500"></canvas>
+        
+        <div class="controls-info">
+            Usa le frecce direzionali ← ↑ → ↓ per controllare il serpente
+        </div>
+        
+        <div id="game-hub">
+            <h1 class="hub-title">Snake Game</h1>
+            <button id="play-button" class="button">Play Game</button>
+        </div>
+        
+        <div id="game-over">
+            <h2 class="game-over-text">Game Over!</h2>
+            <div>Punteggio finale: <span id="final-score">0</span></div>
+            <button id="restart-button" class="button">Gioca Ancora</button>
+        </div>
+    </div>
+
+    <script>
+        // Elementi del DOM
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('high-score');
+        const finalScoreElement = document.getElementById('final-score');
+        const gameHub = document.getElementById('game-hub');
+        const gameOver = document.getElementById('game-over');
+        const playButton = document.getElementById('play-button');
+        const restartButton = document.getElementById('restart-button');
+        
+        // Configurazione del gioco
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        
+        // Suoni del gioco
+        const eatSound = new Audio();
+        eatSound.src = 'sounds/EatApple.mp3';
+        
+        const gameOverSound = new Audio();
+        gameOverSound.src = 'sounds/GameOver.mp3';
+
+        // Aggiungi questa linea dopo la dichiarazione degli altri suoni
+        const moveSound = new Audio();
+        moveSound.src = 'sounds/moveSnake.mp3';
+        moveSound.volume = 0.3; // Imposta un volume più basso per non essere troppo invadente
+        
+        // Stato del gioco
+        let snake = [];
+        let food = { x: 0, y: 0 };
+        let dx = 0;
+        let dy = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameActive = false;
+        let lastTime = 0;
+        let gameSpeed = 150; // millisecondi per frame
+        
+        // Inizializzazione del gioco
+        function initGame() {
+            snake = [
+                { x: 10, y: 10 }
+            ];
+            
+            createFood();
+            
+            dx = 0;
+            dy = 0;
+            score = 0;
+            scoreElement.textContent = score;
+            highScoreElement.textContent = highScore;
+            
+            gameActive = true;
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Creazione del cibo
+        function createFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+            
+            // Assicurarsi che il cibo non appaia sul serpente
+            for (let i = 0; i < snake.length; i++) {
+                if (food.x === snake[i].x && food.y === snake[i].y) {
+                    createFood();
+                    return;
+                }
+            }
+        }
+        
+        // Loop principale del gioco
+        function gameLoop(timestamp) {
+            if (!gameActive) return;
+            
+            // Controllo della velocità del gioco
+            if (timestamp - lastTime >= gameSpeed) {
+                lastTime = timestamp;
+                
+                // Aggiornamento dello stato del gioco
+                moveSnake();
+                checkCollision();
+                
+                if (gameActive) {
+                    drawGame();
+                }
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Movimento del serpente
+        function moveSnake() {
+            // Calcola la nuova posizione della testa
+            const head = {
+                x: snake[0].x + dx,
+                y: snake[0].y + dy
+            };
+            
+            // Aggiunge la nuova testa all'inizio del serpente
+            snake.unshift(head);
+            
+            // Controlla se il serpente ha mangiato il cibo
+            if (head.x === food.x && head.y === food.y) {
+                // Aumenta il punteggio
+                score++;
+                scoreElement.textContent = score;
+                
+                // Aggiorna il high score se necessario
+                if (score > highScore) {
+                    highScore = score;
+                    highScoreElement.textContent = highScore;
+                    localStorage.setItem('snakeHighScore', highScore);
+                }
+                
+                // Crea nuovo cibo
+                createFood();
+                
+                // Riproduci suono
+                eatSound.currentTime = 0;
+                eatSound.play();
+                
+                // Aumenta velocità
+                if (gameSpeed > 60) {
+                    gameSpeed -= 2;
+                }
+            } else {
+                // Rimuove la coda se non ha mangiato
+                snake.pop();
+            }
+        }
+        
+        // Controllo delle collisioni
+        function checkCollision() {
+            const head = snake[0];
+            
+            // Controllo collisione con i bordi
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endGame();
+                return;
+            }
+            
+            // Controllo collisione con se stesso
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    endGame();
+                    return;
+                }
+            }
+        }
+        
+        // Fine del gioco
+        function endGame() {
+            gameActive = false;
+            
+            // Animazione di game over
+            animateGameOver();
+            
+            // Riproduci suono di game over
+            gameOverSound.currentTime = 0;
+            gameOverSound.play();
+            
+            // Mostra schermata di game over
+            finalScoreElement.textContent = score;
+            gameOver.style.display = 'flex';
+        }
+        
+        // Animazione di game over
+        function animateGameOver() {
+            // Flash rosso sul canvas
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Disegna il serpente in rosso
+            ctx.fillStyle = '#ff3333';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+        }
+        
+        // Disegno del gioco
+        function drawGame() {
+            // Pulisci il canvas
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Disegna griglia
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i < tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+            
+            // Disegna il cibo con effetto pop-up
+            const currentTime = Date.now();
+            const pulse = Math.sin(currentTime / 200) * 0.2 + 0.8;
+            
+            ctx.fillStyle = '#DAA520';
+            ctx.beginPath();
+            ctx.arc(
+                food.x * gridSize + gridSize / 2,
+                food.y * gridSize + gridSize / 2,
+                gridSize / 2 * pulse,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+
+            // Aggiungi effetto luce
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.arc(
+                food.x * gridSize + gridSize / 3,
+                food.y * gridSize + gridSize / 3,
+                gridSize / 6,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Disegna il serpente
+            snake.forEach((segment, index) => {
+                // La testa è di un colore diverso
+                if (index === 0) {
+                    ctx.fillStyle = '#FFD700'; // Testa giallo oro
+                } else {
+                    // Il corpo sfuma da giallo ocra a verde scuro
+                    const greenValue = Math.floor(100 - (index / snake.length) * 70);
+                    ctx.fillStyle = `rgb(180, ${130 + greenValue}, 20)`;
+                }
+                
+                // Disegna il segmento con bordi arrotondati
+                ctx.beginPath();
+                ctx.roundRect(
+                    segment.x * gridSize + 1, 
+                    segment.y * gridSize + 1, 
+                    gridSize - 2, 
+                    gridSize - 2,
+                    index === 0 ? 5 : 3
+                );
+                ctx.fill();
+                
+                // Aggiungi dettaglio alla testa
+                if (index === 0) {
+                    // Occhi
+                    ctx.fillStyle = '#000';
+                    
+                    // Posizione degli occhi in base alla direzione
+                    let eyeX1, eyeY1, eyeX2, eyeY2;
+                    
+                    if (dx === 1) { // Verso destra
+                        eyeX1 = segment.x * gridSize + gridSize * 0.75;
+                        eyeY1 = segment.y * gridSize + gridSize * 0.3;
+                        eyeX2 = segment.x * gridSize + gridSize * 0.75;
+                        eyeY2 = segment.y * gridSize + gridSize * 0.7;
+                    } else if (dx === -1) { // Verso sinistra
+                        eyeX1 = segment.x * gridSize + gridSize * 0.25;
+                        eyeY1 = segment.y * gridSize + gridSize * 0.3;
+                        eyeX2 = segment.x * gridSize + gridSize * 0.25;
+                        eyeY2 = segment.y * gridSize + gridSize * 0.7;
+                    } else if (dy === -1) { // Verso l'alto
+                        eyeX1 = segment.x * gridSize + gridSize * 0.3;
+                        eyeY1 = segment.y * gridSize + gridSize * 0.25;
+                        eyeX2 = segment.x * gridSize + gridSize * 0.7;
+                        eyeY2 = segment.y * gridSize + gridSize * 0.25;
+                    } else if (dy === 1) { // Verso il basso
+                        eyeX1 = segment.x * gridSize + gridSize * 0.3;
+                        eyeY1 = segment.y * gridSize + gridSize * 0.75;
+                        eyeX2 = segment.x * gridSize + gridSize * 0.7;
+                        eyeY2 = segment.y * gridSize + gridSize * 0.75;
+                    } else {
+                        // Di default (all'inizio del gioco)
+                        eyeX1 = segment.x * gridSize + gridSize * 0.75;
+                        eyeY1 = segment.y * gridSize + gridSize * 0.3;
+                        eyeX2 = segment.x * gridSize + gridSize * 0.75;
+                        eyeY2 = segment.y * gridSize + gridSize * 0.7;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.arc(eyeX1, eyeY1, gridSize * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(eyeX2, eyeY2, gridSize * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+        
+        // Gestione degli input da tastiera
+        function handleKeyDown(e) {
+    if (!gameActive) return;
+    
+    // Previene il comportamento predefinito delle frecce (scorrimento pagina)
+    if ([37, 38, 39, 40].includes(e.keyCode)) {
+        e.preventDefault();
+    }
+
+    let directionChanged = false;
+    
+    // Freccia sinistra
+    if (e.keyCode === 37 && dx === 0) {
+        dx = -1;
+        dy = 0;
+        directionChanged = true;
+    }
+    // Freccia su
+    else if (e.keyCode === 38 && dy === 0) {
+        dx = 0;
+        dy = -1;
+        directionChanged = true;
+    }
+    // Freccia destra
+    else if (e.keyCode === 39 && dx === 0) {
+        dx = 1;
+        dy = 0;
+        directionChanged = true;
+    }
+    // Freccia giù
+    else if (e.keyCode === 40 && dy === 0) {
+        dx = 0;
+        dy = 1;
+        directionChanged = true;
+    }
+
+    // Riproduci il suono di movimento se la direzione è cambiata
+    if (directionChanged) {
+        moveSound.currentTime = 0;
+        moveSound.play();
+    }
+}
+        
+        // Event Listeners
+        document.addEventListener('keydown', handleKeyDown);
+        
+        playButton.addEventListener('click', function() {
+            gameHub.style.opacity = '0';
+            setTimeout(() => {
+                gameHub.style.display = 'none';
+                initGame();
+            }, 500);
+            
+            // Effetto pop-up sul pulsante
+            this.style.animation = 'pop 0.3s';
+            setTimeout(() => {
+                this.style.animation = '';
+            }, 300);
+        });
+        
+        restartButton.addEventListener('click', function() {
+            gameOver.style.display = 'none';
+            initGame();
+            
+            // Effetto pop-up sul pulsante
+            this.style.animation = 'pop 0.3s';
+            setTimeout(() => {
+                this.style.animation = '';
+            }, 300);
+        });
+        
+        // Aggiunge effetto di ripple ai pulsanti
+        const buttons = document.querySelectorAll('.button');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                let x = e.clientX - e.target.getBoundingClientRect().left;
+                let y = e.clientY - e.target.getBoundingClientRect().top;
+                
+                let ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+        
+        // Inizializza high score
+        highScoreElement.textContent = highScore;
+        
+        // Aggiungi supporto per PointerEvents nei browser mobili
+        if (window.PointerEvent) {
+            canvas.addEventListener('pointerdown', handleTouchStart);
+            document.addEventListener('pointermove', handleTouchMove);
+        } else {
+            canvas.addEventListener('touchstart', handleTouchStart);
+            document.addEventListener('touchmove', handleTouchMove);
+        }
+        
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            
+            if (!gameActive) return;
+            
+            // Ottieni coordinate iniziali
+            const touch = e.touches ? e.touches[0] : e;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+        
+        function handleTouchMove(e) {
+            if (!gameActive) return;
+            
+            // Previene lo scorrimento della pagina
+            e.preventDefault();
+            
+            if (!touchStartX || !touchStartY) return;
+            
+            // Ottieni coordinate finali
+            const touch = e.touches ? e.touches[0] : e;
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+            
+            // Calcola la differenza
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            // Determina la direzione basandosi sulla differenza maggiore
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Movimento orizzontale
+                if (diffX > 0 && dx === 0) {
+                    // Destra
+                    dx = 1;
+                    dy = 0;
+                } else if (diffX < 0 && dx === 0) {
+                    // Sinistra
+                    dx = -1;
+                    dy = 0;
+                }
+            } else {
+                // Movimento verticale
+                if (diffY > 0 && dy === 0) {
+                    // Giù
+                    dx = 0;
+                    dy = 1;
+                } else if (diffY < 0 && dy === 0) {
+                    // Su
+                    dx = 0;
+                    dy = -1;
+                }
+            }
+
+            // Aggiungi questa riga alla fine della funzione handleTouchMove, prima di resettare touchStartX e touchStartY
+            if (touchStartX !== 0 && touchStartY !== 0) {
+                moveSound.currentTime = 0;
+                moveSound.play();
+            }
+            
+            // Reimposta posizione iniziale per evitare movimenti continui
+            touchStartX = 0;
+            touchStartY = 0;
+        }
+    </script>
+</body>
+</html>

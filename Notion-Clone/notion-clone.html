@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GNotion - Gestione Avanzata</title>
+    <style>
+        /* ===== VARIABILI CSS ===== */
+        :root {
+            --primary-bg: #1a1a1a;
+            --secondary-bg: #2d2d2d;
+            --tertiary-bg: #3d3d3d;
+            --accent-yellow: #d4af37;
+            --accent-yellow-dark: #b8941f;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #404040;
+            --hover-bg: #404040;
+            --shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
+            --glow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        /* ===== RESET E BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== SCROLLBAR PERSONALIZZATA ===== */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--secondary-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-yellow-dark));
+    border-radius: 10px;
+    border: 2px solid var(--secondary-bg);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--accent-yellow-dark), var(--accent-yellow));
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--accent-yellow-dark);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--secondary-bg);
+}
+
+/* Scrollbar per la sidebar */
+.sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.6), rgba(184, 148, 31, 0.6));
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-yellow-dark));
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Scrollbar per il workspace */
+.workspace::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-yellow-dark));
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.workspace::-webkit-scrollbar-thumb:hover {
+    box-shadow: 
+        inset 0 0 3px rgba(0, 0, 0, 0.2),
+        0 0 15px rgba(212, 175, 55, 0.5);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-yellow) var(--secondary-bg);
+}
+
+/* Animazione per scrollbar hover */
+@keyframes scrollbar-glow {
+    0% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+    100% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+}
+
+::-webkit-scrollbar-thumb:hover {
+    animation: scrollbar-glow 2s ease-in-out infinite;
+}
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* ===== LAYOUT PRINCIPALE ===== */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 280px;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--hover-bg);
+            border-left-color: var(--accent-yellow);
+        }
+
+        .nav-item.active {
+            background: var(--tertiary-bg);
+            border-left-color: var(--accent-yellow);
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            opacity: 0.8;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header-bar {
+            height: 60px;
+            background: var(--secondary-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-yellow);
+            box-shadow: var(--glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.6;
+        }
+
+        .user-profile {
+            width: 35px;
+            height: 35px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-bg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            transform: scale(1.1);
+            box-shadow: var(--glow);
+        }
+
+        /* ===== WORKSPACE ===== */
+        .workspace {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            outline: none;
+            border: none;
+            background: transparent;
+            width: 100%;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        /* ===== SISTEMA DI BLOCCHI ===== */
+        .blocks-container {
+            min-height: 500px;
+        }
+
+        .block {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            background: var(--secondary-bg);
+            border: 1px solid transparent;
+        }
+
+        .block:hover {
+            border-color: var(--accent-yellow);
+            box-shadow: var(--shadow);
+        }
+
+        .block.dragging {
+            opacity: 0.6;
+            transform: rotate(2deg);
+        }
+
+        .block-content {
+            padding: 15px;
+        }
+
+        .block-toolbar {
+            position: absolute;
+            left: -35px;
+            top: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .block:hover .block-toolbar {
+            opacity: 1;
+        }
+
+        .drag-handle {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-yellow);
+            border-radius: 4px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* ===== TIPI DI BLOCCHI ===== */
+        .text-block textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            resize: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 50px;
+        }
+
+        .todo-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .todo-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--accent-yellow);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .todo-checkbox.checked {
+            background: var(--accent-yellow);
+        }
+
+        .todo-text {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            outline: none;
+            font-size: 16px;
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .table-block {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background: var(--tertiary-bg);
+            font-weight: 600;
+            color: var(--accent-yellow);
+        }
+
+        .data-table tr:hover {
+            background: var(--hover-bg);
+        }
+
+        /* ===== FLOATING ACTION BUTTON ===== */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: var(--glow);
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-yellow);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 24px;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .block-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .block-option {
+            padding: 20px;
+            background: var(--tertiary-bg);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .block-option:hover {
+            border-color: var(--accent-yellow);
+            transform: translateY(-2px);
+        }
+
+        .block-option-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        /* ===== DASHBOARD STATS ===== */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--secondary-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-yellow);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* ===== ANIMAZIONI ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.6); }
+        }
+
+        .animate-glow {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                height: 100vh;
+                z-index: 1001;
+            }
+
+            .sidebar.open {
+                transform: translateX(280px);
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .workspace {
+                padding: 20px;
+            }
+
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        .slide-up { animation: slideUp 0.5s ease; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span>📋</span>
+                    <span>GNotion</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-section="notes">
+                    <span class="nav-icon">📝</span>
+                    <span>Note e Documenti</span>
+                </div>
+                <div class="nav-item" data-section="tasks">
+                    <span class="nav-icon">✅</span>
+                    <span>Gestione Attività</span>
+                </div>
+                <div class="nav-item" data-section="database">
+                    <span class="nav-icon">🗃️</span>
+                    <span>Database</span>
+                </div>
+                <div class="nav-item" data-section="calendar">
+                    <span class="nav-icon">📅</span>
+                    <span>Calendario</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+            <!-- Header Bar -->
+            <header class="header-bar">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Cerca in tutto il workspace..." id="searchInput">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="user-profile" id="userProfile">U</div>
+            </header>
+
+            <!-- Workspace -->
+            <div class="workspace" id="workspace">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="section active">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Panoramica delle tue attività e progetti</p>
+                    
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalNotes">12</div>
+                            <div class="stat-label">Note Totali</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="completedTasks">8</div>
+                            <div class="stat-label">Attività Completate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="pendingTasks">5</div>
+                            <div class="stat-label">Attività Pendenti</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalProjects">3</div>
+                            <div class="stat-label">Progetti Attivi</div>
+                        </div>
+                    </div>
+
+                    <div class="blocks-container" id="dashboardBlocks">
+                        <!-- I blocchi verranno generati dinamicamente -->
+                    </div>
+                </section>
+
+                <!-- Notes Section -->
+                <section id="notes-section" class="section hidden">
+                    <h1 class="page-title" contenteditable="true">Le Mie Note</h1>
+                    <p class="page-subtitle">Organizza i tuoi pensieri e documenti</p>
+                    
+                    <div class="blocks-container" id="notesBlocks">
+                        <!-- I blocchi delle note verranno generati qui -->
+                    </div>
+                </section>
+
+                <!-- Tasks Section -->
+                <section id="tasks-section" class="section hidden">
+                    <h1 class="page-title" contenteditable="true">Gestione Attività</h1>
+                    <p class="page-subtitle">Organizza e traccia le tue attività</p>
+                    
+                    <div class="blocks-container" id="tasksBlocks">
+                        <!-- I blocchi delle attività verranno generati qui -->
+                    </div>
+                </section>
+
+                <!-- Database Section -->
+                <section id="database-section" class="section hidden">
+                    <h1 class="page-title" contenteditable="true">Database Personalizzati</h1>
+                    <p class="page-subtitle">Struttura e organizza i tuoi dati</p>
+                    
+                    <div class="blocks-container" id="databaseBlocks">
+                        <!-- I blocchi del database verranno generati qui -->
+                    </div>
+                </section>
+
+                <!-- Calendar Section -->
+                <section id="calendar-section" class="section hidden">
+                    <h1 class="page-title" contenteditable="true">Calendario</h1>
+                    <p class="page-subtitle">Gestisci i tuoi eventi e scadenze</p>
+                    
+                    <div class="blocks-container" id="calendarBlocks">
+                        <!-- I blocchi del calendario verranno generati qui -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== FLOATING ACTION BUTTON ===== -->
+    <div class="fab" id="addBlockBtn">
+        <span style="font-size: 24px; color: #1a1a1a;">+</span>
+    </div>
+
+    <!-- ===== MODAL PER AGGIUNGERE BLOCCHI ===== -->
+    <div class="modal" id="blockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Aggiungi Nuovo Blocco</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="block-options">
+                <div class="block-option" data-type="text">
+                    <div class="block-option-icon">📝</div>
+                    <div>Testo</div>
+                </div>
+                <div class="block-option" data-type="todo">
+                    <div class="block-option-icon">✅</div>
+                    <div>To-Do</div>
+                </div>
+                <div class="block-option" data-type="table">
+                    <div class="block-option-icon">📊</div>
+                    <div>Tabella</div>
+                </div>
+                <div class="block-option" data-type="image">
+                    <div class="block-option-icon">🖼️</div>
+                    <div>Immagine</div>
+                </div>
+                <div class="block-option" data-type="video">
+                    <div class="block-option-icon">🎥</div>
+                    <div>Video</div>
+                </div>
+                <div class="block-option" data-type="code">
+                    <div class="block-option-icon">💻</div>
+                    <div>Codice</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GESTIONE DELLO STATO DELL'APPLICAZIONE =====
+        class ProductivePlatform {
+            constructor() {
+                this.currentSection = 'dashboard';
+                this.blocks = {
+                    dashboard: [],
+                    notes: [],
+                    tasks: [],
+                    database: [],
+                    calendar: []
+                };
+                this.draggedElement = null;
+                this.init();
+            }
+
+            // ===== INIZIALIZZAZIONE =====
+            init() {
+                this.setupEventListeners();
+                this.loadInitialData();
+                this.setupDragAndDrop();
+                this.playSound('startup');
+            }
+
+            // ===== SETUP EVENT LISTENERS =====
+            setupEventListeners() {
+                // Navigazione sidebar
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const section = e.currentTarget.dataset.section;
+                        this.switchSection(section);
+                        this.playSound('click');
+                    });
+                });
+
+                // Modal per aggiungere blocchi
+                document.getElementById('addBlockBtn').addEventListener('click', () => {
+                    this.openBlockModal();
+                    this.playSound('open');
+                });
+
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    this.closeBlockModal();
+                    this.playSound('close');
+                });
+
+                // Opzioni blocchi
+                document.querySelectorAll('.block-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const type = e.currentTarget.dataset.type;
+                        this.addBlock(type);
+                        this.closeBlockModal();
+                        this.playSound('create');
+                    });
+                });
+
+                // Ricerca
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value);
+                });
+
+                // Chiudi modal cliccando fuori
+                document.getElementById('blockModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'blockModal') {
+                        this.closeBlockModal();
+                    }
+                });
+
+                // Responsive sidebar toggle
+                if (window.innerWidth <= 768) {
+                    document.getElementById('userProfile').addEventListener('click', () => {
+                        document.getElementById('sidebar').classList.toggle('open');
+                    });
+                }
+            }
+
+            // ===== CARICAMENTO DATI INIZIALI =====
+            loadInitialData() {
+                // Carica alcuni blocchi di esempio
+                this.blocks.dashboard = [
+                    {
+                        id: 'dash-1',
+                        type: 'text',
+                        content: 'Benvenuto nella tua piattaforma di produttività! Qui puoi gestire note, attività e progetti in modo efficiente.'
+                    },
+                    {
+                        id: 'dash-2',
+                        type: 'todo',
+                        content: 'Configura il tuo workspace',
+                        completed: false
+                    }
+                ];
+
+                this.blocks.notes = [
+                    {
+                        id: 'note-1',
+                        type: 'text',
+                        content: 'Questa è la tua prima nota. Puoi modificarla e aggiungerne altre.'
+                    }
+                ];
+
+                this.blocks.tasks = [
+                    {
+                        id: 'task-1',
+                        type: 'todo',
+                        content: 'Completare il setup della piattaforma',
+                        completed: false
+                    },
+                    {
+                        id: 'task-2',
+                        type: 'todo',
+                        content: 'Organizzare le note per progetti',
+                        completed: true
+                    }
+                ];
+
+                this.renderCurrentSection();
+                this.updateStats();
+            }
+
+            // ===== CAMBIO SEZIONE =====
+            switchSection(section) {
+                // Rimuovi classe active dalla navigazione
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                // Aggiungi classe active alla sezione corrente
+                document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+                // Nascondi tutte le sezioni
+                document.querySelectorAll('.section').forEach(sec => {
+                    sec.classList.add('hidden');
+                });
+
+                // Mostra la sezione corrente
+                document.getElementById(`${section}-section`).classList.remove('hidden');
+                document.getElementById(`${section}-section`).classList.add('fade-in');
+
+                this.currentSection = section;
+                this.renderCurrentSection();
+            }
+
+            // ===== RENDERING DELLA SEZIONE CORRENTE =====
+            renderCurrentSection() {
+                const container = document.getElementById(`${this.currentSection}Blocks`);
+                const blocks = this.blocks[this.currentSection] || [];
+                
+                container.innerHTML = '';
+
+                blocks.forEach(block => {
+                    const blockElement = this.createBlockElement(block);
+                    container.appendChild(blockElement);
+                });
+
+                // Se non ci sono blocchi, mostra un messaggio di benvenuto
+                if (blocks.length === 0 && this.currentSection !== 'dashboard') {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'empty-message';
+                    emptyMessage.style.cssText = `
+                        text-align: center; 
+                        padding: 60px 20px; 
+                        color: var(--text-muted);
+                        font-size: 18px;
+                    `;
+                    emptyMessage.innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
+                        <div>Nessun contenuto ancora. Clicca il pulsante + per iniziare!</div>
+                    `;
+                    container.appendChild(emptyMessage);
+                }
+            }
+
+            // ===== CREAZIONE ELEMENTO BLOCCO =====
+            createBlockElement(block) {
+                const blockEl = document.createElement('div');
+                blockEl.className = 'block';
+                blockEl.draggable = true;
+                blockEl.dataset.blockId = block.id;
+
+                // Toolbar del blocco
+                const toolbar = document.createElement('div');
+                toolbar.className = 'block-toolbar';
+                toolbar.innerHTML = '<div class="drag-handle">⋮⋮</div>';
+
+                // Contenuto del blocco
+                const content = document.createElement('div');
+                content.className = 'block-content';
+
+                switch (block.type) {
+                    case 'text':
+                        content.innerHTML = `
+                            <div class="text-block">
+                                <textarea placeholder="Scrivi qui..." oninput="app.updateBlockContent('${block.id}', this.value)">${block.content || ''}</textarea>
+                            </div>
+                        `;
+                        break;
+
+                    case 'todo':
+                        const checkedClass = block.completed ? 'checked' : '';
+                        const completedClass = block.completed ? 'completed' : '';
+                        content.innerHTML = `
+                            <div class="todo-block">
+                                <div class="todo-checkbox ${checkedClass}" onclick="app.toggleTodo('${block.id}')">
+                                    ${block.completed ? '✓' : ''}
+                                </div>
+                                <input type="text" class="todo-text ${completedClass}" 
+                                       value="${block.content || ''}" 
+                                       placeholder="Nuova attività..."
+                                       oninput="app.updateBlockContent('${block.id}', this.value)">
+                            </div>
+                        `;
+                        break;
+
+                    case 'table':
+                        content.innerHTML = `
+                            <div class="table-block">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Stato</th>
+                                            <th>Data</th>
+                                            <th>Priorità</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Progetto Alpha</td>
+                                            <td>In Corso</td>
+                                            <td>2024-01-15</td>
+                                            <td>Alta</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Revisione Documenti</td>
+                                            <td>Completato</td>
+                                            <td>2024-01-10</td>
+                                            <td>Media</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                        break;
+
+                    case 'image':
+                        content.innerHTML = `
+                            <div class="image-block">
+                                <div style="padding: 40px; text-align: center; background: var(--tertiary-bg); border-radius: 8px; border: 2px dashed var(--border-color);">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">🖼️</div>
+                                    <div style="color: var(--text-muted); margin-bottom: 15px;">Clicca per aggiungere un'immagine</div>
+                                    <input type="file" accept="image/*" style="display: none;" onchange="app.handleImageUpload('${block.id}', this)">
+                                    <button onclick="this.previousElementSibling.click()" style="background: var(--accent-yellow); color: var(--primary-bg); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Seleziona Immagine</button>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'video':
+                        content.innerHTML = `
+                            <div class="video-block">
+                                <div style="padding: 40px; text-align: center; background: var(--tertiary-bg); border-radius: 8px;">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">🎥</div>
+                                    <input type="url" placeholder="Inserisci URL del video (YouTube, Vimeo, etc.)" 
+                                           style="width: 100%; padding: 12px; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); margin-bottom: 15px;"
+                                           onchange="app.embedVideo('${block.id}', this.value)">
+                                    <div style="color: var(--text-muted); font-size: 14px;">Supporta YouTube, Vimeo e altri servizi</div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'code':
+                        content.innerHTML = `
+                            <div class="code-block">
+                                <div style="background: var(--primary-bg); border: 1px solid var(--border-color); border-radius: 8px;">
+                                    <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: between; align-items: center;">
+                                        <select onchange="app.updateCodeLanguage('${block.id}', this.value)" style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 5px; border-radius: 4px;">
+                                            <option value="javascript">JavaScript</option>
+                                            <option value="python">Python</option>
+                                            <option value="html">HTML</option>
+                                            <option value="css">CSS</option>
+                                            <option value="json">JSON</option>
+                                        </select>
+                                        <span style="color: var(--text-muted); font-size: 12px;">Blocco Codice</span>
+                                    </div>
+                                    <textarea placeholder="Scrivi il tuo codice qui..." 
+                                              style="width: 100%; min-height: 150px; background: transparent; border: none; color: var(--text-primary); padding: 15px; font-family: 'Courier New', monospace; resize: vertical;"
+                                              oninput="app.updateBlockContent('${block.id}', this.value)">${block.content || ''}</textarea>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+
+                blockEl.appendChild(toolbar);
+                blockEl.appendChild(content);
+
+                // Aggiungi effetto glow quando viene creato
+                setTimeout(() => {
+                    blockEl.classList.add('animate-glow');
+                    setTimeout(() => blockEl.classList.remove('animate-glow'), 2000);
+                }, 100);
+
+                return blockEl;
+            }
+
+            // ===== GESTIONE BLOCCHI =====
+            addBlock(type) {
+                const newBlock = {
+                    id: `${this.currentSection}-${Date.now()}`,
+                    type: type,
+                    content: '',
+                    completed: false
+                };
+
+                this.blocks[this.currentSection].push(newBlock);
+                this.renderCurrentSection();
+                this.updateStats();
+                
+                // Scroll alla fine per mostrare il nuovo blocco
+                setTimeout(() => {
+                    const container = document.getElementById(`${this.currentSection}Blocks`);
+                    container.scrollTop = container.scrollHeight;
+                }, 100);
+            }
+
+            updateBlockContent(blockId, content) {
+                const block = this.findBlock(blockId);
+                if (block) {
+                    block.content = content;
+                    this.updateStats();
+                }
+            }
+
+            toggleTodo(blockId) {
+                const block = this.findBlock(blockId);
+                if (block && block.type === 'todo') {
+                    block.completed = !block.completed;
+                    this.renderCurrentSection();
+                    this.updateStats();
+                    this.playSound(block.completed ? 'complete' : 'incomplete');
+                }
+            }
+
+            findBlock(blockId) {
+                for (let section in this.blocks) {
+                    const block = this.blocks[section].find(b => b.id === blockId);
+                    if (block) return block;
+                }
+                return null;
+            }
+
+            deleteBlock(blockId) {
+                for (let section in this.blocks) {
+                    const index = this.blocks[section].findIndex(b => b.id === blockId);
+                    if (index !== -1) {
+                        this.blocks[section].splice(index, 1);
+                        this.renderCurrentSection();
+                        this.updateStats();
+                        this.playSound('delete');
+                        break;
+                    }
+                }
+            }
+
+            // ===== GESTIONE FILE E MEDIA =====
+            handleImageUpload(blockId, input) {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imageUrl = e.target.result;
+                        const block = this.findBlock(blockId);
+                        if (block) {
+                            block.imageUrl = imageUrl;
+                            // Aggiorna il contenuto del blocco per mostrare l'immagine
+                            const blockEl = document.querySelector(`[data-block-id="${blockId}"]`);
+                            const content = blockEl.querySelector('.block-content');
+                            content.innerHTML = `
+                                <div class="image-block">
+                                    <img src="${imageUrl}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow);" alt="Uploaded image">
+                                    <div style="margin-top: 10px; text-align: center;">
+                                        <button onclick="app.changeImage('${blockId}')" style="background: var(--accent-yellow); color: var(--primary-bg); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Cambia</button>
+                                        <button onclick="app.deleteBlock('${blockId}')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Rimuovi</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            embedVideo(blockId, url) {
+                if (!url) return;
+                
+                let embedUrl = '';
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    const videoId = url.includes('youtu.be') ? 
+                        url.split('youtu.be/')[1] : 
+                        url.split('v=')[1]?.split('&')[0];
+                    embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                } else if (url.includes('vimeo.com')) {
+                    const videoId = url.split('vimeo.com/')[1];
+                    embedUrl = `https://player.vimeo.com/video/${videoId}`;
+                }
+
+                if (embedUrl) {
+                    const blockEl = document.querySelector(`[data-block-id="${blockId}"]`);
+                    const content = blockEl.querySelector('.block-content');
+                    content.innerHTML = `
+                        <div class="video-block">
+                            <iframe src="${embedUrl}" 
+                                    style="width: 100%; height: 315px; border: none; border-radius: 8px;"
+                                    allowfullscreen></iframe>
+                            <div style="margin-top: 10px; text-align: center;">
+                                <button onclick="app.changeVideo('${blockId}')" style="background: var(--accent-yellow); color: var(--primary-bg); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Cambia URL</button>
+                                <button onclick="app.deleteBlock('${blockId}')" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Rimuovi</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // ===== DRAG AND DROP =====
+            setupDragAndDrop() {
+                document.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('block')) {
+                        this.draggedElement = e.target;
+                        e.target.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                });
+
+                document.addEventListener('dragend', (e) => {
+                    if (e.target.classList.contains('block')) {
+                        e.target.classList.remove('dragging');
+                        this.draggedElement = null;
+                    }
+                });
+
+                document.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                document.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (this.draggedElement && e.target.classList.contains('block')) {
+                        const container = e.target.parentNode;
+                        const afterElement = this.getDragAfterElement(container, e.clientY);
+                        
+                        if (afterElement == null) {
+                            container.appendChild(this.draggedElement);
+                        } else {
+                            container.insertBefore(this.draggedElement, afterElement);
+                        }
+                        
+                        this.reorderBlocks();
+                        this.playSound('move');
+                    }
+                });
+            }
+
+            getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.block:not(.dragging)')];
+                
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            reorderBlocks() {
+                const container = document.getElementById(`${this.currentSection}Blocks`);
+                const blockElements = [...container.querySelectorAll('.block')];
+                const newOrder = [];
+
+                blockElements.forEach(element => {
+                    const blockId = element.dataset.blockId;
+                    const block = this.findBlock(blockId);
+                    if (block) {
+                        newOrder.push(block);
+                    }
+                });
+
+                this.blocks[this.currentSection] = newOrder;
+            }
+
+            // ===== RICERCA =====
+            handleSearch(query) {
+                if (!query.trim()) {
+                    this.renderCurrentSection();
+                    return;
+                }
+
+                const container = document.getElementById(`${this.currentSection}Blocks`);
+                const blocks = [...container.querySelectorAll('.block')];
+
+                blocks.forEach(block => {
+                    const content = block.textContent.toLowerCase();
+                    if (content.includes(query.toLowerCase())) {
+                        block.style.display = 'block';
+                        block.classList.add('animate-glow');
+                    } else {
+                        block.style.display = 'none';
+                        block.classList.remove('animate-glow');
+                    }
+                });
+
+                // Rimuovi glow dopo 2 secondi
+                setTimeout(() => {
+                    blocks.forEach(block => block.classList.remove('animate-glow'));
+                }, 2000);
+            }
+
+            // ===== STATISTICHE DASHBOARD =====
+            updateStats() {
+                let totalNotes = 0;
+                let completedTasks = 0;
+                let pendingTasks = 0;
+                let totalProjects = 0;
+
+                // Conta le note
+                totalNotes = this.blocks.notes.length + this.blocks.dashboard.filter(b => b.type === 'text').length;
+
+                // Conta le attività
+                Object.values(this.blocks).forEach(sectionBlocks => {
+                    sectionBlocks.forEach(block => {
+                        if (block.type === 'todo') {
+                            if (block.completed) {
+                                completedTasks++;
+                            } else {
+                                pendingTasks++;
+                            }
+                        }
+                    });
+                });
+
+                // Progetti (sezioni con contenuto)
+                Object.keys(this.blocks).forEach(section => {
+                    if (this.blocks[section].length > 0 && section !== 'dashboard') {
+                        totalProjects++;
+                    }
+                });
+
+                // Aggiorna i numeri nel DOM
+                document.getElementById('totalNotes').textContent = totalNotes;
+                document.getElementById('completedTasks').textContent = completedTasks;
+                document.getElementById('pendingTasks').textContent = pendingTasks;
+                document.getElementById('totalProjects').textContent = totalProjects;
+            }
+
+            // ===== GESTIONE MODAL =====
+            openBlockModal() {
+                document.getElementById('blockModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeBlockModal() {
+                document.getElementById('blockModal').classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+
+            // ===== EFFETTI SONORI =====
+            playSound(type) {
+                // Crea contesti audio per diversi suoni
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    let frequency, duration;
+
+                    switch (type) {
+                        case 'click':
+                            frequency = 800;
+                            duration = 100;
+                            break;
+                        case 'create':
+                            frequency = 600;
+                            duration = 200;
+                            break;
+                        case 'complete':
+                            frequency = 1000;
+                            duration = 300;
+                            break;
+                        case 'delete':
+                            frequency = 400;
+                            duration = 150;
+                            break;
+                        case 'open':
+                            frequency = 700;
+                            duration = 150;
+                            break;
+                        case 'close':
+                            frequency = 500;
+                            duration = 100;
+                            break;
+                        case 'move':
+                            frequency = 650;
+                            duration = 120;
+                            break;
+                        case 'startup':
+                            frequency = 800;
+                            duration = 250;
+                            break;
+                        default:
+                            return;
+                    }
+
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                    oscillator.type = 'sine';
+
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + duration / 1000);
+                } catch (e) {
+                    // Audio non supportato o bloccato
+                    console.log('Audio non disponibile');
+                }
+            }
+
+            // ===== FUNZIONI AUSILIARIE =====
+            changeImage(blockId) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e) => this.handleImageUpload(blockId, e.target);
+                input.click();
+            }
+
+            changeVideo(blockId) {
+                const url = prompt('Inserisci il nuovo URL del video:');
+                if (url) {
+                    this.embedVideo(blockId, url);
+                }
+            }
+
+            updateCodeLanguage(blockId, language) {
+                const block = this.findBlock(blockId);
+                if (block) {
+                    block.language = language;
+                    // Qui potresti aggiungere syntax highlighting
+                }
+            }
+
+            // ===== GESTIONE RESPONSIVE =====
+            handleResize() {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
+            }
+
+            // ===== SALVATAGGIO AUTOMATICO =====
+            autoSave() {
+                // In un'applicazione reale, qui salveresti i dati sul server
+                const data = {
+                    blocks: this.blocks,
+                    currentSection: this.currentSection,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Auto-saving data:', data);
+                // localStorage.setItem('productivePlatformData', JSON.stringify(data));
+            }
+
+            // ===== ESPORTAZIONE DATI =====
+            exportData(format = 'json') {
+                const data = {
+                    blocks: this.blocks,
+                    exportDate: new Date().toISOString(),
+                    version: '1.0.0'
+                };
+
+                let content, filename, mimeType;
+
+                switch (format) {
+                    case 'json':
+                        content = JSON.stringify(data, null, 2);
+                        filename = 'productive-platform-export.json';
+                        mimeType = 'application/json';
+                        break;
+                    case 'markdown':
+                        content = this.convertToMarkdown(data);
+                        filename = 'productive-platform-export.md';
+                        mimeType = 'text/markdown';
+                        break;
+                    default:
+                        return;
+                }
+
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                this.playSound('complete');
+            }
+
+            convertToMarkdown(data) {
+                let markdown = '# Productive Platform Export\n\n';
+                markdown += `Esportato il: ${new Date().toLocaleDateString('it-IT')}\n\n`;
+
+                Object.keys(data.blocks).forEach(section => {
+                    if (data.blocks[section].length > 0) {
+                        markdown += `## ${section.charAt(0).toUpperCase() + section.slice(1)}\n\n`;
+                        
+                        data.blocks[section].forEach(block => {
+                            switch (block.type) {
+                                case 'text':
+                                    markdown += `${block.content}\n\n`;
+                                    break;
+                                case 'todo':
+                                    const checkbox = block.completed ? '- [x]' : '- [ ]';
+                                    markdown += `${checkbox} ${block.content}\n`;
+                                    break;
+                                case 'code':
+                                    markdown += `\`\`\`${block.language || 'javascript'}\n${block.content}\n\`\`\`\n\n`;
+                                    break;
+                            }
+                        });
+                        markdown += '\n';
+                    }
+                });
+
+                return markdown;
+            }
+        }
+
+        // ===== INIZIALIZZAZIONE DELL'APPLICAZIONE =====
+        const app = new ProductivePlatform();
+
+        // Setup auto-save ogni 30 secondi
+        setInterval(() => {
+            app.autoSave();
+        }, 30000);
+
+        // Gestione resize window
+        window.addEventListener('resize', () => {
+            app.handleResize();
+        });
+
+        // Gestione keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + N: nuovo blocco
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                app.openBlockModal();
+            }
+            
+            // Ctrl/Cmd + S: salva/esporta
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                app.exportData('json');
+            }
+            
+            // Ctrl/Cmd + F: focus su ricerca
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            
+            // Escape: chiudi modal
+            if (e.key === 'Escape') {
+                app.closeBlockModal();
+            }
+        });
+
+        // Messaggio di benvenuto
+        console.log('🚀 Productive Platform caricata con successo!');
+        console.log('💡 Keyboard shortcuts:');
+        console.log('   Ctrl/Cmd + N: Nuovo blocco');
+        console.log('   Ctrl/Cmd + S: Esporta dati');
+        console.log('   Ctrl/Cmd + F: Cerca');
+        console.log('   Escape: Chiudi modal');
+
+        // Aggiungi un messaggio di benvenuto dopo il caricamento
+        setTimeout(() => {
+            if (app.blocks.dashboard.length <= 2) {
+                const welcomeBlock = {
+                    id: 'welcome-tips',
+                    type: 'text',
+                    content: '💡 **Suggerimenti per iniziare:**\n\n• Usa il pulsante + per aggiungere nuovi blocchi\n• Trascina i blocchi per riordinarli\n• Usa Ctrl+N per creare rapidamente nuovi contenuti\n• La ricerca funziona su tutti i tuoi contenuti\n• I tuoi dati vengono salvati automaticamente'
+                };
+                app.blocks.dashboard.push(welcomeBlock);
+                app.renderCurrentSection();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

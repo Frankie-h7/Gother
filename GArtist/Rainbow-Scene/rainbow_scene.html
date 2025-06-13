@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcobaleno Interattivo CSS</title>
+    <style>
+        /* Reset e stile generale */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow-x: hidden;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Contenitore principale che occupa tutto lo schermo */
+        .scene-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Cielo con transizione di colori */
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #72c8f2, #90d1f5, #b5e2f7);
+            animation: sky-transition 60s infinite alternate;
+            z-index: 1;
+        }
+        
+        @keyframes sky-transition {
+            0% {
+                background: linear-gradient(to bottom, #72c8f2, #90d1f5, #b5e2f7); /* Giorno */
+            }
+            50% {
+                background: linear-gradient(to bottom, #f2c17e, #f5a58f, #f7c3b5); /* Tramonto */
+            }
+            100% {
+                background: linear-gradient(to bottom, #72c8f2, #90d1f5, #b5e2f7); /* Ritorno al giorno */
+            }
+        }
+        
+        /* Terreno/prato */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(to bottom, #7cbe5f, #4e8a36);
+            border-top-left-radius: 50% 100px;
+            border-top-right-radius: 50% 100px;
+            z-index: 2;
+        }
+        
+        /* Collinette nel prato */
+        .hill {
+            position: absolute;
+            bottom: 15%;
+            background-color: #5a9c41;
+            border-radius: 50%;
+            z-index: 3;
+        }
+        
+        .hill-1 {
+            width: 25%;
+            height: 15%;
+            left: 5%;
+        }
+        
+        .hill-2 {
+            width: 30%;
+            height: 20%;
+            left: 25%;
+        }
+        
+        .hill-3 {
+            width: 20%;
+            height: 12%;
+            right: 15%;
+        }
+        
+        /* Fiori nel prato */
+        .flower {
+            position: absolute;
+            bottom: 18%;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #fff;
+            z-index: 4;
+        }
+        
+        .flower::before, .flower::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #fff;
+        }
+        
+        .flower::before {
+            left: -6px;
+            top: -3px;
+        }
+        
+        .flower::after {
+            right: -6px;
+            top: -3px;
+        }
+        
+        .flower-1 {
+            left: 10%;
+            background-color: #ffcccb;
+        }
+        
+        .flower-1::before, .flower-1::after {
+            background-color: #ffcccb;
+        }
+        
+        .flower-2 {
+            left: 20%;
+            background-color: #fff7a5;
+        }
+        
+        .flower-2::before, .flower-2::after {
+            background-color: #fff7a5;
+        }
+        
+        .flower-3 {
+            left: 85%;
+            background-color: #dcb0ff;
+        }
+        
+        .flower-3::before, .flower-3::after {
+            background-color: #dcb0ff;
+        }
+        
+        .flower-4 {
+            left: 70%;
+            background-color: #cef7a0;
+        }
+        
+        .flower-4::before, .flower-4::after {
+            background-color: #cef7a0;
+        }
+        
+        /* Nuvole morbide */
+        .cloud {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: float-cloud linear infinite;
+            z-index: 5;
+        }
+        
+        .cloud::before, .cloud::after {
+            content: "";
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+        
+        .cloud-1 {
+            width: 100px;
+            height: 50px;
+            top: 15%;
+            left: -100px;
+            animation-duration: 80s;
+        }
+        
+        .cloud-1::before {
+            width: 60px;
+            height: 60px;
+            top: -20px;
+            left: 15px;
+        }
+        
+        .cloud-1::after {
+            width: 50px;
+            height: 50px;
+            top: -10px;
+            left: 50px;
+        }
+        
+        .cloud-2 {
+            width: 120px;
+            height: 60px;
+            top: 25%;
+            left: -120px;
+            animation-duration: 100s;
+            animation-delay: 10s;
+        }
+        
+        .cloud-2::before {
+            width: 70px;
+            height: 70px;
+            top: -25px;
+            left: 20px;
+        }
+        
+        .cloud-2::after {
+            width: 60px;
+            height: 60px;
+            top: -15px;
+            left: 60px;
+        }
+        
+        .cloud-3 {
+            width: 80px;
+            height: 40px;
+            top: 10%;
+            left: -80px;
+            animation-duration: 70s;
+            animation-delay: 20s;
+        }
+        
+        .cloud-3::before {
+            width: 50px;
+            height: 50px;
+            top: -20px;
+            left: 10px;
+        }
+        
+        .cloud-3::after {
+            width: 40px;
+            height: 40px;
+            top: -10px;
+            left: 40px;
+        }
+        
+        @keyframes float-cloud {
+            0% {
+                transform: translateX(-100px);
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px));
+            }
+        }
+        
+        /* Arcobaleno con 7 colori */
+        .rainbow-container {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            bottom: 10%;
+            left: 10%;
+            z-index: 6;
+            perspective: 800px;
+        }
+        
+        .rainbow {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        .rainbow-arc {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-style: solid;
+            border-color: transparent;
+            border-bottom-color: currentColor;
+            border-radius: 50%;
+            border-width: 15px;
+            top: 0;
+            left: 0;
+            transform: rotateX(65deg) scaleX(2);
+            transform-origin: center bottom;
+            opacity: 0.7;
+            transition: all 0.5s ease;
+        }
+        
+        /* I sette colori dell'arcobaleno */
+        .rainbow-arc:nth-child(1) {
+            color: #ff0000; /* Rosso */
+            height: calc(100% - 0px);
+        }
+        
+        .rainbow-arc:nth-child(2) {
+            color: #ffa500; /* Arancione */
+            height: calc(100% - 20px);
+        }
+        
+        .rainbow-arc:nth-child(3) {
+            color: #ffff00; /* Giallo */
+            height: calc(100% - 40px);
+        }
+        
+        .rainbow-arc:nth-child(4) {
+            color: #00ff00; /* Verde */
+            height: calc(100% - 60px);
+        }
+        
+        .rainbow-arc:nth-child(5) {
+            color: #0000ff; /* Blu */
+            height: calc(100% - 80px);
+        }
+        
+        .rainbow-arc:nth-child(6) {
+            color: #4b0082; /* Indaco */
+            height: calc(100% - 100px);
+        }
+        
+        .rainbow-arc:nth-child(7) {
+            color: #9400d3; /* Viola */
+            height: calc(100% - 120px);
+        }
+        
+        /* Effetto hover per l'arcobaleno */
+        .rainbow:hover .rainbow-arc {
+            animation: rainbow-pulse 2s infinite alternate;
+        }
+        
+        @keyframes rainbow-pulse {
+            0% {
+                opacity: 0.7;
+                filter: brightness(1);
+            }
+            100% {
+                opacity: 0.9;
+                filter: brightness(1.3);
+            }
+        }
+        
+        /* Effetto pioggia */
+        .rain-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 7;
+            opacity: 0;
+            pointer-events: none;
+            animation: rain-appear 20s infinite;
+        }
+        
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.7));
+            border-radius: 0 0 5px 5px;
+            animation: falling-rain linear infinite;
+        }
+        
+        @keyframes rain-appear {
+            0%, 75%, 100% {
+                opacity: 0;
+            }
+            80%, 95% {
+                opacity: 0.5;
+            }
+        }
+        
+        @keyframes falling-rain {
+            0% {
+                transform: translateY(-100px);
+            }
+            100% {
+                transform: translateY(calc(100vh + 100px));
+            }
+        }
+        
+        /* Generazione delle gocce di pioggia con JavaScript */
+        
+        /* Media query per responsività */
+        @media (max-width: 768px) {
+            .rainbow-container {
+                width: 90%;
+                left: 5%;
+            }
+            
+            .rainbow-arc {
+                border-width: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .rainbow-container {
+                width: 95%;
+                left: 2.5%;
+            }
+            
+            .rainbow-arc {
+                border-width: 6px;
+            }
+            
+            .hill {
+                bottom: 18%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scene-container">
+        <!-- Cielo -->
+        <div class="sky"></div>
+        
+        <!-- Nuvole -->
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        
+        <!-- Arcobaleno -->
+        <div class="rainbow-container">
+            <div class="rainbow">
+                <div class="rainbow-arc"></div>
+                <div class="rainbow-arc"></div>
+                <div class="rainbow-arc"></div>
+                <div class="rainbow-arc"></div>
+                <div class="rainbow-arc"></div>
+                <div class="rainbow-arc"></div>
+                <div class="rainbow-arc"></div>
+            </div>
+        </div>
+        
+        <!-- Effetto pioggia -->
+        <div class="rain-container" id="rainContainer"></div>
+        
+        <!-- Colline -->
+        <div class="hill hill-1"></div>
+        <div class="hill hill-2"></div>
+        <div class="hill hill-3"></div>
+        
+        <!-- Prato -->
+        <div class="ground"></div>
+        
+        <!-- Fiori -->
+        <div class="flower flower-1"></div>
+        <div class="flower flower-2"></div>
+        <div class="flower flower-3"></div>
+        <div class="flower flower-4"></div>
+    </div>
+
+    <script>
+        // Generazione delle gocce di pioggia
+        const rainContainer = document.getElementById('rainContainer');
+        const raindropsAmount = Math.floor(window.innerWidth / 10); // Numero di gocce basato sulla larghezza dello schermo
+        
+        for (let i = 0; i < raindropsAmount; i++) {
+            const raindrop = document.createElement('div');
+            raindrop.className = 'raindrop';
+            
+            // Posizione casuale orizzontale
+            const randomX = Math.random() * 100;
+            raindrop.style.left = `${randomX}%`;
+            
+            // Posizione casuale verticale iniziale
+            const randomY = Math.random() * -100;
+            raindrop.style.top = `${randomY}px`;
+            
+            // Velocità casuale
+            const randomDuration = 0.5 + Math.random() * 1;
+            raindrop.style.animationDuration = `${randomDuration}s`;
+            
+            // Ritardo casuale
+            const randomDelay = Math.random() * 2;
+            raindrop.style.animationDelay = `${randomDelay}s`;
+            
+            rainContainer.appendChild(raindrop);
+        }
+    </script>
+</body>
+</html>

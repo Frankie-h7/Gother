@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razzo nello Spazio - Arte CSS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            font-family: Arial, sans-serif;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        .scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        /* Razzo */
+        .rocket {
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            transform: translate(-50%, -50%);
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            z-index: 100;
+            animation: rocketFly 15s infinite linear;
+        }
+        
+        @keyframes rocketFly {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            25% {
+                transform: translate(0%, -20%) rotate(10deg);
+            }
+            50% {
+                transform: translate(50%, -30%) rotate(0deg);
+            }
+            75% {
+                transform: translate(0%, -40%) rotate(-10deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+        }
+        
+        .rocket-body {
+            position: relative;
+            width: 60px;
+            height: 120px;
+            background: linear-gradient(90deg, #d3d3d3, #f5f5f5, #d3d3d3);
+            border-radius: 50% 50% 30% 30%;
+            overflow: hidden;
+        }
+        
+        .rocket-body::before {
+            content: "";
+            position: absolute;
+            width: 80%;
+            height: 40px;
+            background: #ff4500;
+            bottom: -10px;
+            left: 10%;
+            border-radius: 50% 50% 0 0;
+        }
+        
+        .window {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #87CEEB;
+            border-radius: 50%;
+            top: 30px;
+            left: 20px;
+            border: 2px solid #888;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8) inset;
+        }
+        
+        .fin-left, .fin-right {
+            position: absolute;
+            width: 25px;
+            height: 40px;
+            background: linear-gradient(90deg, #cd5c5c, #ff6347);
+            top: 70px;
+        }
+        
+        .fin-left {
+            left: -23px;
+            transform: skew(0deg, 30deg);
+        }
+        
+        .fin-right {
+            right: -23px;
+            transform: skew(0deg, -30deg);
+        }
+        
+        .nose-cone {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            width: 60px;
+            height: 40px;
+            background: #ff4500;
+            border-radius: 50% 50% 10% 10%;
+        }
+        
+        .flame {
+            position: absolute;
+            bottom: -40px;
+            left: 15px;
+            width: 30px;
+            height: 60px;
+            background: linear-gradient(to bottom, #ff4500, #ffa500, #ffff00);
+            border-radius: 10px 10px 40% 40%;
+            animation: flicker 0.3s infinite alternate;
+            filter: blur(5px);
+            z-index: -1;
+            transform-origin: top center;
+        }
+        
+        .flame::before {
+            content: "";
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), transparent);
+            border-radius: 50%;
+            top: 5%;
+            left: 10%;
+        }
+        
+        @keyframes flicker {
+            0% {
+                height: 60px;
+                opacity: 0.8;
+            }
+            50% {
+                height: 55px;
+                opacity: 0.9;
+            }
+            100% {
+                height: 65px;
+                opacity: 1;
+            }
+        }
+        
+        .rocket:hover .flame {
+            height: 80px;
+            animation: flicker 0.15s infinite alternate;
+        }
+        
+        .rocket:hover {
+            animation-duration: 8s;
+        }
+        
+        /* Pianeti */
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            box-shadow: inset -10px -10px 40px rgba(0, 0, 0, 0.5),
+                        inset 10px 10px 30px rgba(255, 255, 255, 0.2);
+        }
+        
+        .planet-1 {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #FFB347, #8B4513);
+            top: 75%;
+            left: 75%;
+            animation: rotate 30s infinite linear, orbitPlanet 120s infinite linear;
+        }
+        
+        .planet-2 {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 40% 40%, #87CEEB, #1E90FF);
+            top: 30%;
+            left: 70%;
+            animation: rotate 20s infinite linear;
+        }
+        
+        .planet-3 {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at 35% 35%, #C71585, #4B0082);
+            bottom: 10%;
+            left: 20%;
+            animation: rotate 40s infinite linear;
+        }
+        
+        .saturn {
+            position: absolute;
+            top: 15%;
+            left: 15%;
+        }
+        
+        .saturn-body {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #F0E68C, #DAA520);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.5),
+                        inset 5px 5px 15px rgba(255, 255, 255, 0.2);
+            animation: rotate 35s infinite linear;
+        }
+        
+        .saturn-ring {
+            position: absolute;
+            width: 160px;
+            height: 30px;
+            background: linear-gradient(to right, #A9A9A9, #C0C0C0, #A9A9A9);
+            border-radius: 50%;
+            top: 35px;
+            left: -30px;
+            transform: rotateX(75deg);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            opacity: 0.8;
+        }
+        
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes orbitPlanet {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateX(-100px) translateY(-50px) rotate(180deg);
+            }
+            100% {
+                transform: translateX(0) translateY(0) rotate(360deg);
+            }
+        }
+        
+        /* Stelle */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+        
+        /* Parallax effect */
+        .parallax {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        .layer-1 {
+            transform: translateZ(-10px);
+        }
+        
+        .layer-2 {
+            transform: translateZ(-20px);
+        }
+        
+        .layer-3 {
+            transform: translateZ(-30px);
+        }
+        
+        /* Explosion effect */
+        .explosion {
+            position: absolute;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, #fff, #ff4500, #ff8c00);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        @keyframes explode {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            50% {
+                width: 200px;
+                height: 200px;
+                opacity: 1;
+            }
+            100% {
+                width: 250px;
+                height: 250px;
+                opacity: 0;
+            }
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            color: white;
+            z-index: 1000;
+        }
+        
+        .instructions {
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: #ff4500;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #ff6347;
+        }
+    </style>
+</head>
+<body>
+    <div class="scene">
+        <div class="parallax layer-3">
+            <div class="stars" id="stars-far"></div>
+        </div>
+        
+        <div class="parallax layer-2">
+            <div class="stars" id="stars-mid"></div>
+        </div>
+        
+        <div class="parallax layer-1">
+            <div class="stars" id="stars-near"></div>
+        </div>
+        
+        <div class="planet planet-1"></div>
+        <div class="planet planet-2"></div>
+        <div class="planet planet-3"></div>
+        
+        <div class="saturn">
+            <div class="saturn-body"></div>
+            <div class="saturn-ring"></div>
+        </div>
+        
+        <div class="rocket" id="rocket">
+            <div class="nose-cone"></div>
+            <div class="rocket-body">
+                <div class="window"></div>
+            </div>
+            <div class="fin-left"></div>
+            <div class="fin-right"></div>
+            <div class="flame"></div>
+        </div>
+        
+        <div class="explosion" id="explosion"></div>
+    </div>
+    
+    <div class="controls">
+        <div class="instructions">
+            <p><strong>Istruzioni:</strong></p>
+            <p>- Passa il mouse sul razzo per accelerare</p>
+            <p>- Clicca sul razzo per cambiare traiettoria</p>
+            <p>- Fai esplodere il razzo su un pianeta</p>
+        </div>
+        <button id="reset-btn">Resetta scena</button>
+    </div>
+
+    <script>
+        // Crea le stelle con effetto twinkle
+        function createStars(containerId, count, sizeMin, sizeMax, opacityMin, opacityMax, speedMin, speedMax) {
+            const container = document.getElementById(containerId);
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Posizione casuale
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                
+                // Dimensione casuale tra min e max
+                const size = Math.random() * (sizeMax - sizeMin) + sizeMin;
+                
+                star.style.left = `${left}%`;
+                star.style.top = `${top}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // Effetto twinkle con animazione
+                const duration = Math.random() * (speedMax - speedMin) + speedMin;
+                const opacity = Math.random() * (opacityMax - opacityMin) + opacityMin;
+                
+                star.style.animation = `twinkle ${duration}s infinite ease-in-out alternate`;
+                star.style.opacity = opacity;
+                
+                container.appendChild(star);
+            }
+            
+            // Aggiungi keyframes dinamicamente
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes twinkle {
+                    0% { opacity: 0.2; }
+                    100% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Crea stelle a diverse profondità
+        createStars('stars-far', 200, 1, 2, 0.3, 0.6, 3, 8);
+        createStars('stars-mid', 100, 2, 3, 0.5, 0.8, 2, 5);
+        createStars('stars-near', 50, 2, 4, 0.7, 1, 1, 3);
+        
+        // Gestione del movimento del razzo quando viene cliccato
+        const rocket = document.getElementById('rocket');
+        const explosion = document.getElementById('explosion');
+        const planets = document.querySelectorAll('.planet, .saturn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        // Array di traiettorie predefinite
+        const trajectories = [
+            'rocketFly',
+            'rocketFlyAlt1',
+            'rocketFlyAlt2',
+            'rocketFlyAlt3'
+        ];
+        
+        // Indice della traiettoria corrente
+        let currentTrajectory = 0;
+        
+        // Aggiungi stili per traiettorie alternative
+        const trajectoryStyles = document.createElement('style');
+        trajectoryStyles.innerHTML = `
+            @keyframes rocketFlyAlt1 {
+                0% { transform: translate(-50%, -50%) rotate(0deg); }
+                25% { transform: translate(30%, 20%) rotate(-15deg); }
+                50% { transform: translate(60%, -10%) rotate(0deg); }
+                75% { transform: translate(20%, -60%) rotate(15deg); }
+                100% { transform: translate(-50%, -50%) rotate(0deg); }
+            }
+            
+            @keyframes rocketFlyAlt2 {
+                0% { transform: translate(-50%, -50%) rotate(0deg); }
+                33% { transform: translate(40%, -40%) rotate(20deg); }
+                66% { transform: translate(-40%, -20%) rotate(-20deg); }
+                100% { transform: translate(-50%, -50%) rotate(0deg); }
+            }
+            
+            @keyframes rocketFlyAlt3 {
+                0% { transform: translate(-50%, -50%) rotate(0deg); }
+                20% { transform: translate(0%, 0%) rotate(0deg); }
+                40% { transform: translate(50%, -25%) rotate(-10deg); }
+                60% { transform: translate(25%, -50%) rotate(0deg); }
+                80% { transform: translate(-25%, -25%) rotate(10deg); }
+                100% { transform: translate(-50%, -50%) rotate(0deg); }
+            }
+        `;
+        document.head.appendChild(trajectoryStyles);
+        
+        // Funzione per cambiare la traiettoria del razzo
+        function changeTrajectory() {
+            currentTrajectory = (currentTrajectory + 1) % trajectories.length;
+            rocket.style.animation = `${trajectories[currentTrajectory]} 15s infinite linear`;
+        }
+        
+        // Quando si clicca sul razzo, cambia la traiettoria
+        rocket.addEventListener('click', (e) => {
+            e.stopPropagation();
+            changeTrajectory();
+        });
+        
+        // Controlla le collisioni e crea esplosioni
+        function checkCollisions() {
+            if (!rocket.style.display || rocket.style.display !== 'none') {
+                const rocketRect = rocket.getBoundingClientRect();
+                
+                planets.forEach(planet => {
+                    const planetRect = planet.getBoundingClientRect();
+                    
+                    // Controlla se c'è una collisione
+                    if (isColliding(rocketRect, planetRect)) {
+                        // Posiziona l'esplosione
+                        explosion.style.left = `${rocketRect.left + rocketRect.width/2}px`;
+                        explosion.style.top = `${rocketRect.top + rocketRect.height/2}px`;
+                        
+                        // Attiva l'animazione dell'esplosione
+                        explosion.style.animation = 'explode 1s forwards';
+                        
+                        // Nascondi il razzo
+                        rocket.style.display = 'none';
+                        
+                        // Reset dopo un po'
+                        setTimeout(() => {
+                            explosion.style.animation = '';
+                        }, 1000);
+                    }
+                });
+            }
+        }
+        
+        // Funzione per verificare se due rettangoli si sovrappongono
+        function isColliding(rect1, rect2) {
+            const centerX1 = rect1.left + rect1.width/2;
+            const centerY1 = rect1.top + rect1.height/2;
+            const centerX2 = rect2.left + rect2.width/2;
+            const centerY2 = rect2.top + rect2.height/2;
+            
+            // Calcola la distanza tra i centri
+            const distance = Math.sqrt(
+                Math.pow(centerX2 - centerX1, 2) + 
+                Math.pow(centerY2 - centerY1, 2)
+            );
+            
+            // Calcola il raggio medio di entrambi gli oggetti
+            const radius1 = (rect1.width + rect1.height) / 4;
+            const radius2 = (rect2.width + rect2.height) / 4;
+            
+            // C'è una collisione se la distanza è minore della somma dei raggi
+            return distance < radius1 + radius2;
+        }
+        
+        // Controlla le collisioni ogni 100ms
+        setInterval(checkCollisions, 100);
+        
+        // Reset della scena
+        resetBtn.addEventListener('click', () => {
+            rocket.style.display = 'block';
+            explosion.style.animation = '';
+            currentTrajectory = 0;
+            rocket.style.animation = `${trajectories[currentTrajectory]} 15s infinite linear`;
+        });
+        
+        // Aggiungi effetto parallax al movimento del mouse
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+            
+            const layers = document.querySelectorAll('.parallax');
+            layers.forEach((layer, index) => {
+                const depth = (index + 1) * 5;
+                const moveX = mouseX * depth;
+                const moveY = mouseY * depth;
+                
+                layer.style.transform = `translate3d(${moveX}px, ${moveY}px, -${(index + 1) * 10}px)`;
+            });
+        });
+    </script>
+</body>
+</html>

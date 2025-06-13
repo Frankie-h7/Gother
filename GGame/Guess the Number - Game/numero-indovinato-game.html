@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numero Indovinato</title>
+    <style>
+        /* Variabili CSS */
+        :root {
+            --dark-bg: #121212;
+            --dark-secondary: #1e1e1e;
+            --ocra: #e6b400;
+            --ocra-light: #ffd54f;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaaaaa;
+        }
+
+        /* Reset e stile base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+
+                        /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* Contenitore principale */
+        .container {
+            background-color: var(--dark-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Effetto bordo luminoso */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--ocra), transparent, var(--ocra));
+            z-index: -1;
+            border-radius: 18px;
+            opacity: 0.4;
+        }
+
+        h1 {
+            color: var(--ocra);
+            margin-bottom: 1.5rem;
+            font-size: 2.2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 25%;
+            width: 50%;
+            height: 3px;
+            background-color: var(--ocra);
+            border-radius: 2px;
+        }
+
+        .game-info {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .settings {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .range-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0 0.5rem;
+        }
+
+        label {
+            color: var(--ocra-light);
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            background-color: var(--dark-bg);
+            border: 2px solid var(--ocra);
+            border-radius: 5px;
+            padding: 0.5rem;
+            width: 4rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(230, 180, 0, 0.3);
+        }
+
+        /* Rimuovi le frecce dagli input number */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        button {
+            background-color: var(--ocra);
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 5px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0.5rem;
+        }
+
+        button:hover {
+            background-color: var(--ocra-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 180, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(230, 180, 0, 0.3);
+        }
+
+        .game-area {
+            margin-top: 1rem;
+        }
+
+        .guess-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .guess-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        #guess {
+            background-color: var(--dark-bg);
+            border: 2px solid var(--ocra);
+            border-radius: 5px;
+            padding: 0.7rem;
+            width: 5rem;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        #guess:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(230, 180, 0, 0.3);
+        }
+
+        #message {
+            margin: 1.5rem 0;
+            font-size: 1.2rem;
+            min-height: 3.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hint {
+            color: var(--ocra-light);
+            font-weight: 500;
+        }
+
+        .win {
+            color: #4caf50;
+            font-weight: 700;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(230, 180, 0, 0.3);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ocra);
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sezione nascosta all'inizio del gioco */
+        .hidden {
+            display: none;
+        }
+
+        /* Effetto ripple sul pulsante */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple:after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+
+        .ripple:active:after {
+            transform: scale(0, 0);
+            opacity: .3;
+            transition: 0s;
+        }
+
+        /* Animazione per il messaggio */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Loader durante il cambio di stato */
+        .loader {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 3px solid rgba(230, 180, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--ocra);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                width: 95%;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Numero Indovinato</h1>
+        
+        <div class="game-info">
+            Indovina il numero segreto generato dal computer. Riceverai indizi per aiutarti a trovarlo!
+        </div>
+        
+        <div id="setup">
+            <div class="settings">
+                <div class="range-selector">
+                    <label for="min">Min:</label>
+                    <input type="number" id="min" value="1" min="1" max="999">
+                </div>
+                
+                <div class="range-selector">
+                    <label for="max">Max:</label>
+                    <input type="number" id="max" value="100" min="2" max="1000">
+                </div>
+            </div>
+            
+            <button id="start-game" class="ripple">Inizia Gioco</button>
+        </div>
+        
+        <div id="gameplay" class="hidden">
+            <div class="game-area">
+                <div class="guess-input">
+                    <div class="game-info">
+                        Sto pensando a un numero tra <span id="range-min">1</span> e <span id="range-max">100</span>
+                    </div>
+                    
+                    <div class="guess-controls">
+                        <input type="number" id="guess" placeholder="?" min="1" max="1000">
+                        <button id="submit-guess" class="ripple">Prova</button>
+                    </div>
+                </div>
+                
+                <div id="message">
+                    Fai il tuo primo tentativo!
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="attempts">0</div>
+                        <div class="stat-label">Tentativi</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-value" id="best-score">-</div>
+                        <div class="stat-label">Record</div>
+                    </div>
+                </div>
+                
+                <button id="new-game" class="ripple">Nuova Partita</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Gioco "Numero Indovinato"
+         * Un gioco dove il computer genera un numero casuale e il giocatore 
+         * deve indovinarlo con l'aiuto di suggerimenti
+         */
+        
+        // Elementi DOM
+        const setupSection = document.getElementById('setup');
+        const gameplaySection = document.getElementById('gameplay');
+        const minInput = document.getElementById('min');
+        const maxInput = document.getElementById('max');
+        const rangeMin = document.getElementById('range-min');
+        const rangeMax = document.getElementById('range-max');
+        const guessInput = document.getElementById('guess');
+        const messageEl = document.getElementById('message');
+        const attemptsEl = document.getElementById('attempts');
+        const bestScoreEl = document.getElementById('best-score');
+        const startGameBtn = document.getElementById('start-game');
+        const submitGuessBtn = document.getElementById('submit-guess');
+        const newGameBtn = document.getElementById('new-game');
+        
+        // Variabili di gioco
+        let secretNumber;
+        let minNumber;
+        let maxNumber;
+        let attempts;
+        let gameActive;
+        let bestScore = localStorage.getItem('bestScore') || "-";
+        
+        // Inizializzazione
+        function init() {
+            // Mostra il miglior punteggio memorizzato
+            bestScoreEl.textContent = bestScore;
+            
+            // Event listeners
+            startGameBtn.addEventListener('click', startGame);
+            submitGuessBtn.addEventListener('click', checkGuess);
+            newGameBtn.addEventListener('click', resetGame);
+            
+            // Controllo input con i tasti
+            guessInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkGuess();
+                }
+            });
+            
+            // Validazione input
+            minInput.addEventListener('change', validateRangeInputs);
+            maxInput.addEventListener('change', validateRangeInputs);
+        }
+        
+        /**
+         * Valida che i valori min e max abbiano senso
+         */
+        function validateRangeInputs() {
+            let min = parseInt(minInput.value);
+            let max = parseInt(maxInput.value);
+            
+            // Assicurati che i valori siano numeri
+            if (isNaN(min)) min = 1;
+            if (isNaN(max)) max = 100;
+            
+            // Imponi limiti ragionevoli
+            min = Math.max(1, min);
+            max = Math.max(min + 1, max);
+            max = Math.min(1000, max);
+            
+            // Aggiorna i valori
+            minInput.value = min;
+            maxInput.value = max;
+        }
+        
+        /**
+         * Avvia una nuova partita
+         */
+        function startGame() {
+            validateRangeInputs();
+            
+            // Ottieni il range e genera il numero segreto
+            minNumber = parseInt(minInput.value);
+            maxNumber = parseInt(maxInput.value);
+            
+            secretNumber = generateRandomNumber(minNumber, maxNumber);
+            attempts = 0;
+            gameActive = true;
+            
+            // Aggiorna UI
+            setupSection.classList.add('hidden');
+            gameplaySection.classList.remove('hidden');
+            
+            rangeMin.textContent = minNumber;
+            rangeMax.textContent = maxNumber;
+            attemptsEl.textContent = attempts;
+            
+            guessInput.value = '';
+            guessInput.min = minNumber;
+            guessInput.max = maxNumber;
+            guessInput.focus();
+            
+            updateMessage('Fai il tuo primo tentativo!');
+        }
+        
+        /**
+         * Resetta il gioco e torna alla schermata iniziale
+         */
+        function resetGame() {
+            gameplaySection.classList.add('hidden');
+            setupSection.classList.remove('hidden');
+        }
+        
+        /**
+         * Controlla il tentativo del giocatore
+         */
+        function checkGuess() {
+            if (!gameActive) return;
+            
+            const userGuess = parseInt(guessInput.value);
+            
+            // Validazione input
+            if (isNaN(userGuess)) {
+                updateMessage('Per favore, inserisci un numero valido!', 'hint');
+                return;
+            }
+            
+            if (userGuess < minNumber || userGuess > maxNumber) {
+                updateMessage(`Il numero deve essere tra ${minNumber} e ${maxNumber}!`, 'hint');
+                return;
+            }
+            
+            // Incrementa il contatore dei tentativi
+            attempts++;
+            attemptsEl.textContent = attempts;
+            
+            // Confronta il tentativo con il numero segreto
+            if (userGuess === secretNumber) {
+                handleWin();
+            } else if (userGuess < secretNumber) {
+                updateMessage(`${userGuess} è troppo basso. Prova più alto!`, 'hint');
+            } else {
+                updateMessage(`${userGuess} è troppo alto. Prova più basso!`, 'hint');
+            }
+            
+            // Resetta l'input e mantieni il focus
+            guessInput.value = '';
+            guessInput.focus();
+        }
+        
+        /**
+         * Gestisce la vittoria del giocatore
+         */
+        function handleWin() {
+            gameActive = false;
+            
+            // Aggiorna il messaggio
+            updateMessage(`Complimenti! Hai indovinato il numero ${secretNumber} in ${attempts} tentativi!`, 'win');
+            
+            // Aggiorna il miglior punteggio se necessario
+            if (bestScore === "-" || attempts < parseInt(bestScore)) {
+                bestScore = attempts;
+                localStorage.setItem('bestScore', bestScore);
+                bestScoreEl.textContent = bestScore;
+            }
+        }
+        
+        /**
+         * Aggiorna il messaggio di feedback
+         * @param {string} text - Il testo del messaggio
+         * @param {string} className - Classe CSS opzionale per il messaggio
+         */
+        function updateMessage(text, className = '') {
+            messageEl.className = '';  // Rimuovi tutte le classi
+            
+            // Aggiungi effetto di transizione
+            messageEl.innerHTML = '';
+            
+            // Piccolo loader per migliorare il feedback visivo
+            setTimeout(() => {
+                messageEl.classList.add('fade-in');
+                if (className) {
+                    messageEl.classList.add(className);
+                }
+                messageEl.textContent = text;
+            }, 100);
+        }
+        
+        /**
+         * Genera un numero casuale tra min e max (inclusi)
+         * @param {number} min - Il valore minimo
+         * @param {number} max - Il valore massimo
+         * @returns {number} Un numero casuale tra min e max
+         */
+        function generateRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // Avvia l'applicazione
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

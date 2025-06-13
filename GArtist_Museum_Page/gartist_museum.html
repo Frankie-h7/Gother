@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GArtist - Museo Digitale</title>
+    <!-- 📍 DOVE AGGIUNGERE: Nel tag <head> dopo il tag <title> -->
+    <!-- Audio personalizzato per apertura porte -->
+    <audio id="doorOpeningAudio" preload="auto">
+        <source src="IL_TUO_LINK_AUDIO_QUI" type="audio/mpeg">
+        <source src="IL_TUO_LINK_AUDIO_QUI" type="audio/ogg">
+        <source src="IL_TUO_LINK_AUDIO_QUI" type="audio/wav">
+        <source src="door_open.mp3" type="audio/mp3">
+    </audio>
+    <style>
+        /* Reset e configurazione base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* STILE PER LA SCROLL BAR */
+        /* === SCROLLBAR PERSONALIZZATA MUSEO === */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, #2c1810 0%, #4a3728 50%, #2c1810 100%);
+    border-radius: 10px;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #DAA520 0%, #B8860B 50%, #DAA520 100%);
+    border-radius: 10px;
+    border: 2px solid #2c1810;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        inset 0 1px 3px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #FFD700 0%, #DAA520 50%, #B8860B 100%);
+    box-shadow: 
+        0 4px 12px rgba(218, 165, 32, 0.4),
+        inset 0 1px 5px rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #B8860B 0%, #DAA520 50%, #FFD700 100%);
+    box-shadow: 
+        inset 0 2px 8px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(218, 165, 32, 0.6);
+}
+
+::-webkit-scrollbar-corner {
+    background: #2c1810;
+    border-radius: 10px;
+}
+
+/* Firefox */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #DAA520 #2c1810;
+}
+
+/* Effetto glow durante lo scroll */
+body.scrolling ::-webkit-scrollbar-thumb {
+    box-shadow: 
+        0 4px 15px rgba(218, 165, 32, 0.6),
+        inset 0 1px 5px rgba(255, 255, 255, 0.4);
+    animation: scrollGlow 0.5s ease-out;
+}
+
+@keyframes scrollGlow {
+    0% {
+        box-shadow: 
+            0 4px 15px rgba(218, 165, 32, 0.6),
+            inset 0 1px 5px rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        box-shadow: 
+            0 6px 20px rgba(218, 165, 32, 0.8),
+            inset 0 2px 8px rgba(255, 255, 255, 0.5);
+    }
+    100% {
+        box-shadow: 
+            0 4px 15px rgba(218, 165, 32, 0.6),
+            inset 0 1px 5px rgba(255, 255, 255, 0.4);
+    }
+}
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #2c1810 0%, #4a3728 50%, #2c1810 100%);
+            color: #f4f1e8;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Cursore personalizzato */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(218, 165, 32, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.1s ease;
+        }
+
+        /* Schermata di caricamento */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(45deg, #1a1a1a, #2d2d2d, #1a1a1a);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeOut 1s ease-in-out 4s forwards;
+        }
+
+        .museum-doors {
+            position: relative;
+            width: 400px;
+            height: 500px;
+            perspective: 1000px;
+        }
+
+        .door {
+            position: absolute;
+            width: 200px;
+            height: 500px;
+            background: linear-gradient(180deg, #8B4513 0%, #654321 100%);
+            border: 3px solid #DAA520;
+            transform-origin: left center;
+            transition: transform 2s ease-in-out;
+        }
+
+        .door-left {
+            left: 0;
+            transform-origin: left center;
+            animation: openDoorLeft 2s ease-in-out 2s forwards;
+        }
+
+        .door-right {
+            right: 0;
+            transform-origin: right center;
+            animation: openDoorRight 2s ease-in-out 2s forwards;
+        }
+
+        .door-handle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            width: 15px;
+            height: 15px;
+            background: #DAA520;
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+
+        .door-right .door-handle {
+            left: 20px;
+            right: auto;
+        }
+
+        .loading-text {
+            margin-top: 40px;
+            font-size: 2rem;
+            color: #DAA520;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInText 1s ease-in-out 0.5s forwards;
+        }
+
+        .loading-subtitle {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #f4f1e8;
+            opacity: 0;
+            animation: fadeInText 1s ease-in-out 1.5s forwards;
+        }
+
+        /* Animazioni di caricamento */
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @keyframes openDoorLeft {
+            to {
+                transform: rotateY(-120deg);
+            }
+        }
+
+        @keyframes openDoorRight {
+            to {
+                transform: rotateY(120deg);
+            }
+        }
+
+        @keyframes fadeInText {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Contenitore principale del museo */
+        .museum-container {
+            opacity: 0;
+            animation: fadeInMuseum 2s ease-in-out 5s forwards;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        @keyframes fadeInMuseum {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Header del museo */
+        .museum-header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .museum-title {
+            font-size: 4rem;
+            color: #DAA520;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        .museum-subtitle {
+            font-size: 1.2rem;
+            color: #f4f1e8;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        @keyframes titleGlow {
+            from {
+                text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+            }
+            to {
+                text-shadow: 3px 3px 15px rgba(218, 165, 32, 0.5);
+            }
+        }
+
+        /* Galleria delle opere */
+        .gallery {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 60px;
+            padding: 40px;
+        }
+
+        /* Singola opera d'arte */
+        .artwork {
+            position: relative;
+            background: linear-gradient(145deg, #3a2f24, #2c1f18);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.8),
+                inset 0 2px 5px rgba(218, 165, 32, 0.1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .artwork::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(218, 165, 32, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .artwork:hover::before {
+            opacity: 1;
+        }
+
+        .artwork:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.9),
+                0 0 30px rgba(218, 165, 32, 0.3),
+                inset 0 2px 10px rgba(218, 165, 32, 0.2);
+        }
+
+        /* Frame dell'opera */
+        .artwork-frame {
+            position: relative;
+            background: linear-gradient(45deg, #8B4513, #CD853F, #8B4513);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .artwork-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #f4f1e8, #e8e5dc);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .artwork-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .artwork:hover .artwork-image::after {
+            left: 100%;
+        }
+
+        /* Informazioni dell'opera */
+        .artwork-info {
+            position: relative;
+        }
+
+        .artwork-title {
+            font-size: 1.5rem;
+            color: #DAA520;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .artwork-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #f4f1e8;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        /* Dettagli emergenti */
+        .artwork-details {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, rgba(42, 24, 16, 0.95), rgba(74, 55, 40, 0.95));
+            padding: 20px;
+            border-radius: 0 0 15px 15px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            border-top: 2px solid rgba(218, 165, 32, 0.3);
+        }
+
+        .artwork:hover .artwork-details {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .artwork-technique {
+            font-size: 0.9rem;
+            color: #DAA520;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .artwork-year {
+            font-size: 0.85rem;
+            color: #f4f1e8;
+            opacity: 0.7;
+        }
+
+        /* Effetto di transizione per il click */
+        .artwork.clicked {
+            animation: artworkSelect 1.5s ease-in-out forwards;
+        }
+
+        @keyframes artworkSelect {
+            0% {
+                transform: translateY(-15px) scale(1.02);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(218, 165, 32, 0.6);
+            }
+            100% {
+                transform: translateY(-15px) scale(1.02);
+                opacity: 0.8;
+            }
+        }
+
+        /* Overlay di transizione */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle, transparent 0%, rgba(0, 0, 0, 0.9) 100%);
+            z-index: 8888;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 1s ease-in-out;
+        }
+
+        .transition-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Effetti di illuminazione ambientale */
+        .ambient-light {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(218, 165, 32, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(218, 165, 32, 0.03) 0%, transparent 40%);
+            z-index: 1;
+            animation: ambientPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes ambientPulse {
+            from {
+                opacity: 0.3;
+            }
+            to {
+                opacity: 0.7;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .museum-title {
+                font-size: 2.5rem;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 20px;
+            }
+            
+            .museum-doors {
+                width: 300px;
+                height: 400px;
+            }
+            
+            .door {
+                width: 150px;
+                height: 400px;
+            }
+        }
+
+        /* CSS AGGIUNTIVO */
+/* 📍 CSS AGGIUNTIVO (opzionale - per sincronizzazione visiva): Nel tag <style>, dopo le animazioni di caricamento: */
+/* Sincronizzazione animazione porte con audio */
+.door-left.audio-sync {
+    animation: openDoorLeft 2s ease-in-out 2s forwards, doorAudioSync 4s ease-in-out 2s forwards;
+}
+
+.door-right.audio-sync {
+    animation: openDoorRight 2s ease-in-out 2s forwards, doorAudioSync 4s ease-in-out 2s forwards;
+}
+
+@keyframes doorAudioSync {
+    0%, 100% { 
+        box-shadow: inset 0 0 20px rgba(218, 165, 32, 0.1); 
+    }
+    50% { 
+        box-shadow: inset 0 0 40px rgba(218, 165, 32, 0.3); 
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Cursore personalizzato -->
+    <div class="custom-cursor" id="cursor"></div>
+
+    <!-- Illuminazione ambientale -->
+    <div class="ambient-light"></div>
+
+    <!-- Schermata di caricamento -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="museum-doors">
+            <div class="door door-left">
+                <div class="door-handle"></div>
+            </div>
+            <div class="door door-right">
+                <div class="door-handle"></div>
+            </div>
+        </div>
+        <div class="loading-text">GArtist</div>
+        <div class="loading-subtitle">Benvenuto nel Museo Digitale</div>
+    </div>
+
+    <!-- Overlay di transizione -->
+    <div class="transition-overlay" id="transitionOverlay"></div>
+
+    <!-- Contenuto principale del museo -->
+    <div class="museum-container" id="museumContainer">
+        <!-- Header del museo -->
+        <header class="museum-header">
+            <h1 class="museum-title">GArtist</h1>
+            <p class="museum-subtitle">Una collezione esclusiva di opere digitali</p>
+        </header>
+
+        <!-- Galleria delle opere -->
+        <main class="gallery" id="gallery">
+            <!-- Opera 1: Arte Geometrica -->
+            <article class="artwork" data-artwork="geometric-harmony">
+                <div class="artwork-frame">
+                    <div class="artwork-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                </div>
+                <div class="artwork-info">
+                    <h2 class="artwork-title">Armonia Geometrica</h2>
+                    <p class="artwork-description">
+                        Un'esplorazione delle forme pure attraverso il CSS, dove triangoli e cerchi 
+                        danzano in perfetta simbiosi creando un equilibrio visivo ipnotico.
+                    </p>
+                </div>
+                <div class="artwork-details">
+                    <p class="artwork-technique">Tecnica: CSS Transforms & Animations</p>
+                    <p class="artwork-year">Anno: 2024</p>
+                </div>
+            </article>
+
+            <!-- Opera 2: Gradiente Fluido -->
+            <article class="artwork" data-artwork="fluid-gradient">
+                <div class="artwork-frame">
+                    <div class="artwork-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                </div>
+                <div class="artwork-info">
+                    <h2 class="artwork-title">Cascata Cromatica</h2>
+                    <p class="artwork-description">
+                        Colori che fluiscono come onde nell'oceano digitale, creando transizioni 
+                        morbide che catturano l'essenza del movimento perpetuo.
+                    </p>
+                </div>
+                <div class="artwork-details">
+                    <p class="artwork-technique">Tecnica: Linear & Radial Gradients</p>
+                    <p class="artwork-year">Anno: 2024</p>
+                </div>
+            </article>
+
+            <!-- Opera 3: Arte Minimalista -->
+            <article class="artwork" data-artwork="minimal-zen">
+                <div class="artwork-frame">
+                    <div class="artwork-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                </div>
+                <div class="artwork-info">
+                    <h2 class="artwork-title">Zen Digitale</h2>
+                    <p class="artwork-description">
+                        La bellezza nella semplicità: linee pure e spazi negativi che invitano 
+                        alla contemplazione e alla pace interiore.
+                    </p>
+                </div>
+                <div class="artwork-details">
+                    <p class="artwork-technique">Tecnica: Minimal CSS Design</p>
+                    <p class="artwork-year">Anno: 2024</p>
+                </div>
+            </article>
+
+            <!-- Opera 4: Arte Cinetica -->
+            <article class="artwork" data-artwork="kinetic-motion">
+                <div class="artwork-frame">
+                    <div class="artwork-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                </div>
+                <div class="artwork-info">
+                    <h2 class="artwork-title">Movimento Perpetuo</h2>
+                    <p class="artwork-description">
+                        Elementi che si muovono in armonia infinita, creando patterns ipnotici 
+                        che sfidano la percezione dello spazio e del tempo.
+                    </p>
+                </div>
+                <div class="artwork-details">
+                    <p class="artwork-technique">Tecnica: CSS Keyframe Animations</p>
+                    <p class="artwork-year">Anno: 2024</p>
+                </div>
+            </article>
+
+            <!-- Opera 5: Arte Astratta -->
+            <article class="artwork" data-artwork="abstract-dreams">
+                <div class="artwork-frame">
+                    <div class="artwork-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                </div>
+                <div class="artwork-info">
+                    <h2 class="artwork-title">Sogni Astratti</h2>
+                    <p class="artwork-description">
+                        Forme che sfuggono alla logica tradizionale, colori che si fondono 
+                        creando emozioni pure attraverso l'arte digitale contemporanea.
+                    </p>
+                </div>
+                <div class="artwork-details">
+                    <p class="artwork-technique">Tecnica: CSS Filters & Blend Modes</p>
+                    <p class="artwork-year">Anno: 2024</p>
+                </div>
+            </article>
+
+            <!-- Opera 6: Arte Tridimensionale -->
+            <article class="artwork" data-artwork="3d-illusion">
+                <div class="artwork-frame">
+                    <div class="artwork-image">
+                        METTERE QUI IMMAGINE
+                    </div>
+                </div>
+                <div class="artwork-info">
+                    <h2 class="artwork-title">Illusione Tridimensionale</h2>
+                    <p class="artwork-description">
+                        Profondità che emerge dal piano digitale, prospettive che ingannano 
+                        l'occhio creando dimensioni impossibili nel mondo reale.
+                    </p>
+                </div>
+                <div class="artwork-details">
+                    <p class="artwork-technique">Tecnica: CSS 3D Transforms</p>
+                    <p class="artwork-year">Anno: 2024</p>
+                </div>
+            </article>
+        </main>
+    </div>
+
+    <script>
+        // === SISTEMA AUDIO AMBIENTALE ===
+        class MuseumAudioSystem {
+            constructor() {
+                this.audioContext = null;
+                this.masterGain = null;
+                this.reverbGain = null;
+                this.initializeAudio();
+            }
+
+            // Inizializza il sistema audio Web Audio API
+            async initializeAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.audioContext.createGain();
+                    this.reverbGain = this.audioContext.createGain();
+                    
+                    this.masterGain.connect(this.audioContext.destination);
+                    this.reverbGain.connect(this.masterGain);
+                    
+                    // Imposta il volume generale del museo
+                    this.masterGain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                } catch (error) {
+                    console.warn('Audio non supportato:', error);
+                }
+            }
+
+/* 📍 JAVASCRIPT DA AGGIUNGERE: Nella classe MuseumAudioSystem, dopo il metodo initializeAudio(), aggiungi: */
+// Riproduce audio personalizzato per apertura porte
+playCustomDoorAudio() {
+    const doorAudio = document.getElementById('doorOpeningAudio');
+    
+    if (doorAudio) {
+        // Imposta volume e proprietà audio
+        doorAudio.volume = 0.6;
+        doorAudio.currentTime = 0;
+        
+        // Gestisce gli errori di riproduzione
+        doorAudio.play().catch(error => {
+            console.warn('Riproduzione audio porte non riuscita:', error);
+            // Fallback al suono procedurale esistente
+            this.playEntranceAmbience();
+        });
+        
+        // Fade out graduale dell'audio
+        setTimeout(() => {
+            const fadeOut = setInterval(() => {
+                if (doorAudio.volume > 0.1) {
+                    doorAudio.volume -= 0.1;
+                } else {
+                    doorAudio.pause();
+                    clearInterval(fadeOut);
+                }
+            }, 200);
+        }, 3000);
+    } else {
+        // Fallback al suono procedurale se l'audio non è disponibile
+        this.playEntranceAmbience();
+    }
+}
+
+            // Crea suono ambientale per l'ingresso nel museo
+            playEntranceAmbience() {
+                if (!this.audioContext) return;
+                
+                // Suono di eco e atmosfera del museo
+                const duration = 3;
+                const oscillator1 = this.audioContext.createOscillator();
+                const oscillator2 = this.audioContext.createOscillator();
+                const gain1 = this.audioContext.createGain();
+                const gain2 = this.audioContext.createGain();
+                
+                oscillator1.frequency.setValueAtTime(60, this.audioContext.currentTime);
+                oscillator2.frequency.setValueAtTime(90, this.audioContext.currentTime);
+                
+                gain1.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain1.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.5);
+                gain1.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration);
+                
+                gain2.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain2.gain.linearRampToValueAtTime(0.05, this.audioContext.currentTime + 1);
+                gain2.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration);
+                
+                oscillator1.connect(gain1);
+                oscillator2.connect(gain2);
+                gain1.connect(this.reverbGain);
+                gain2.connect(this.reverbGain);
+                
+                oscillator1.start();
+                oscillator2.start();
+                oscillator1.stop(this.audioContext.currentTime + duration);
+                oscillator2.stop(this.audioContext.currentTime + duration);
+            }
+
+            // Suono per hover sui quadri
+            playHoverSound() {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, this.audioContext.currentTime + 0.2);
+                
+                gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain.gain.linearRampToValueAtTime(0.05, this.audioContext.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.2);
+                
+                oscillator.connect(gain);
+                gain.connect(this.reverbGain);
+                
+                oscillator.start();
+                oscillator.stop(this.audioContext.currentTime + 0.2);
+            }
+
+            // Suono per la selezione dell'opera
+            playSelectionSound() {
+                if (!this.audioContext) return;
+                
+                // Suono di campana delicata per la selezione
+                const oscillator = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                oscillator.frequency.setValueAtTime(523.25, this.audioContext.currentTime); // Do
+                oscillator.frequency.setValueAtTime(659.25, this.audioContext.currentTime + 0.3); // Mi
+                oscillator.frequency.setValueAtTime(783.99, this.audioContext.currentTime + 0.6); // Sol
+                
+                gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain.gain.linearRampToValueAtTime(0.15, this.audioContext.currentTime + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 1.5);
+                
+                oscillator.connect(gain);
+                gain.connect(this.reverbGain);
+                
+                oscillator.start();
+                oscillator.stop(this.audioContext.currentTime + 1.5);
+            }
+        }
+
+        // === GESTORE DEL CURSORE PERSONALIZZATO ===
+        class CustomCursor {
+            constructor() {
+                this.cursor = document.getElementById('cursor');
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.cursorX = 0;
+                this.cursorY = 0;
+                this.init();
+            }
+
+            init() {
+                // Traccia il movimento del mouse
+                document.addEventListener('mousemove', (e) => {
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                });
+
+                // Animazione fluida del cursore
+                this.animateCursor();
+            }
+
+            animateCursor() {
+                // Interpolazione per movimento fluido
+                this.cursorX += (this.mouseX - this.cursorX) * 0.15;
+                this.cursorY += (this.mouseY - this.cursorY) * 0.15;
+
+                this.cursor.style.left = this.cursorX + 'px';
+                this.cursor.style.top = this.cursorY + 'px';
+
+                requestAnimationFrame(() => this.animateCursor());
+            }
+
+            // Effetto hover
+            setHoverState(isHovering) {
+                if (isHovering) {
+                    this.cursor.style.transform = 'scale(2) brightness(1.5)';
+                } else {
+                    this.cursor.style.transform = 'scale(1) brightness(1)';
+                }
+            }
+        }
+
+        // === GESTORE PRINCIPALE DEL MUSEO ===
+        class MuseumManager {
+            constructor() {
+                this.audioSystem = new MuseumAudioSystem();
+                this.customCursor = new CustomCursor();
+                this.isLoaded = false;
+                this.init();
+            }
+
+            init() {
+                // Gestisce il caricamento iniziale
+                this.handleInitialLoading();
+                
+                // Inizializza le interazioni delle opere
+                this.initializeArtworkInteractions();
+                
+                // Avvia l'ambiente sonoro dopo il caricamento
+                setTimeout(() => {
+                    this.startAmbientExperience();
+                }, 5000);
+            }
+
+            // Gestisce la sequenza di caricamento del museo
+            handleInitialLoading() {
+                const loadingScreen = document.getElementById('loadingScreen');
+                const museumContainer = document.getElementById('museumContainer');
+
+                // Rimuove la schermata di caricamento dopo 5 secondi
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    museumContainer.style.opacity = '1';
+                    this.isLoaded = true;
+                }, 5000);
+        // } <-- normalmente il codice si dovrebbe chiudere quà
+
+/* 📍 JAVASCRIPT PER SINCRONIZZAZIONE (opzionale): Aggiungi nel metodo handleInitialLoading(): */
+// Sincronizza effetti visivi con audio personalizzato
+setTimeout(() => {
+    const doors = document.querySelectorAll('.door');
+    doors.forEach(door => door.classList.add('audio-sync'));
+}, 2000); // Ritardo di 2 secondi
+            }
+
+            // Inizializza tutte le interazioni con le opere d'arte
+            initializeArtworkInteractions() {
+                const artworks = document.querySelectorAll('.artwork');
+
+                artworks.forEach(artwork => {
+                    // Hover effects con audio
+                    artwork.addEventListener('mouseenter', () => {
+                        this.customCursor.setHoverState(true);
+                        if (this.isLoaded) {
+                            this.audioSystem.playHoverSound();
+                        }
+                    });
+
+                    artwork.addEventListener('mouseleave', () => {
+                        this.customCursor.setHoverState(false);
+                    });
+
+                    // Click handler per la selezione dell'opera
+                    artwork.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.selectArtwork(artwork);
+                    });
+                });
+            }
+
+            // Gestisce la selezione di un'opera d'arte
+            selectArtwork(artworkElement) {
+                if (!this.isLoaded) return;
+
+                // Riproduce suono di selezione
+                this.audioSystem.playSelectionSound();
+
+                // Aggiunge classe per animazione
+                artworkElement.classList.add('clicked');
+
+                // Attiva overlay di transizione
+                const overlay = document.getElementById('transitionOverlay');
+                overlay.classList.add('active');
+
+                // Ottiene l'ID dell'opera
+                const artworkId = artworkElement.getAttribute('data-artwork');
+
+                // Simula il reindirizzamento dopo l'animazione
+                setTimeout(() => {
+                    // In un'implementazione reale, qui si aprirebbe la pagina dell'opera
+                    console.log(`Apertura dell'opera: ${artworkId}`);
+                    
+                    // Per la demo, rimuove l'overlay dopo un momento
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        artworkElement.classList.remove('clicked');
+                    }, 1000);
+                }, 1500);
+            }
+
+            // Avvia l'esperienza ambientale del museo
+            startAmbientExperience() {
+                if (!this.isLoaded) return;
+                
+                // Suono ambientale di ingresso
+                // SOSTITUISCI QUESTA RIGA:
+                // this.audioSystem.playEntranceAmbience();
+
+                // CON QUESTA:
+                this.audioSystem.playCustomDoorAudio();
+                // ... resto del codice ...
+
+                // Effetti di illuminazione dinamica
+                this.startAmbientLighting();
+            }
+
+            // Gestisce l'illuminazione ambientale dinamica
+            startAmbientLighting() {
+                const ambientLight = document.querySelector('.ambient-light');
+                let intensity = 0.3;
+                let direction = 1;
+
+                setInterval(() => {
+                    intensity += direction * 0.02;
+                    if (intensity >= 0.7 || intensity <= 0.3) {
+                        direction *= -1;
+                    }
+                    ambientLight.style.opacity = intensity;
+                }, 100);
+            }
+        }
+
+        // === INIZIALIZZAZIONE DELL'APPLICAZIONE ===
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inizializza il museo quando il DOM è pronto
+            const museum = new MuseumManager();
+
+            // Gestisce il ridimensionamento della finestra
+            window.addEventListener('resize', () => {
+                museum.handleWindowResize();
+            });
+
+            // Gestisce la visibilità della pagina per ottimizzare le prestazioni
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    museum.pauseAnimations();
+                } else {
+                    museum.resumeAnimations();
+                }
+            });
+
+            // Precarica i suoni per un'esperienza fluida
+            museum.preloadAudioAssets();
+        });
+
+        // === ESTENSIONI DELLA CLASSE MUSEUM MANAGER ===
+        MuseumManager.prototype.handleWindowResize = function() {
+            // Ricalcola le posizioni degli elementi per il responsive
+            const artworks = document.querySelectorAll('.artwork');
+            artworks.forEach(artwork => {
+                // Reset delle trasformazioni per ricalcolo
+                artwork.style.transform = '';
+            });
+        };
+
+        MuseumManager.prototype.pauseAnimations = function() {
+            // Pausa le animazioni quando la pagina non è visibile
+            document.body.style.animationPlayState = 'paused';
+            const animations = document.querySelectorAll('*');
+            animations.forEach(el => {
+                el.style.animationPlayState = 'paused';
+            });
+        };
+
+        MuseumManager.prototype.resumeAnimations = function() {
+            // Riprende le animazioni quando la pagina torna visibile
+            document.body.style.animationPlayState = 'running';
+            const animations = document.querySelectorAll('*');
+            animations.forEach(el => {
+                el.style.animationPlayState = 'running';
+            });
+        };
+
+        MuseumManager.prototype.preloadAudioAssets = function() {
+            // Prepara il sistema audio per un'esperienza senza latenza
+            if (this.audioSystem.audioContext) {
+                // Crea buffer audio predefiniti per i suoni più comuni
+                this.audioSystem.createAudioBuffers();
+            }
+        };
+
+        // === ESTENSIONI DEL SISTEMA AUDIO ===
+        MuseumAudioSystem.prototype.createAudioBuffers = function() {
+            // Crea buffer per i suoni ricorrenti per prestazioni migliori
+            this.hoverBuffer = null;
+            this.selectionBuffer = null;
+            this.ambientBuffer = null;
+        };
+
+        MuseumAudioSystem.prototype.playAmbientLoop = function() {
+            // Crea un loop ambientale continuo per il museo
+            if (!this.audioContext) return;
+            
+            const playAmbientCycle = () => {
+                const oscillator = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                const filter = this.audioContext.createBiquadFilter();
+                
+                // Configurazione del filtro per un suono più naturale
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(200, this.audioContext.currentTime);
+                filter.Q.setValueAtTime(1, this.audioContext.currentTime);
+                
+                oscillator.frequency.setValueAtTime(40, this.audioContext.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(60, this.audioContext.currentTime + 15);
+                oscillator.frequency.linearRampToValueAtTime(35, this.audioContext.currentTime + 30);
+                
+                gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gain.gain.linearRampToValueAtTime(0.02, this.audioContext.currentTime + 2);
+                gain.gain.setValueAtTime(0.02, this.audioContext.currentTime + 28);
+                gain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 30);
+                
+                oscillator.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.reverbGain);
+                
+                oscillator.start();
+                oscillator.stop(this.audioContext.currentTime + 30);
+                
+                // Ripete il ciclo ambientale
+                setTimeout(playAmbientCycle, 25000);
+            };
+            
+            // Avvia il primo ciclo dopo un breve ritardo
+            setTimeout(playAmbientCycle, 3000);
+        };
+
+        MuseumAudioSystem.prototype.playFootstepSound = function() {
+            // Suono di passi quando si naviga tra le opere
+            if (!this.audioContext) return;
+            
+            const noise = this.audioContext.createBufferSource();
+            const filter = this.audioContext.createBiquadFilter();
+            const gain = this.audioContext.createGain();
+            
+            // Crea rumore bianco per simulare i passi
+            const bufferSize = this.audioContext.sampleRate * 0.1;
+            const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            noise.buffer = buffer;
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(150, this.audioContext.currentTime);
+            filter.Q.setValueAtTime(5, this.audioContext.currentTime);
+            
+            gain.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gain.gain.linearRampToValueAtTime(0.03, this.audioContext.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
+            
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.reverbGain);
+            
+            noise.start();
+            noise.stop(this.audioContext.currentTime + 0.1);
+        };
+
+        // === SISTEMA DI PARTICLE EFFECTS ===
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+                this.canvas = this.createCanvas();
+                this.ctx = this.canvas.getContext('2d');
+                this.init();
+            }
+
+            createCanvas() {
+                const canvas = document.createElement('canvas');
+                canvas.style.position = 'fixed';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '100vw';
+                canvas.style.height = '100vh';
+                canvas.style.pointerEvents = 'none';
+                canvas.style.zIndex = '2';
+                canvas.style.opacity = '0.7';
+                document.body.appendChild(canvas);
+                return canvas;
+            }
+
+            init() {
+                this.resizeCanvas();
+                this.createParticles();
+                this.animate();
+                
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            createParticles() {
+                // Crea particelle dorate fluttuanti per l'atmosfera del museo
+                for (let i = 0; i < 15; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        size: Math.random() * 3 + 1,
+                        opacity: Math.random() * 0.5 + 0.1,
+                        life: Math.random() * 100 + 50
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach((particle, index) => {
+                    // Aggiorna posizione
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life--;
+                    
+                    // Effetto gravitazionale leggero
+                    particle.vy += 0.001;
+                    
+                    // Rimbalzo sui bordi
+                    if (particle.x <= 0 || particle.x >= this.canvas.width) {
+                        particle.vx *= -0.8;
+                    }
+                    if (particle.y <= 0 || particle.y >= this.canvas.height) {
+                        particle.vy *= -0.8;
+                    }
+                    
+                    // Mantieni particelle nei bordi
+                    particle.x = Math.max(0, Math.min(this.canvas.width, particle.x));
+                    particle.y = Math.max(0, Math.min(this.canvas.height, particle.y));
+                    
+                    // Disegna particella con effetto dorato
+                    this.ctx.save();
+                    this.ctx.globalAlpha = particle.opacity;
+                    this.ctx.fillStyle = '#DAA520';
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#DAA520';
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                    
+                    // Rigenera particelle quando muoiono
+                    if (particle.life <= 0) {
+                        particle.x = Math.random() * this.canvas.width;
+                        particle.y = Math.random() * this.canvas.height;
+                        particle.vx = (Math.random() - 0.5) * 0.5;
+                        particle.vy = (Math.random() - 0.5) * 0.5;
+                        particle.life = Math.random() * 100 + 50;
+                        particle.opacity = Math.random() * 0.5 + 0.1;
+                    }
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // === SISTEMA DI NAVIGAZIONE AVANZATO ===
+        class MuseumNavigation {
+            constructor(museumManager) {
+                this.museum = museumManager;
+                this.currentView = 'gallery';
+                this.history = ['gallery'];
+                this.init();
+            }
+
+            init() {
+                // Gestisce la navigazione tramite tastiera
+                document.addEventListener('keydown', (e) => {
+                    this.handleKeyNavigation(e);
+                });
+
+                // Gesture per dispositivi touch
+                this.initTouchGestures();
+            }
+
+            handleKeyNavigation(event) {
+                switch(event.key) {
+                    case 'Escape':
+                        this.goBack();
+                        break;
+                    case 'Enter':
+                        this.selectCurrentArtwork();
+                        break;
+                    case 'ArrowLeft':
+                    case 'ArrowRight':
+                    case 'ArrowUp':
+                    case 'ArrowDown':
+                        this.navigateArtworks(event.key);
+                        break;
+                }
+            }
+
+            initTouchGestures() {
+                let startX, startY;
+                
+                document.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                });
+
+                document.addEventListener('touchend', (e) => {
+                    if (!startX || !startY) return;
+                    
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    
+                    const diffX = startX - endX;
+                    const diffY = startY - endY;
+                    
+                    // Swipe gestures
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        if (Math.abs(diffX) > 50) {
+                            if (diffX > 0) {
+                                this.navigateArtworks('ArrowRight');
+                            } else {
+                                this.navigateArtworks('ArrowLeft');
+                            }
+                        }
+                    }
+                });
+            }
+
+            navigateArtworks(direction) {
+                const artworks = document.querySelectorAll('.artwork');
+                const currentIndex = this.getCurrentArtworkIndex();
+                let nextIndex;
+
+                switch(direction) {
+                    case 'ArrowLeft':
+                        nextIndex = currentIndex > 0 ? currentIndex - 1 : artworks.length - 1;
+                        break;
+                    case 'ArrowRight':
+                        nextIndex = currentIndex < artworks.length - 1 ? currentIndex + 1 : 0;
+                        break;
+                    case 'ArrowUp':
+                        nextIndex = Math.max(0, currentIndex - 3);
+                        break;
+                    case 'ArrowDown':
+                        nextIndex = Math.min(artworks.length - 1, currentIndex + 3);
+                        break;
+                }
+
+                this.focusArtwork(nextIndex);
+                this.museum.audioSystem.playFootstepSound();
+            }
+
+            getCurrentArtworkIndex() {
+                const artworks = document.querySelectorAll('.artwork');
+                const focused = document.querySelector('.artwork.focused');
+                
+                if (!focused) return 0;
+                
+                return Array.from(artworks).indexOf(focused);
+            }
+
+            focusArtwork(index) {
+                const artworks = document.querySelectorAll('.artwork');
+                
+                // Rimuove focus precedente
+                document.querySelector('.artwork.focused')?.classList.remove('focused');
+                
+                // Aggiunge focus al nuovo elemento
+                if (artworks[index]) {
+                    artworks[index].classList.add('focused');
+                    artworks[index].scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }
+            }
+        }
+
+        // === INIZIALIZZAZIONE COMPLETA DEL SISTEMA ===
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inizializza tutti i sistemi del museo
+            const museum = new MuseumManager();
+            const particles = new ParticleSystem();
+            const navigation = new MuseumNavigation(museum);
+
+            // Estende il museum manager con i nuovi sistemi
+            museum.particles = particles;
+            museum.navigation = navigation;
+
+            // Avvia il loop ambientale audio
+            setTimeout(() => {
+                museum.audioSystem.playAmbientLoop();
+            }, 8000);
+
+            // Focus iniziale sul primo artwork
+            setTimeout(() => {
+                navigation.focusArtwork(0);
+            }, 6000);
+
+            console.log('🎨 GArtist Museum - Sistema completamente inizializzato');
+            console.log('🎵 Sistema audio attivo');
+            console.log('✨ Effetti particellari attivi');
+            console.log('🎯 Navigazione avanzata attiva');
+            console.log('⌨️  Usa le frecce direzionali per navigare');
+            console.log('⏎  Premi Enter per selezionare un\'opera');
+            console.log('⎋  Premi Esc per tornare indietro');
+        });
+
+        // === STILI AGGIUNTIVI PER LE NUOVE FUNZIONALITÀ ===
+        const additionalStyles = `
+            .artwork.focused {
+                outline: 3px solid rgba(218, 165, 32, 0.8);
+                outline-offset: 5px;
+                box-shadow: 
+                    0 25px 50px rgba(0, 0, 0, 0.9),
+                    0 0 40px rgba(218, 165, 32, 0.5),
+                    inset 0 2px 10px rgba(218, 165, 32, 0.2);
+                transform: translateY(-15px) scale(1.02);
+            }
+
+            .artwork.focused::before {
+                opacity: 1;
+            }
+
+            .navigation-hint {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(42, 24, 16, 0.9);
+                color: #DAA520;
+                padding: 10px 20px;
+                border-radius: 25px;
+                font-size: 0.9rem;
+                opacity: 0;
+                animation: fadeInHint 1s ease-in-out 7s forwards;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(218, 165, 32, 0.3);
+            }
+
+            @keyframes fadeInHint {
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .navigation-hint {
+                    font-size: 0.8rem;
+                    padding: 8px 15px;
+                }
+            }
+        `;
+
+        // Aggiunge gli stili aggiuntivi
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+
+        // Aggiunge hint di navigazione
+        const navigationHint = document.createElement('div');
+        navigationHint.className = 'navigation-hint';
+        navigationHint.textContent = '🎯 Usa frecce ⬅️➡️ per navigare • Enter per selezionare • Esc per tornare';
+        document.body.appendChild(navigationHint);
+
+/* 📍 JAVASCRIPT DA AGGIUNGERE: Nell'ultimo <scri,> prima della chiusura </scri, aggiungi: */
+        // === EFFETTO GLOW SCROLLBAR DURANTE LO SCROLL ===
+let scrollTimeout;
+
+window.addEventListener('scroll', () => {
+    document.body.classList.add('scrolling');
+    
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        document.body.classList.remove('scrolling');
+    }, 150);
+});
+    </script>
+</body>
+</html>

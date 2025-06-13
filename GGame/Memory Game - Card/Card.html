@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game-container">
+    <header class="game-header">
+      <h1>🧠 Memory Game</h1>
+      <div class="controls">
+        <span id="timer">⏱️ 00:00</span>
+        <span id="moves">🎯 Tentativi: 0</span>
+        <button id="restart-btn">🔄 Riavvia</button>
+        
+<button id="toggleRevealBtn">🃏 Scopri carte</button>
+
+        
+        <select id="difficulty">
+       <option value="easy">Facile</option>
+       <option value="medium">Medio</option>
+       <option value="hard" selected>Difficile</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="card-grid" id="card-grid">
+      <!-- Le carte saranno generate dinamicamente via JS -->
+    </main>
+
+    <button id="toggleGridBtn">📂 Mostra carte</button>
+
+    <footer class="game-footer">
+      <p>Creato con ❤️ da Francesco</p>
+    </footer>
+  </div>
+<script>
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    document.body.innerHTML = `
+      <div style="display:flex;justify-content:center;align-items:center;height:100vh;text-align:center;padding:20px;font-family:sans-serif;">
+        <h2>⚠️ Questa pagina è accessibile solo da dispositivi desktop.<br>Torna da un PC per continuare.</h2>
+      </div>
+    `;
+  }
+</script>
+
+  <script src="script.js"></script>
+</body>
+</html>

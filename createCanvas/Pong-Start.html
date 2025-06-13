@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pong - Con Start</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #222;
+      color: white;
+    }
+    #canvas-container {
+      position: relative;
+    }
+    #play-button {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: white;
+      color: black;
+      border: none;
+      cursor: pointer;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <button id="play-button">Play</button>
+  </div>
+
+  <script>
+    let ballX = 300;
+    let ballY = 200;
+    let ballSpeedX = 4;
+    let ballSpeedY = 3;
+    let ballSize = 20;
+
+    let paddleW = 10;
+    let paddleH = 80;
+
+    let leftY = 160;
+    let rightY = 160;
+    let leftScore = 0;
+    let rightScore = 0;
+
+    let playing = false;
+
+    function setup() {
+      let canvas = createCanvas(600, 400);
+      canvas.parent("canvas-container");
+
+      // Bottone play
+      let button = document.getElementById("play-button");
+      button.addEventListener("click", () => {
+        playing = true;
+        button.style.display = "none";
+        loop();
+      });
+
+      noLoop(); // Blocca il gioco finché non si preme "Play"
+    }
+
+    function draw() {
+      background(30); // Grigio scuro
+
+      // Linea tratteggiata centrale
+      stroke(100);
+      strokeWeight(2);
+      for (let i = 0; i < height; i += 20) {
+        line(width / 2, i, width / 2, i + 10);
+      }
+      noStroke();
+
+      fill(255); // Bianco per gli oggetti
+
+      // Punteggio
+      textSize(32);
+      text(leftScore, 150, 40);
+      text(rightScore, width - 170, 40);
+
+      // Paddle sinistro e destro
+      rect(20, leftY, paddleW, paddleH);
+      rect(width - 30, rightY, paddleW, paddleH);
+
+      if (!playing) return;
+
+      // Pallina
+      ellipse(ballX, ballY, ballSize, ballSize);
+
+      // Movimento pallina
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY < 0 || ballY > height) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      // Controlli
+      if (keyIsDown(87)) leftY -= 5; // W
+      if (keyIsDown(83)) leftY += 5; // S
+      if (keyIsDown(UP_ARROW)) rightY -= 5;
+      if (keyIsDown(DOWN_ARROW)) rightY += 5;
+
+      // Collisione paddle sinistro
+      if (
+        ballX < 30 &&
+        ballY > leftY &&
+        ballY < leftY + paddleH
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Collisione paddle destro
+      if (
+        ballX > width - 30 &&
+        ballY > rightY &&
+        ballY < rightY + paddleH
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Punto per destra
+      if (ballX < 0) {
+        rightScore++;
+        resetBall();
+      }
+
+      // Punto per sinistra
+      if (ballX > width) {
+        leftScore++;
+        resetBall();
+      }
+    }
+
+    function resetBall() {
+      ballX = width / 2;
+      ballY = height / 2;
+      ballSpeedX = -ballSpeedX;
+      ballSpeedY = random(-4, 4);
+    }
+  </script>
+</body>
+</html>

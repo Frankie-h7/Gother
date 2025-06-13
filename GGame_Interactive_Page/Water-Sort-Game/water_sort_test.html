@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Sort Game</title>
+    <style>
+        /* Reset e variabili CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --accent-color: #d4af37;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0f0f0f 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Schermata del menu principale */
+        .menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+        }
+
+        .game-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            margin-bottom: 2rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+            to { text-shadow: 0 0 40px rgba(212, 175, 55, 0.8); }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .menu-btn {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-color);
+            color: var(--text-primary);
+            padding: 1rem 2rem;
+            border-radius: var(--border-radius);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-btn:hover {
+            background: var(--accent-color);
+            color: var(--bg-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Selezione livelli */
+        .level-selection {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem 0;
+        }
+
+        .level-btn {
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-color);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-btn:hover:not(.locked) {
+            background: var(--accent-color);
+            color: var(--bg-primary);
+            transform: scale(1.1);
+        }
+
+        .level-btn.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #666;
+        }
+
+        .level-btn.completed {
+            background: var(--accent-color);
+            color: var(--bg-primary);
+        }
+
+        /* Schermata di gioco */
+        .game-screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--accent-color);
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-color);
+            color: var(--bg-primary);
+        }
+
+        .hint-btn {
+            background: var(--accent-color);
+            color: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hint-btn:hover {
+            background: #f4c842;
+            transform: scale(1.05);
+        }
+
+        .hint-btn::before {
+            content: '💡';
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        /* Area di gioco */
+        .game-board {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            min-height: 400px;
+        }
+
+        .tubes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            max-width: 800px;
+            width: 100%;
+            padding: 2rem;
+        }
+
+        /* Provette */
+        .tube {
+            width: 80px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid var(--accent-color);
+            border-radius: 0 0 15px 15px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .tube:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+        }
+
+        .tube.selected {
+            border-color: #ffffff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+        }
+
+        .tube.hint-highlight {
+            animation: hint-glow 1s ease-in-out 3;
+        }
+
+        @keyframes hint-glow {
+            0%, 100% { border-color: var(--accent-color); }
+            50% { border-color: #ff6b6b; box-shadow: 0 0 25px rgba(255, 107, 107, 0.7); }
+        }
+
+        .liquid-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 0 12px 12px;
+        }
+
+        .liquid-layer.pouring {
+            animation: pour 0.8s ease-out;
+        }
+
+        @keyframes pour {
+            0% { transform: translateY(0) scaleY(1); opacity: 1; }
+            50% { transform: translateY(-20px) scaleY(0.8); opacity: 0.8; }
+            100% { transform: translateY(0) scaleY(1); opacity: 1; }
+        }
+
+        /* Schermata di vittoria */
+        .victory-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .victory-content {
+            background: var(--bg-secondary);
+            padding: 3rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border: 2px solid var(--accent-color);
+            animation: victory-popup 0.5s ease-out;
+        }
+
+        @keyframes victory-popup {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .victory-title {
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            animation: celebration 1s ease-in-out infinite;
+        }
+
+        @keyframes celebration {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Responsività */
+        @media (max-width: 768px) {
+            .tubes-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .tube {
+                width: 60px;
+                height: 150px;
+            }
+
+            .game-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .game-info {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tubes-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tube {
+                width: 50px;
+                height: 120px;
+            }
+        }
+
+        /* Animazioni di caricamento */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--accent-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu principale -->
+    <div class="menu-screen" id="menuScreen">
+        <h1 class="game-title">Water Sort</h1>
+        <div class="menu-buttons">
+            <button class="menu-btn" onclick="showLevelSelection()">Gioca</button>
+            <button class="menu-btn" onclick="toggleSettings()">Impostazioni</button>
+            <button class="menu-btn" onclick="showInstructions()">Come Giocare</button>
+        </div>
+    </div>
+
+    <!-- Selezione livelli -->
+    <div class="level-selection" id="levelSelection">
+        <h2 style="color: var(--accent-color); font-size: 2rem; margin-bottom: 1rem;">Seleziona Livello</h2>
+        <div class="level-grid" id="levelGrid"></div>
+        <button class="menu-btn" onclick="showMenu()">Torna al Menu</button>
+    </div>
+
+    <!-- Schermata di gioco -->
+    <div class="game-screen" id="gameScreen">
+        <div class="game-header">
+            <div class="game-info">
+                <div class="info-item">Livello: <span id="currentLevel">1</span></div>
+                <div class="info-item">Mosse: <span id="moveCount">0</span></div>
+                <div class="info-item">Tempo: <span id="timer">00:00</span></div>
+            </div>
+            <div class="game-controls">
+                <button class="control-btn hint-btn" onclick="showHint()" id="hintBtn">Suggerimento (3)</button>
+                <button class="control-btn" onclick="resetLevel()">Reset</button>
+                <button class="control-btn" onclick="showMenu()">Menu</button>
+            </div>
+        </div>
+        <div class="game-board">
+            <div class="tubes-container" id="tubesContainer"></div>
+        </div>
+    </div>
+
+    <!-- Schermata di vittoria -->
+    <div class="victory-screen" id="victoryScreen">
+        <div class="victory-content">
+            <div class="victory-title">🎉 Vittoria! 🎉</div>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">
+                Livello completato in <span id="finalMoves">0</span> mosse!<br>
+                Tempo: <span id="finalTime">00:00</span>
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="menu-btn" onclick="nextLevel()">Livello Successivo</button>
+                <button class="menu-btn" onclick="showLevelSelection()">Selezione Livelli</button>
+                <button class="menu-btn" onclick="showMenu()">Menu Principale</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurazione del gioco
+        const GAME_CONFIG = {
+            colors: [
+                '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4',
+                '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd',
+                '#00d2d3', '#ff9f43', '#10ac84', '#ee5a24',
+                '#0abde3', '#ffd32a', '#3d3d3d', '#8395a7'
+            ],
+            tubeHeight: 4, // Numero di strati per provetta
+            soundEnabled: true,
+            animationsEnabled: true
+        };
+
+        // Stato del gioco
+        let gameState = {
+            currentLevel: 1,
+            unlockedLevels: 1,
+            tubes: [],
+            selectedTube: null,
+            moveCount: 0,
+            startTime: null,
+            timerInterval: null,
+            hintsRemaining: 3,
+            isAnimating: false
+        };
+
+        // Configurazioni dei livelli
+        const LEVELS = [
+            // Livello 1 - Facile
+            {
+                tubeCount: 4,
+                emptyTubes: 2,
+                colors: ['#ff6b6b', '#4ecdc4'],
+                layers: [
+                    ['#ff6b6b', '#4ecdc4', '#ff6b6b', '#4ecdc4'],
+                    ['#4ecdc4', '#ff6b6b', '#4ecdc4', '#ff6b6b'],
+                    [],
+                    []
+                ]
+            },
+            // Livello 2
+            {
+                tubeCount: 5,
+                emptyTubes: 2,
+                colors: ['#ff6b6b', '#4ecdc4', '#45b7d1'],
+                layers: [
+                    ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ff6b6b'],
+                    ['#4ecdc4', '#45b7d1', '#ff6b6b', '#4ecdc4'],
+                    ['#45b7d1', '#ff6b6b', '#4ecdc4', '#45b7d1'],
+                    [],
+                    []
+                ]
+            },
+            // Livello 3
+            {
+                tubeCount: 6,
+                emptyTubes: 2,
+                colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
+                layers: [
+                    ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
+                    ['#4ecdc4', '#96ceb4', '#ff6b6b', '#45b7d1'],
+                    ['#45b7d1', '#ff6b6b', '#96ceb4', '#4ecdc4'],
+                    ['#96ceb4', '#45b7d1', '#4ecdc4', '#ff6b6b'],
+                    [],
+                    []
+                ]
+            },
+            // Livello 4
+            {
+                tubeCount: 7,
+                emptyTubes: 2,
+                colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'],
+                layers: [
+                    ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
+                    ['#feca57', '#ff6b6b', '#4ecdc4', '#45b7d1'],
+                    ['#96ceb4', '#feca57', '#ff6b6b', '#4ecdc4'],
+                    ['#45b7d1', '#96ceb4', '#feca57', '#ff6b6b'],
+                    ['#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'],
+                    [],
+                    []
+                ]
+            },
+            // Livello 5 - Difficile
+            {
+                tubeCount: 8,
+                emptyTubes: 2,
+                colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'],
+                layers: [
+                    ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
+                    ['#feca57', '#ff9ff3', '#ff6b6b', '#4ecdc4'],
+                    ['#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'],
+                    ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'],
+                    ['#feca57', '#ff9ff3', '#ff6b6b', '#4ecdc4'],
+                    ['#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'],
+                    [],
+                    []
+                ]
+            }
+        ];
+
+        // Inizializzazione del gioco
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGameData();
+            generateLevelGrid();
+            addSoundEffects();
+        });
+
+        // Gestione dei suoni
+        function addSoundEffects() {
+            // Contesto audio per i suoni del gioco
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (typeof AudioContext !== 'undefined') {
+                gameState.audioContext = new AudioContext();
+            }
+        }
+
+        function playSound(frequency, duration = 200, type = 'sine') {
+            if (!GAME_CONFIG.soundEnabled || !gameState.audioContext) return;
+            
+            const oscillator = gameState.audioContext.createOscillator();
+            const gainNode = gameState.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(gameState.audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, gameState.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, gameState.audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(gameState.audioContext.currentTime);
+            oscillator.stop(gameState.audioContext.currentTime + duration / 1000);
+        }
+
+        // Caricamento e salvataggio dati
+        function loadGameData() {
+            const saved = JSON.parse(localStorage.getItem('waterSortGame') || '{}');
+            gameState.unlockedLevels = saved.unlockedLevels || 1;
+            GAME_CONFIG.soundEnabled = saved.soundEnabled !== false;
+            GAME_CONFIG.animationsEnabled = saved.animationsEnabled !== false;
+        }
+
+        function saveGameData() {
+            const data = {
+                unlockedLevels: gameState.unlockedLevels,
+                soundEnabled: GAME_CONFIG.soundEnabled,
+                animationsEnabled: GAME_CONFIG.animationsEnabled
+            };
+            localStorage.setItem('waterSortGame', JSON.stringify(data));
+        }
+
+        // Navigazione tra schermate
+        function showMenu() {
+            document.getElementById('menuScreen').style.display = 'flex';
+            document.getElementById('levelSelection').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            stopTimer();
+        }
+
+        function showLevelSelection() {
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('levelSelection').style.display = 'flex';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            generateLevelGrid();
+        }
+
+        function showGame(level) {
+            gameState.currentLevel = level;
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('levelSelection').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+            document.getElementById('victoryScreen').style.display = 'none';
+            initializeLevel(level);
+        }
+
+        // Generazione griglia livelli
+        function generateLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= LEVELS.length; i++) {
+                const button = document.createElement('button');
+                button.className = 'level-btn';
+                button.textContent = i;
+                
+                if (i <= gameState.unlockedLevels) {
+                    button.onclick = () => showGame(i);
+                    if (i < gameState.unlockedLevels) {
+                        button.classList.add('completed');
+                    }
+                } else {
+                    button.classList.add('locked');
+                    button.textContent = '🔒';
+                }
+                
+                grid.appendChild(button);
+            }
+        }
+
+        // Inizializzazione livello
+        function initializeLevel(levelNumber) {
+            const level = LEVELS[levelNumber - 1];
+            if (!level) return;
+
+            gameState.tubes = level.layers.map(layer => [...layer]);
+            gameState.selectedTube = null;
+            gameState.moveCount = 0;
+            gameState.hintsRemaining = 3;
+            gameState.isAnimating = false;
+
+            document.getElementById('currentLevel').textContent = levelNumber;
+            document.getElementById('moveCount').textContent = '0';
+            document.getElementById('hintBtn').textContent = `Suggerimento (${gameState.hintsRemaining})`;
+
+            renderTubes();
+            startTimer();
+            playSound(440, 300); // Suono di inizio livello
+        }
+
+        // Rendering delle provette
+        function renderTubes() {
+            const container = document.getElementById('tubesContainer');
+            container.innerHTML = '';
+
+            gameState.tubes.forEach((tube, index) => {
+                const tubeElement = document.createElement('div');
+                tubeElement.className = 'tube';
+                tubeElement.onclick = () => selectTube(index);
+
+                // Rendering strati liquido
+                let bottomPosition = 0;
+                const layerHeight = 45; // Altezza di ogni strato
+
+                tube.forEach((color, layerIndex) => {
+                    const layer = document.createElement('div');
+                    layer.className = 'liquid-layer';
+                    layer.style.backgroundColor = color;
+                    layer.style.height = `${layerHeight}px`;
+                    layer.style.bottom = `${bottomPosition}px`;
+                    layer.style.zIndex = layerIndex;
+                    
+                    tubeElement.appendChild(layer);
+                    bottomPosition += layerHeight;
+                });
+
+                container.appendChild(tubeElement);
+            });
+        }
+
+        // Selezione provetta
+        function selectTube(index) {
+            if (gameState.isAnimating) return;
+
+            const tubes = document.querySelectorAll('.tube');
+            
+            if (gameState.selectedTube === null) {
+                // Prima selezione
+                if (gameState.tubes[index].length === 0) return; // Non selezionare provette vuote
+                
+                gameState.selectedTube = index;
+                tubes[index].classList.add('selected');
+                playSound(523, 150); // Do
+            } else if (gameState.selectedTube === index) {
+                // Deseleziona la stessa provetta
+                gameState.selectedTube = null;
+                tubes[index].classList.remove('selected');
+                playSound(392, 150); // Sol
+            } else {
+                // Tentativo di versamento
+                if (canPour(gameState.selectedTube, index)) {
+                    pourLiquid(gameState.selectedTube, index);
+                } else {
+                    // Versamento non valido
+                    playSound(220, 300, 'sawtooth'); // Suono di errore
+                    shakeElement(tubes[index]);
+                }
+                
+                // Deseleziona la provetta corrente
+                tubes[gameState.selectedTube].classList.remove('selected');
+                gameState.selectedTube = null;
+            }
+        }
+
+        // Verifica se è possibile versare
+        function canPour(fromIndex, toIndex) {
+            const fromTube = gameState.tubes[fromIndex];
+            const toTube = gameState.tubes[toIndex];
+
+            // La provetta di origine deve avere almeno un strato
+            if (fromTube.length === 0) return false;
+
+            // La provetta di destinazione deve avere spazio
+            if (toTube.length >= GAME_CONFIG.tubeHeight) return false;
+
+            // Se la provetta di destinazione è vuota, sempre permesso
+            if (toTube.length === 0) return true;
+
+            // I colori devono corrispondere
+            const topColorFrom = fromTube[fromTube.length - 1];
+            const topColorTo = toTube[toTube.length - 1];
+
+            return topColorFrom === topColorTo;
+        }
+
+        // Versamento del liquido
+        async function pourLiquid(fromIndex, toIndex) {
+            gameState.isAnimating = true;
+            
+            const fromTube = gameState.tubes[fromIndex];
+            const toTube = gameState.tubes[toIndex];
+            const colorToPour = fromTube[fromTube.length - 1];
+
+            // Conta quanti strati consecutivi dello stesso colore versare
+            let layersToPour = 0;
+            for (let i = fromTube.length - 1; i >= 0 && fromTube[i] === colorToPour; i--) {
+                if (toTube.length + layersToPour < GAME_CONFIG.tubeHeight) {
+                    layersToPour++;
+                } else {
+                    break;
+                }
+            }
+
+            // Animazione di versamento
+            const tubes = document.querySelectorAll('.tube');
+            const fromTubeElement = tubes[fromIndex];
+            const layers = fromTubeElement.querySelectorAll('.liquid-layer');
+            
+            // Aggiungi classe di animazione agli strati che verranno versati
+            for (let i = 0; i < layersToPour; i++) {
+                const layerIndex = layers.length - 1 - i;
+                if (layers[layerIndex]) {
+                    layers[layerIndex].classList.add('pouring');
+                }
+            }
+
+            // Aspetta che l'animazione finisca
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Trasferisci effettivamente il liquido
+            for (let i = 0; i < layersToPour; i++) {
+                const color = fromTube.pop();
+                toTube.push(color);
+            }
+
+            // Aggiorna il contatore mosse
+            gameState.moveCount++;
+            document.getElementById('moveCount').textContent = gameState.moveCount;
+
+            // Re-renderizza le provette
+            renderTubes();
+
+            // Suono di versamento riuscito
+            playSound(659, 200); // Mi
+
+            // Verifica vittoria
+            if (checkVictory()) {
+                setTimeout(() => showVictory(), 500);
+            }
+
+            gameState.isAnimating = false;
+        }
+
+        // Verifica condizione di vittoria
+        function checkVictory() {
+            for (let tube of gameState.tubes) {
+                if (tube.length === 0) continue; // Provette vuote sono OK
+                
+                if (tube.length !== GAME_CONFIG.tubeHeight) return false;
+                
+                const firstColor = tube[

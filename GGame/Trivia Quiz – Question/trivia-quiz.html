@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster - Trivia Quiz Game</title>
+    <style>
+        :root {
+            --dark-bg: #1a1a2e;
+            --dark-secondary: #16213e;
+            --accent: #e6b400;
+            --text: #ffffff;
+            --wrong: #e63946;
+            --correct: #2ecc71;
+            --neutral: #4a4e69;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden; /* Disabilita lo scroll globale */
+
+            /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--dark-secondary);
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        header {
+            background-color: var(--dark-bg);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid var(--accent);
+        }
+        
+        h1 {
+            color: var(--accent);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .score, .timer {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .score span, .timer span {
+            color: var(--accent);
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
+        section {
+            padding: 30px;
+        }
+        
+        /* Categoria selezionata */
+        .category-selector {
+            text-align: center;
+            padding: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .category-title {
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-size: 1.8rem;
+        }
+        
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .category {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .category:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 5px 15px rgba(230, 180, 0, 0.3);
+        }
+        
+        .category h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        
+        .category p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* Quiz Area */
+        .quiz-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .question {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .option {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option:hover {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .option.correct {
+            background-color: var(--correct);
+            color: #fff;
+            transform: scale(1.02);
+            border-color: var(--correct);
+        }
+        
+        .option.wrong {
+            background-color: var(--wrong);
+            color: #fff;
+            border-color: var(--wrong);
+        }
+        
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        /* Results */
+        .results {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+            padding: 30px;
+        }
+        
+        .results h2 {
+            color: var(--accent);
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .results .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 20px 0;
+        }
+        
+        .feedback {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background-color: var(--accent);
+            color: var(--dark-bg);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--accent);
+            color: var(--dark-bg);
+        }
+        
+        /* Leaderboard */
+        .leaderboard {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            padding: 30px;
+        }
+        
+        .leaderboard h2 {
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .leader-list {
+            list-style: none;
+        }
+        
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .leader-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rank {
+            display: flex;
+            align-items: center;
+        }
+        
+        .rank-number {
+            background-color: var(--accent);
+            color: var(--dark-bg);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .leader-score {
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            section {
+                padding: 20px;
+            }
+            
+            .question {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            animation: fadeInUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+        
+        .toast.correct {
+            background-color: var(--correct);
+        }
+        
+        .toast.wrong {
+            background-color: var(--wrong);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>QuizMaster</h1>
+            <p>Metti alla prova la tua conoscenza!</p>
+        </header>
+        
+        <!-- Informazioni di gioco (punteggio e timer) -->
+        <div class="game-info" id="gameInfo" style="display: none;">
+            <div class="score">Punteggio: <span id="scoreValue">0</span></div>
+            <div class="timer">Tempo: <span id="timerValue">15</span>s</div>
+        </div>
+        
+        <!-- Barra di progresso per il timer -->
+        <div class="progress-container" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <!-- Selettore di categoria -->
+        <section class="category-selector" id="categorySelector">
+            <h2 class="category-title">Scegli una categoria</h2>
+            <div class="categories" id="categoriesList">
+                <!-- Le categorie verranno caricate dinamicamente -->
+            </div>
+        </section>
+        
+        <!-- Contenitore Quiz -->
+        <section class="quiz-container" id="quizContainer">
+            <div class="question" id="question"></div>
+            <div class="options" id="options">
+                <!-- Le opzioni verranno caricate dinamicamente -->
+            </div>
+        </section>
+        
+        <!-- Risultati -->
+        <section class="results" id="resultsContainer">
+            <h2>Quiz Completato!</h2>
+            <p>Ecco come te la sei cavata:</p>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="feedback" id="feedback"></div>
+            <div class="buttons">
+                <button class="btn" id="playAgainBtn">Gioca ancora</button>
+                <button class="btn btn-outline" id="showLeaderboardBtn">Classifica</button>
+            </div>
+        </section>
+        
+        <!-- Classifica -->
+        <section class="leaderboard" id="leaderboardContainer">
+            <h2>Classifica</h2>
+            <ul class="leader-list" id="leaderList">
+                <!-- La classifica verrà caricata dinamicamente -->
+            </ul>
+            <div class="buttons" style="text-align: center; margin-top: 20px;">
+                <button class="btn" id="backToMenuBtn">Menu Principale</button>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Toast per il feedback -->
+    <div id="toast" style="display: none;"></div>
+    
+    <!-- Elementi audio -->
+    <audio id="backgroundMusic" loop>
+        <source src="sounds/backgroundMusic.wav" type="audio/mpeg">
+    </audio>
+    <audio id="buttonSound">
+        <source src="sounds/buttonSound.wav" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound">
+        <source src="sounds/correctSound.wav" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound">
+        <source src="sounds/wrongSound.wav" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // Database delle domande di quiz
+        const quizData = {
+            storia: {
+                name: "Storia",
+                description: "Domande sulla storia mondiale e italiana",
+                questions: [
+                    {
+                        question: "In che anno è caduto il muro di Berlino?",
+                        options: ["1989", "1991", "1987", "1993"],
+                        correctAnswer: 0
+                    },
+                    {
+                        question: "Chi era il primo imperatore di Roma?",
+                        options: ["Giulio Cesare", "Augusto", "Nerone", "Caligola"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "In che anno è iniziata la Prima Guerra Mondiale?",
+                        options: ["1913", "1914", "1915", "1918"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Quale famosa battaglia navale si svolse nel 1571 tra la Lega Santa e l'Impero Ottomano?",
+                        options: ["Battaglia di Salamina", "Battaglia di Trafalgar", "Battaglia di Lepanto", "Battaglia di Azio"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Chi fu il primo presidente degli Stati Uniti?",
+                        options: ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
+                        correctAnswer: 2
+                    }
+                ]
+            },
+            scienza: {
+                name: "Scienza",
+                description: "Domande su fisica, chimica e biologia",
+                questions: [
+                    {
+                        question: "Qual è l'elemento chimico con simbolo O?",
+                        options: ["Oro", "Ossigeno", "Osmio", "Olmio"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Chi formulò la teoria della relatività?",
+                        options: ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Stephen Hawking"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Qual è l'unità di misura della frequenza?",
+                        options: ["Watt", "Ampere", "Hertz", "Joule"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Quale pianeta è conosciuto come il 'pianeta rosso'?",
+                        options: ["Giove", "Venere", "Marte", "Saturno"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Quanti cromosomi ha un essere umano?",
+                        options: ["42", "44", "46", "48"],
+                        correctAnswer: 2
+                    }
+                ]
+            },
+            cinema: {
+                name: "Cinema",
+                description: "Domande su film e registi famosi",
+                questions: [
+                    {
+                        question: "Chi ha diretto il film 'Pulp Fiction'?",
+                        options: ["Martin Scorsese", "Quentin Tarantino", "Steven Spielberg", "Christopher Nolan"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Quale attore ha interpretato il ruolo di Iron Man nel Marvel Cinematic Universe?",
+                        options: ["Chris Evans", "Robert Downey Jr.", "Chris Hemsworth", "Mark Ruffalo"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Quale film ha vinto l'Oscar come miglior film nel 2020?",
+                        options: ["Joker", "1917", "Parasite", "C'era una volta a Hollywood"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Chi ha diretto 'La vita è bella' (1997)?",
+                        options: ["Federico Fellini", "Giuseppe Tornatore", "Roberto Benigni", "Paolo Sorrentino"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Quale attrice ha interpretato Hermione Granger nei film di Harry Potter?",
+                        options: ["Jennifer Lawrence", "Emma Watson", "Keira Knightley", "Emma Stone"],
+                        correctAnswer: 1
+                    }
+                ]
+            },
+            tecnologia: {
+                name: "Tecnologia",
+                description: "Domande su informatica e tecnologia",
+                questions: [
+                    {
+                        question: "Chi è il co-fondatore di Microsoft?",
+                        options: ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Elon Musk"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Quale linguaggio di programmazione è stato creato da Guido van Rossum?",
+                        options: ["Java", "Python", "C++", "Ruby"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "In che anno è stato lanciato il primo iPhone?",
+                        options: ["2005", "2006", "2007", "2008"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Quale azienda ha sviluppato il sistema operativo Android?",
+                        options: ["Apple", "Microsoft", "Google", "Samsung"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Cosa significa l'acronimo HTML?",
+                        options: ["High Tech Modern Language", "Hyper Text Markup Language", "Hyper Technical Meta Language", "Home Tool Markup Language"],
+                        correctAnswer: 1
+                    }
+                ]
+            },
+            geografia: {
+                name: "Geografia",
+                description: "Domande su paesi, capitali e luoghi",
+                questions: [
+                    {
+                        question: "Qual è la capitale dell'Australia?",
+                        options: ["Sydney", "Canberra", "Melbourne", "Perth"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Quale è il fiume più lungo del mondo?",
+                        options: ["Nilo", "Amazzoni", "Mississippi", "Yangtze"],
+                        correctAnswer: 0
+                    },
+                    {
+                        question: "In quale continente si trova il Deserto del Sahara?",
+                        options: ["Asia", "Africa", "Sud America", "Oceania"],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "Quale paese ha la forma di uno stivale?",
+                        options: ["Spagna", "Portogallo", "Italia", "Grecia"],
+                        correctAnswer: 2
+                    },
+                    {
+                        question: "Qual è il monte più alto del mondo?",
+                        options: ["K2", "Monte Bianco", "Everest", "Kilimanjaro"],
+                        correctAnswer: 2
+                    }
+                ]
+            },
+                // ... le categorie esistenti rimangono uguali ...
+    
+    sport: {
+        name: "Sport",
+        description: "Domande su calcio, Olimpiadi e sport famosi",
+        questions: [
+            {
+                question: "Quale squadra ha vinto più Champions League?",
+                options: ["Barcellona", "Bayern Monaco", "Real Madrid", "Milan"],
+                correctAnswer: 2
+            },
+            {
+                question: "In quale anno si sono svolte le Olimpiadi di Roma?",
+                options: ["1956", "1960", "1964", "1968"],
+                correctAnswer: 1
+            },
+            {
+                question: "Quale atleta detiene il record del mondo dei 100 metri piani?",
+                options: ["Usain Bolt", "Carl Lewis", "Asafa Powell", "Justin Gatlin"],
+                correctAnswer: 0
+            },
+            {
+                question: "Quanti titoli del mondo ha vinto Valentino Rossi in MotoGP?",
+                options: ["5", "7", "9", "11"],
+                correctAnswer: 2
+            },
+            {
+                question: "Quale nazione ha vinto più mondiali di calcio?",
+                options: ["Germania", "Italia", "Argentina", "Brasile"],
+                correctAnswer: 3
+            }
+        ]
+    }
+        };
+        
+        // Elementi DOM
+        const categorySelector = document.getElementById('categorySelector');
+        const categoriesList = document.getElementById('categoriesList');
+        const quizContainer = document.getElementById('quizContainer');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const finalScoreElement = document.getElementById('finalScore');
+        const feedbackElement = document.getElementById('feedback');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const showLeaderboardBtn = document.getElementById('showLeaderboardBtn');
+        const leaderboardContainer = document.getElementById('leaderboardContainer');
+        const leaderList = document.getElementById('leaderList');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        const scoreValueElement = document.getElementById('scoreValue');
+        const timerValueElement = document.getElementById('timerValue');
+        const progressBar = document.getElementById('progressBar');
+        const gameInfo = document.getElementById('gameInfo');
+        const progressContainer = document.getElementById('progressContainer');
+        const toastElement = document.getElementById('toast');
+        
+        // Elementi audio
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const buttonSound = document.getElementById('buttonSound');
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        
+        // Variabili di gioco
+        let currentCategory = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer = null;
+        let timeLeft = 15; // Tempo in secondi per rispondere
+        let questions = [];
+        
+        // Inizializza il gioco
+        function initGame() {
+            // Carica le categorie
+            loadCategories();
+            
+            // Aggiungi event listeners ai pulsanti
+            playAgainBtn.addEventListener('click', () => {
+                playButtonSound();
+                resetGame();
+            });
+            showLeaderboardBtn.addEventListener('click', () => {
+                playButtonSound();
+                showLeaderboard();
+            });
+            backToMenuBtn.addEventListener('click', () => {
+                playButtonSound();
+                backToMenu();
+            });
+        }
+        
+        // Riproduci suono del pulsante
+        function playButtonSound() {
+            buttonSound.currentTime = 0;
+            buttonSound.play();
+        }
+        
+        // Riproduci suono risposta corretta
+        function playCorrectSound() {
+            correctSound.currentTime = 0;
+            correctSound.play();
+        }
+        
+        // Riproduci suono risposta sbagliata
+        function playWrongSound() {
+            wrongSound.currentTime = 0;
+            wrongSound.play();
+        }
+        
+        // Carica le categorie disponibili
+        function loadCategories() {
+            categoriesList.innerHTML = '';
+            
+            for (const cat in quizData) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.innerHTML = `
+                    <h3>${quizData[cat].name}</h3>
+                    <p>${quizData[cat].description}</p>
+                `;
+                categoryDiv.addEventListener('click', () => {
+                    playButtonSound();
+                    selectCategory(cat);
+                });
+                categoriesList.appendChild(categoryDiv);
+            }
+        }
+        
+        // Seleziona una categoria e inizia il quiz
+        function selectCategory(category) {
+            currentCategory = category;
+            questions = [...quizData[category].questions]; // Copia le domande per non modificare l'originale
+            
+            // Mescola le domande per avere un ordine casuale
+            shuffleArray(questions);
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreValueElement.textContent = score;
+            
+            // Nascondi il selettore di categoria
+            categorySelector.style.display = 'none';
+            
+            // Mostra le informazioni di gioco
+            gameInfo.style.display = 'flex';
+            progressContainer.style.display = 'block';
+            
+            // Mostra il quiz
+            quizContainer.style.display = 'block';
+            
+            // Avvia la musica di sottofondo
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play();
+            
+            // Carica la prima domanda
+            loadQuestion();
+        }
+        
+        // Carica una domanda
+        function loadQuestion() {
+            // Se abbiamo completato tutte le domande, mostra i risultati
+            if (currentQuestionIndex >= questions.length) {
+                showResults();
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            
+            // Imposta la domanda
+            questionElement.textContent = question.question;
+            
+            // Pulisci le opzioni precedenti
+            optionsElement.innerHTML = '';
+            
+                    // Aggiungi le opzioni (MODIFICATO: rimosso playButtonSound da qui)
+        question.options.forEach((option, index) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option';
+            optionDiv.textContent = option;
+            optionDiv.addEventListener('click', () => checkAnswer(index)); // Rimosso playButtonSound
+            optionsElement.appendChild(optionDiv);
+        });
+            
+            // Avvia il timer
+            startTimer();
+        }
+        
+        // Avvia il timer per la domanda corrente
+        function startTimer() {
+            // Resetta il tempo rimasto
+            timeLeft = 15;
+            timerValueElement.textContent = timeLeft;
+            
+            // Resetta la barra di progresso
+            progressBar.style.width = '100%';
+            
+            // Cancella qualsiasi timer esistente
+            if (timer !== null) {
+                clearInterval(timer);
+            }
+            
+            // Imposta l'aggiornamento del timer ogni secondo
+            timer = setInterval(() => {
+                timeLeft--;
+                timerValueElement.textContent = timeLeft;
+                
+                // Aggiorna la barra di progresso
+                const percentage = (timeLeft / 15) * 100;
+                progressBar.style.width = `${percentage}%`;
+                
+                // Se il tempo è scaduto, passa alla domanda successiva
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    // Mostra la risposta corretta
+                    showCorrectAnswer();
+                    
+                    // Mostra un toast per il tempo scaduto
+                    showToast("Tempo scaduto!", "wrong");
+                    playWrongSound();
+                    
+                    // Aspetta un po' prima di passare alla prossima domanda
+                    setTimeout(() => {
+                        currentQuestionIndex++;
+                        loadQuestion();
+                    }, 1500);
+                }
+            }, 1000);
+        }
+        
+        // Verifica la risposta selezionata
+        function checkAnswer(selectedIndex) {
+            clearInterval(timer); // Ferma il timer
+            
+            const correctAnswerIndex = questions[currentQuestionIndex].correctAnswer;
+            const options = document.querySelectorAll('.option');
+            
+            // Disabilita tutte le opzioni per evitare clic multipli
+            options.forEach(option => {
+                option.classList.add('disabled');
+            });
+            
+            // Evidenzia la risposta corretta
+            options[correctAnswerIndex].classList.add('correct');
+            
+            // Se la risposta è sbagliata, evidenzia anche quella selezionata
+            if (selectedIndex !== correctAnswerIndex) {
+                options[selectedIndex].classList.add('wrong');
+                showToast("Risposta sbagliata!", "wrong");
+                playWrongSound();
+            } else {
+                // Incrementa il punteggio
+                score++;
+                scoreValueElement.textContent = score;
+                showToast("Risposta corretta! +1 punto", "correct");
+                playCorrectSound();
+            }
+            
+            // Aspetta un po' prima di passare alla prossima domanda
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 1500);
+        }
+        
+        // Mostra la risposta corretta quando il tempo scade
+        function showCorrectAnswer() {
+            const correctAnswerIndex = questions[currentQuestionIndex].correctAnswer;
+            const options = document.querySelectorAll('.option');
+            
+            // Disabilita tutte le opzioni
+            options.forEach(option => {
+                option.classList.add('disabled');
+            });
+            
+            // Evidenzia la risposta corretta
+            options[correctAnswerIndex].classList.add('correct');
+        }
+        
+        // Mostra i risultati finali
+        function showResults() {
+            // Ferma la musica di sottofondo
+            backgroundMusic.pause();
+            
+            // Nascondi il quiz
+            quizContainer.style.display = 'none';
+            gameInfo.style.display = 'none';
+            progressContainer.style.display = 'none';
+            
+            // Mostra i risultati
+            resultsContainer.style.display = 'block';
+            
+            // Imposta il punteggio finale
+            finalScoreElement.textContent = score;
+            
+            // Crea un feedback in base al punteggio
+            let feedbackText = '';
+            const percentage = (score / questions.length) * 100;
+            
+            if (percentage === 100) {
+                feedbackText = "Perfetto! Hai risposto correttamente a tutte le domande! Sei un vero esperto!";
+            } else if (percentage >= 80) {
+                feedbackText = "Ottimo lavoro! Hai una conoscenza davvero eccellente!";
+            } else if (percentage >= 60) {
+                feedbackText = "Buon risultato! C'è ancora margine di miglioramento!";
+            } else if (percentage >= 40) {
+                feedbackText = "Non male, ma potresti fare meglio! Riprova!";
+            } else {
+                feedbackText = "C'è bisogno di studiare di più! Non arrenderti!";
+            }
+            
+            feedbackElement.textContent = feedbackText;
+            
+            // Salva il punteggio nella classifica
+            saveScore(score);
+        }
+        
+        // Salva il punteggio nella classifica
+        function saveScore(score) {
+            let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard')) || [];
+            
+            // Crea un nuovo punteggio
+            const newScore = {
+                category: quizData[currentCategory].name,
+                score: score,
+                maxScore: questions.length,
+                date: new Date().toLocaleDateString()
+            };
+            
+            // Aggiungi il nuovo punteggio
+            leaderboard.push(newScore);
+            
+            // Ordina la classifica per punteggio (dal più alto al più basso)
+            leaderboard.sort((a, b) => {
+                const percentageA = (a.score / a.maxScore);
+                const percentageB = (b.score / b.maxScore);
+                return percentageB - percentageA;
+            });
+            
+            // Mantieni solo i migliori 10 punteggi
+            if (leaderboard.length > 10) {
+                leaderboard = leaderboard.slice(0, 10);
+            }
+            
+            // Salva la classifica aggiornata
+            localStorage.setItem('quizLeaderboard', JSON.stringify(leaderboard));
+        }
+        
+        // Mostra la classifica
+        function showLeaderboard() {
+            // Nascondi i risultati
+            resultsContainer.style.display = 'none';
+            
+            // Carica e mostra la classifica
+            loadLeaderboard();
+            leaderboardContainer.style.display = 'block';
+        }
+        
+        // Carica la classifica
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard')) || [];
+            leaderList.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                const noScoresItem = document.createElement('li');
+                noScoresItem.className = 'leader-item';
+                noScoresItem.textContent = 'Nessun punteggio salvato finora!';
+                leaderList.appendChild(noScoresItem);
+                return;
+            }
+            
+            // Popola la classifica
+            leaderboard.forEach((item, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'leader-item';
+                
+                const percentage = Math.round((item.score / item.maxScore) * 100);
+                
+                listItem.innerHTML = `
+                    <div class="rank">
+                        <div class="rank-number">${index + 1}</div>
+                        <div class="leader-info">
+                            <div>${item.category}</div>
+                            <div style="font-size: 0.8rem; opacity: 0.7;">${item.date}</div>
+                        </div>
+                    </div>
+                    <div class="leader-score">${item.score}/${item.maxScore} (${percentage}%)</div>
+                `;
+                
+                leaderList.appendChild(listItem);
+            });
+        }
+        
+        // Torna al menu principale
+        function backToMenu() {
+            // Nascondi la classifica
+            leaderboardContainer.style.display = 'none';
+            
+            // Mostra il selettore di categoria
+            categorySelector.style.display = 'block';
+        }
+        
+        // Resetta il gioco per giocare di nuovo
+        function resetGame() {
+            // Nascondi i risultati
+            resultsContainer.style.display = 'none';
+            
+            // Mostra il selettore di categoria
+            categorySelector.style.display = 'block';
+        }
+        
+        // Mostra un toast di feedback
+        function showToast(message, type) {
+            // Imposta il messaggio e il tipo
+            toastElement.textContent = message;
+            toastElement.className = `toast ${type}`;
+            toastElement.style.display = 'block';
+            
+            // Rimuovi il toast dopo 3 secondi
+            setTimeout(() => {
+                toastElement.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Funzione per mescolare un array (algoritmo Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Avvia il gioco quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

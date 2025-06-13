@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Solare Animato con CSS</title>
+    <style>
+        /* Reset di base e impostazioni globali */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0a0e23;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            position: relative;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* Creazione dello sfondo stellato con pseudo-elementi */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(white, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+            background-size: 100px 100px;
+            background-position: 0 0, 50px 50px;
+            animation: parallaxStars 120s linear infinite;
+            z-index: -1;
+        }
+
+        /* Punti stellari addizionali con un secondo strato */
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(white, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+            animation: parallaxStars 80s linear infinite;
+            z-index: -1;
+        }
+
+        /* Animazione parallax per lo sfondo stellato */
+        @keyframes parallaxStars {
+            from {
+                background-position: 0 0;
+            }
+            to {
+                background-position: 1000px 1000px;
+            }
+        }
+
+        /* Contenitore principale del sistema solare */
+        .solar-system {
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+        }
+
+        /* Sole al centro del sistema */
+        .sun {
+            position: absolute;
+            width: 20vmin;
+            height: 20vmin;
+            background: radial-gradient(circle at 30% 30%, 
+                        #fff9c4 5%, 
+                        #ffd54f 10%, 
+                        #ff9800 20%, 
+                        #ff5722 40%, 
+                        #e64a19 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 10vmin 5vmin rgba(255, 235, 59, 0.4),
+                       0 0 20vmin 10vmin rgba(255, 87, 34, 0.1);
+            z-index: 10;
+            /* Leggera pulsazione del sole */
+            animation: sunPulse 8s infinite alternate ease-in-out;
+        }
+
+        /* Animazione di pulsazione del sole */
+        @keyframes sunPulse {
+            0% {
+                box-shadow: 0 0 10vmin 5vmin rgba(255, 235, 59, 0.4),
+                          0 0 20vmin 10vmin rgba(255, 87, 34, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 12vmin 6vmin rgba(255, 235, 59, 0.5),
+                          0 0 24vmin 12vmin rgba(255, 87, 34, 0.15);
+            }
+        }
+
+        /* Stile base per le orbite dei pianeti */
+        .orbit {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform-style: preserve-3d;
+        }
+
+        /* Stile base per tutti i pianeti */
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            /* Per posizionare i pianeti all'estremità delle loro orbite */
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Mercurio */
+        #mercury-orbit {
+            width: 28vmin;
+            height: 28vmin;
+            animation: rotate 8s linear infinite;
+        }
+        #mercury {
+            width: 1.5vmin;
+            height: 1.5vmin;
+            background: linear-gradient(30deg, #b9b6b6, #727272);
+        }
+
+        /* Venere */
+        #venus-orbit {
+            width: 36vmin;
+            height: 36vmin;
+            animation: rotate 12s linear infinite;
+        }
+        #venus {
+            width: 2.2vmin;
+            height: 2.2vmin;
+            background: linear-gradient(30deg, #e6bb95, #c87941);
+        }
+
+        /* Terra */
+        #earth-orbit {
+            width: 46vmin;
+            height: 46vmin;
+            animation: rotate 16s linear infinite;
+        }
+        #earth {
+            width: 2.5vmin;
+            height: 2.5vmin;
+            background: linear-gradient(30deg, #2196f3, #4caf50);
+        }
+
+        /* Luna */
+        #moon-orbit {
+            width: 0.5vmin;   /* Aggiustata Orbita Lunare, con 0.5min al posto di 8 */
+            height: 0.5vmin;  /* Aggiustata Orbita Lunare, con 0.5min al posto di 8 */
+            animation: rotate 4s linear infinite;
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #moon {
+                       width: 0.8vmin;
+            height: 0.8vmin;
+            background: #d9d9d9;
+            position: absolute;
+            top: -4vmin;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes moonRevolution {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Marte */
+        #mars-orbit {
+            width: 56vmin;
+            height: 56vmin;
+            animation: rotate 20s linear infinite;
+        }
+        #mars {
+            width: 2vmin;
+            height: 2vmin;
+            background: linear-gradient(30deg, #ff5252, #b71c1c);
+        }
+
+        /* Giove */
+        #jupiter-orbit {
+            width: 68vmin;
+            height: 68vmin;
+            animation: rotate 36s linear infinite;
+        }
+        #jupiter {
+            width: 6vmin;
+            height: 6vmin;
+            background: linear-gradient(30deg, #f9c74f, #e45b3b, #8f4426);
+            box-shadow: inset 0px 0px 2vmin rgba(0, 0, 0, 0.5);
+        }
+
+        /* Saturno */
+        #saturn-orbit {
+            width: 80vmin;
+            height: 80vmin;
+            animation: rotate 45s linear infinite;
+        }
+        #saturn {
+            width: 5vmin;
+            height: 5vmin;
+            background: linear-gradient(30deg, #f5da90, #c0a355);
+            position: relative;
+        }
+
+        /* Anelli di Saturno */
+        #saturn::before {
+            content: '';
+            position: absolute;
+            width: 14vmin;
+            height: 4vmin;
+            background: linear-gradient(30deg, rgba(245, 218, 144, 0.7), rgba(192, 163, 85, 0.5));
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(75deg);
+            box-shadow: inset 0 0 0.8vmin rgba(0, 0, 0, 0.6), 0 0 0.5vmin rgba(255, 255, 255, 0.3);
+            border: 0.1vmin solid rgba(255, 255, 255, 0.3);
+            z-index: -1;
+        }
+
+        /* Urano */
+        #uranus-orbit {
+            width: 92vmin;
+            height: 92vmin;
+            animation: rotate 54s linear infinite;
+        }
+        #uranus {
+            width: 3.5vmin;
+            height: 3.5vmin;
+            background: linear-gradient(30deg, #90caf9, #4fc3f7);
+            position: relative;
+        }
+
+        /* Anelli di Urano */
+        #uranus::before {
+            content: '';
+            position: absolute;
+            width: 8vmin;
+            height: 1vmin;
+            background: rgba(144, 202, 249, 0.2);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(85deg);
+            z-index: -1;
+        }
+
+        /* Nettuno */
+        #neptune-orbit {
+            width: 104vmin;
+            height: 104vmin;
+            animation: rotate 60s linear infinite;
+        }
+        #neptune {
+            width: 3.3vmin;
+            height: 3.3vmin;
+            background: linear-gradient(30deg, #1565c0, #0d47a1);
+        }
+
+        /* Animazione di rotazione per le orbite */
+        @keyframes rotate {
+            0% {
+                transform: rotateZ(0deg);
+            }
+            100% {
+                transform: rotateZ(360deg);
+            }
+        }
+
+        /* Aumentare la visibilità delle orbite */
+        .orbit {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Titolo del sistema solare */
+        .title {
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+        }
+
+        /* Media query per rendere il sistema solare responsivo */
+        @media (max-width: 768px) {
+            .solar-system {
+                width: 90vmin;
+                height: 90vmin;
+            }
+        
+            .sun {
+                width: 12vmin;
+                height: 12vmin;
+            }
+        
+            .title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .solar-system {
+                width: 95vmin;
+                height: 95vmin;
+            }
+        
+            .sun {
+                width: 10vmin;
+                height: 10vmin;
+            }
+        
+            .title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Sistema Solare</h1>
+    
+    <div class="solar-system">
+        <!-- Sole al centro -->
+        <div class="sun"></div>
+        
+        <!-- Mercurio -->
+        <div class="orbit" id="mercury-orbit">
+            <div class="planet" id="mercury"></div>
+        </div>
+        
+        <!-- Venere -->
+        <div class="orbit" id="venus-orbit">
+            <div class="planet" id="venus"></div>
+        </div>
+        
+        <!-- Terra con luna -->
+        <div class="orbit" id="earth-orbit">
+            <div class="planet" id="earth">
+                <div class="orbit" id="moon-orbit">
+                    <div class="planet" id="moon"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Marte -->
+        <div class="orbit" id="mars-orbit">
+            <div class="planet" id="mars"></div>
+        </div>
+        
+        <!-- Giove -->
+        <div class="orbit" id="jupiter-orbit">
+            <div class="planet" id="jupiter"></div>
+        </div>
+        
+        <!-- Saturno con anelli -->
+        <div class="orbit" id="saturn-orbit">
+            <div class="planet" id="saturn"></div>
+        </div>
+        
+        <!-- Urano con anelli -->
+        <div class="orbit" id="uranus-orbit">
+            <div class="planet" id="uranus"></div>
+        </div>
+        
+        <!-- Nettuno -->
+        <div class="orbit" id="neptune-orbit">
+            <div class="planet" id="neptune"></div>
+        </div>
+    </div>
+</body>
+</html>

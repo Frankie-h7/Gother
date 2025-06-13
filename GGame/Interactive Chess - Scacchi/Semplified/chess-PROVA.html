@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scacchi Interattivi</title>
+    <style>
+        :root {
+            --dark-color: #1e1e1e;
+            --light-dark-color: #2d2d2d;
+            --yellow-ochre: #d4a017;
+            --yellow-ochre-light: #e9b94f;
+            --highlight: rgba(212, 160, 23, 0.5);
+            --move-highlight: rgba(212, 160, 23, 0.3);
+            --check-highlight: rgba(255, 0, 0, 0.5);
+            --text-color: #f0f0f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--yellow-ochre);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .board-container {
+            position: relative;
+        }
+
+        .coordinates {
+            position: absolute;
+            font-size: 14px;
+            color: var(--yellow-ochre);
+        }
+
+        .coordinate-x {
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 20px;
+        }
+
+        .coordinate-y {
+            top: 0;
+            left: -25px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 480px;
+            height: 480px;
+            border: 3px solid var(--yellow-ochre);
+            box-shadow: 0 0 15px rgba(212, 160, 23, 0.5);
+        }
+
+        .square {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px;
+            height: 60px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .square.light {
+            background-color: #e9e9e9;
+        }
+
+        .square.dark {
+            background-color: var(--light-dark-color);
+        }
+
+        .square.selected {
+            background-color: var(--highlight);
+        }
+
+        .square.valid-move::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--move-highlight);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .square.valid-capture::after {
+            content: '';
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--move-highlight);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .square.check {
+            background-color: var(--check-highlight);
+        }
+
+        .piece {
+            width: 50px;
+            height: 50px;
+            position: relative;
+            z-index: 2;
+            user-select: none;
+            transition: transform 0.3s ease;
+        }
+
+        .piece:hover {
+            transform: scale(1.1);
+        }
+
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+
+        .player-info {
+            background-color: var(--light-dark-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--yellow-ochre);
+        }
+
+        .player-info.active {
+            box-shadow: 0 0 10px rgba(212, 160, 23, 0.5);
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .player-time {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--yellow-ochre);
+        }
+
+        .captured-pieces {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .captured-piece {
+            width: 25px;
+            height: 25px;
+        }
+
+        .game-controls {
+            background-color: var(--light-dark-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--dark-color);
+            color: var(--text-color);
+            border: 2px solid var(--yellow-ochre);
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background-color: var(--yellow-ochre);
+            color: var(--dark-color);
+        }
+
+        .move-history {
+            background-color: var(--light-dark-color);
+            border-radius: 8px;
+            padding: 15px;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .move-history h3 {
+            margin-bottom: 10px;
+            color: var(--yellow-ochre);
+        }
+
+        .moves-list {
+            list-style: none;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .moves-list li {
+            margin-bottom: 5px;
+            display: flex;
+        }
+
+        .move-number {
+            width: 30px;
+            color: var(--yellow-ochre);
+        }
+        
+        .game-mode-selector {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .game-status {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            min-height: 2rem;
+        }
+
+        .promotion-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .promotion-options {
+            background-color: var(--light-dark-color);
+            border: 3px solid var(--yellow-ochre);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .promotion-piece {
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .promotion-piece:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .chessboard {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .square {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .piece {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Scacchi Interattivi</h1>
+        <!-- Pulsanti modalità gioco (nell'header) -->
+        <div class="game-mode-selector">
+            <button id="playerVsPlayer" class="btn active">Giocatore vs Giocatore</button>
+            <button id="playerVsAI" class="btn">Giocatore vs AI</button>
+        </div>
+    </header>
+
+    <!-- Scacchiera e coordinate -->
+    <div class="game-container">
+        <div class="board-container">
+            <div class="coordinates coordinate-y">
+                <div>8</div>
+                <div>7</div>
+                <div>6</div>
+                <div>5</div>
+                <div>4</div>
+                <div>3</div>
+                <div>2</div>
+                <div>1</div>
+            </div>
+            <div class="chessboard" id="chessboard"></div>
+            <div class="coordinates coordinate-x">
+                <div>a</div>
+                <div>b</div>
+                <div>c</div>
+                <div>d</div>
+                <div>e</div>
+                <div>f</div>
+                <div>g</div>
+                <div>h</div>
+            </div>
+        </div>
+
+        <!-- Pannello informazioni gioco -->
+        <div class="game-info">
+            <!-- Giocatore Nero -->
+            <div class="player-info" id="player2">
+                <div class="player-name">
+                    <span>Nero</span>
+                    <span class="pieces-value">0</span> <!-- Importante per il punteggio -->
+                </div>
+                <div class="player-time" id="player2-time">10:00</div>
+                <div class="captured-pieces" id="player2-captured"></div>
+            </div>
+
+            <!-- Controlli di gioco -->
+            <div class="game-controls">
+                <button id="newGame" class="btn">Nuova Partita</button>
+                <button id="undoMove" class="btn">Annulla Mossa</button>
+                <button id="toggleSound" class="btn">Audio: On</button>
+            </div>
+
+            <!-- Cronologia mosse -->
+            <div class="move-history">
+                <h3>Storia Mosse</h3>
+                <ul class="moves-list" id="movesList"></ul> <!-- Fondamentale per la storia mosse -->
+            </div>
+
+            <!-- Giocatore Bianco -->
+            <div class="player-info active" id="player1">
+                <div class="player-name">
+                    <span>Bianco</span>
+                    <span class="pieces-value">0</span> <!-- Importante per il punteggio -->
+                </div>
+                <div class="player-time" id="player1-time">10:00</div>
+                <div class="captured-pieces" id="player1-captured"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra di stato -->
+    <div class="game-status" id="gameStatus">
+        Turno: Bianco
+    </div>
+
+    <!-- Modal promozione pedone (deve esistere ma è nascosto) -->
+    <div class="promotion-modal" id="promotionModal">
+        <div class="promotion-options" id="promotionOptions"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const chessboard = document.getElementById('chessboard');
+    
+    // Creazione scacchiera semplice
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const square = document.createElement('div');
+            square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+            square.dataset.row = row;
+            square.dataset.col = col;
+            
+            // Pezzi di test (solo primi due pedoni)
+            if (row === 1) square.textContent = '♟';
+            if (row === 6) square.textContent = '♙';
+            
+            chessboard.appendChild(square);
+        }
+    }
+
+    // Click handler semplice
+    chessboard.addEventListener('click', (e) => {
+        const square = e.target.closest('.square');
+        if (square) {
+            console.log(`Cliccato: R${square.dataset.row} C${square.dataset.col}`);
+            square.style.border = '2px solid red'; // Feedback visivo
+        }
+    });
+});
+    </script>

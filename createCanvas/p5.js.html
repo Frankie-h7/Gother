@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Libreria p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script> 
+    <title>p5.js</title>
+</head>
+<body>
+    Text
+    <script>
+        function setup() {
+            createCanvas(400, 400);
+        }
+        var speed = 10;
+        var posizione = 0;
+        var avanti = true;
+        var indietro = false;
+
+        function draw() {
+            background(220);
+            ellipse(posizione, 80, 50, 50);
+            rect(mouseX, 350, 100, 20);
+            if(avanti == true){
+                posizione = posizione + speed;
+                if(posizione > 400){
+                    avanti = false;
+                    indietro = true;
+                }
+            }
+
+            if(indietro == true){
+                posizione = posizione - speed;
+                if(posizione < 0){
+                    avanti = true;
+                    indietro = false;
+                }
+            }
+        }
+        // https://editor.p5js.org/ <-- p5.js Web Editor
+    </script>
+</body>
+</html>

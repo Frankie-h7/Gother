@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Four - Forza Quattro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Scrollbar personalizzata per il tema Connect Four */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #F4D03F, #F7DC6F);
+    border-radius: 10px;
+    border: 2px solid #1e1e1e;
+    box-shadow: 0 2px 8px rgba(244, 208, 63, 0.3);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #F7DC6F, #F4D03F);
+    box-shadow: 0 4px 15px rgba(244, 208, 63, 0.5);
+    transform: scale(1.05);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(45deg, #E8C547, #F4D03F);
+    box-shadow: 0 2px 6px rgba(244, 208, 63, 0.7);
+}
+
+::-webkit-scrollbar-corner {
+    background: #1e1e1e;
+}
+
+/* Scrollbar per Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #F4D03F #2d2d2d;
+}
+
+/* Effetto glow per la scrollbar quando è in uso */
+::-webkit-scrollbar-thumb:active::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #F4D03F, #F7DC6F);
+    border-radius: 12px;
+    z-index: -1;
+    filter: blur(4px);
+    opacity: 0.7;
+}
+
+/* Animazione pulsante per scrollbar attiva */
+@keyframes scrollbarPulse {
+    0%, 100% { 
+        box-shadow: 0 2px 8px rgba(244, 208, 63, 0.3); 
+    }
+    50% { 
+        box-shadow: 0 4px 15px rgba(244, 208, 63, 0.6); 
+    }
+}
+
+::-webkit-scrollbar-thumb:hover {
+    animation: scrollbarPulse 2s infinite;
+}
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+         /*   overflow: hidden; */
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #F4D03F;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(45, 45, 45, 0.8);
+            border-radius: 15px;
+            border: 2px solid #F4D03F;
+        }
+
+        .info-card {
+            background: rgba(30, 30, 30, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #555;
+        }
+
+        .current-player {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #F4D03F;
+            margin-bottom: 10px;
+        }
+
+        .player-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .player1-indicator {
+            background: #FF6B6B;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .player2-indicator {
+            background: #4ECDC4;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #F4D03F, #F7DC6F);
+            color: #1e1e1e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #F7DC6F, #F4D03F);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 208, 63, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .game-board {
+            background: linear-gradient(145deg, #2d2d2d, #1e1e1e);
+            border: 3px solid #F4D03F;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 550px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 8px;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #333 30%, #1a1a1a 70%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover {
+            background: radial-gradient(circle, #444 30%, #2a2a2a 70%);
+            border-color: #F4D03F;
+            transform: scale(1.05);
+        }
+
+        .cell.filled {
+            cursor: not-allowed;
+        }
+
+        .cell.filled:hover {
+            transform: none;
+            border-color: transparent;
+        }
+
+        .piece {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .piece.player1 {
+            background: radial-gradient(circle at 30% 30%, #FF8E8E, #FF6B6B, #E55555);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .piece.player2 {
+            background: radial-gradient(circle at 30% 30%, #6EEEE6, #4ECDC4, #3CBCB4);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .piece.placed {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .piece.winning {
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 25px currentColor;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        @keyframes dropIn {
+            0% {
+                transform: translate(-50%, -250px) scale(1);
+            }
+            60% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .piece.dropping {
+            animation: dropIn 0.5s ease-out;
+        }
+
+        .game-status {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #F4D03F;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .winner-message {
+            background: linear-gradient(45deg, #F4D03F, #F7DC6F);
+            color: #1e1e1e;
+            padding: 15px 30px;
+            border-radius: 25px;
+            margin-top: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            animation: celebration 0.6s ease-out;
+        }
+
+        @keyframes celebration {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .stat {
+            background: rgba(30, 30, 30, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #555;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #F4D03F;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+        }
+
+        .mode-selector button {
+            margin: 0 10px;
+        }
+
+        .mode-selector button.active {
+            background: linear-gradient(45deg, #4ECDC4, #6EEEE6);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .cell {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .piece {
+                width: 38px;
+                height: 38px;
+            }
+            
+            .game-board {
+                max-width: 370px;
+                padding: 15px;
+            }
+            
+            .grid {
+                gap: 6px;
+                padding: 10px;
+            }
+            
+            .game-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cell {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .piece {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .game-board {
+                max-width: 290px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🔴 Connect Four 🔵</h1>
+        </div>
+
+        <div class="mode-selector">
+            <button id="pvp-mode" class="active">Giocatore vs Giocatore</button>
+            <button id="ai-mode">Giocatore vs AI</button>
+        </div>
+
+        <div class="game-info">
+            <div class="info-card">
+                <div class="current-player" id="current-player">
+                    Turno: Giocatore 1
+                    <span class="player-indicator player1-indicator"></span>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="moves-count">0</div>
+                        <div class="stat-label">Mosse</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="timer">00:00</div>
+                        <div class="stat-label">Tempo</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <div style="font-size: 1.1rem; margin-bottom: 10px;">Punteggio</div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="player1-score">0</div>
+                        <div class="stat-label">Giocatore 1</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="player2-score">0</div>
+                        <div class="stat-label" id="player2-label">Giocatore 2</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="reset-btn">🔄 Nuova Partita</button>
+            <button id="reset-scores-btn">📊 Reset Punteggi</button>
+        </div>
+
+        <div class="game-board">
+            <div class="grid" id="game-grid"></div>
+        </div>
+
+        <div class="game-status" id="game-status"></div>
+    </div>
+
+    <script>
+        class ConnectFour {
+            constructor() {
+                // Configurazione del gioco
+                this.ROWS = 6;
+                this.COLS = 7;
+                this.CONNECT = 4;
+                
+                // Stato del gioco
+                this.board = [];
+                this.currentPlayer = 1;
+                this.gameMode = 'pvp'; // 'pvp' o 'ai'
+                this.gameActive = true;
+                this.movesCount = 0;
+                this.startTime = null;
+                this.timerInterval = null;
+                
+                // Punteggi
+                this.scores = {
+                    player1: 0,
+                    player2: 0
+                };
+                
+                // Elementi DOM
+                this.gridElement = document.getElementById('game-grid');
+                this.currentPlayerElement = document.getElementById('current-player');
+                this.gameStatusElement = document.getElementById('game-status');
+                this.movesCountElement = document.getElementById('moves-count');
+                this.timerElement = document.getElementById('timer');
+                this.player1ScoreElement = document.getElementById('player1-score');
+                this.player2ScoreElement = document.getElementById('player2-score');
+                this.player2LabelElement = document.getElementById('player2-label');
+                
+                // Audio contexts per i suoni
+                this.audioContext = null;
+                this.initAudio();
+                
+                // Inizializzazione del gioco
+                this.initializeBoard();
+                this.createGrid();
+                this.setupEventListeners();
+                this.updateDisplay();
+            }
+
+            /**
+             * Inizializza l'audio context per i suoni del gioco
+             */
+            initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Audio not supported');
+                }
+            }
+
+            /**
+             * Riproduce un suono sintetizzato
+             */
+            playSound(frequency, duration = 0.2, type = 'sine') {
+                if (!this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            /**
+             * Inizializza la board del gioco con una matrice vuota
+             */
+            initializeBoard() {
+                this.board = [];
+                for (let row = 0; row < this.ROWS; row++) {
+                    this.board[row] = [];
+                    for (let col = 0; col < this.COLS; col++) {
+                        this.board[row][col] = 0;
+                    }
+                }
+            }
+
+            /**
+             * Crea la griglia visuale del gioco
+             */
+            createGrid() {
+                this.gridElement.innerHTML = '';
+                
+                // Crea le celle della griglia (dall'alto verso il basso)
+                for (let row = 0; row < this.ROWS; row++) {
+                    for (let col = 0; col < this.COLS; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // Aggiungi event listener per il click
+                        cell.addEventListener('click', () => this.handleCellClick(col));
+                        
+                        this.gridElement.appendChild(cell);
+                    }
+                }
+            }
+
+            /**
+             * Configura tutti gli event listeners del gioco
+             */
+            setupEventListeners() {
+                // Pulsanti di controllo
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetGame());
+                document.getElementById('reset-scores-btn').addEventListener('click', () => this.resetScores());
+                
+                // Selezione modalità di gioco
+                document.getElementById('pvp-mode').addEventListener('click', () => this.setGameMode('pvp'));
+                document.getElementById('ai-mode').addEventListener('click', () => this.setGameMode('ai'));
+                
+                // Gestione dell'audio context (necessario per i browser moderni)
+                document.addEventListener('click', () => {
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                }, { once: true });
+            }
+
+            /**
+             * Imposta la modalità di gioco (PvP o AI)
+             */
+            setGameMode(mode) {
+                this.gameMode = mode;
+                
+                // Aggiorna l'UI dei pulsanti
+                document.getElementById('pvp-mode').classList.toggle('active', mode === 'pvp');
+                document.getElementById('ai-mode').classList.toggle('active', mode === 'ai');
+                
+                // Aggiorna la label del giocatore 2
+                this.player2LabelElement.textContent = mode === 'ai' ? 'AI' : 'Giocatore 2';
+                
+                this.resetGame();
+            }
+
+            /**
+             * Gestisce il click su una colonna
+             */
+            handleCellClick(col) {
+                if (!this.gameActive) return;
+                
+                // Controlla se la colonna è piena
+                if (this.board[0][col] !== 0) {
+                    this.showMessage('Colonna piena! Scegli un\'altra colonna.', 'error');
+                    return;
+                }
+                
+                this.makeMove(col);
+            }
+
+            /**
+             * Esegue una mossa nella colonna specificata
+             */
+            makeMove(col) {
+                // Trova la prima riga libera nella colonna (dal basso verso l'alto)
+                let row = -1;
+                for (let r = this.ROWS - 1; r >= 0; r--) {
+                    if (this.board[r][col] === 0) {
+                        row = r;
+                        break;
+                    }
+                }
+                
+                if (row === -1) return; // Colonna piena
+                
+                // Piazza la pedina
+                this.board[row][col] = this.currentPlayer;
+                this.movesCount++;
+                
+                // Avvia il timer al primo movimento
+                if (this.movesCount === 1) {
+                    this.startTimer();
+                }
+                
+                // Anima la caduta della pedina
+                this.animatePieceDrop(row, col, this.currentPlayer);
+                
+                // Riproduci suono
+                this.playSound(440, 0.1);
+                
+                // Controlla la vittoria
+                const winningCells = this.checkWin(row, col);
+                if (winningCells.length > 0) {
+                    this.handleWin(winningCells);
+                    return;
+                }
+                
+                // Controlla il pareggio
+                if (this.movesCount === this.ROWS * this.COLS) {
+                    this.handleDraw();
+                    return;
+                }
+                
+                // Cambia turno
+                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                this.updateDisplay();
+                
+                // Se è il turno dell'AI, esegui la mossa dell'AI
+                if (this.gameMode === 'ai' && this.currentPlayer === 2) {
+                    setTimeout(() => this.makeAIMove(), 500);
+                }
+            }
+
+            /**
+             * Anima la caduta di una pedina
+             */
+            animatePieceDrop(row, col, player) {
+                const cellIndex = row * this.COLS + col;
+                const cell = this.gridElement.children[cellIndex];
+                
+                // Crea la pedina
+                const piece = document.createElement('div');
+                piece.className = `piece player${player} dropping`;
+                
+                cell.appendChild(piece);
+                cell.classList.add('filled');
+                
+                // Dopo l'animazione, rimuovi la classe dropping e aggiungi placed
+                setTimeout(() => {
+                    piece.classList.remove('dropping');
+                    piece.classList.add('placed');
+                }, 500);
+            }
+
+            /**
+             * Controlla se c'è una vittoria partendo dalla posizione specificata
+             */
+            checkWin(row, col) {
+                const player = this.board[row][col];
+                const directions = [
+                    [0, 1],   // Orizzontale
+                    [1, 0],   // Verticale
+                    [1, 1],   // Diagonale principale
+                    [1, -1]   // Diagonale secondaria
+                ];
+                
+                for (const [deltaRow, deltaCol] of directions) {
+                    const winningCells = this.checkDirection(row, col, deltaRow, deltaCol, player);
+                    if (winningCells.length >= this.CONNECT) {
+                        return winningCells;
+                    }
+                }
+                
+                return [];
+            }
+
+            /**
+             * Controlla una specifica direzione per la vittoria
+             */
+            checkDirection(row, col, deltaRow, deltaCol, player) {
+                const cells = [[row, col]];
+                
+                // Controlla in una direzione
+                let r = row + deltaRow;
+                let c = col + deltaCol;
+                while (r >= 0 && r < this.ROWS && c >= 0 && c < this.COLS && this.board[r][c] === player) {
+                    cells.push([r, c]);
+                    r += deltaRow;
+                    c += deltaCol;
+                }
+                
+                // Controlla nella direzione opposta
+                r = row - deltaRow;
+                c = col - deltaCol;
+                while (r >= 0 && r < this.ROWS && c >= 0 && c < this.COLS && this.board[r][c] === player) {
+                    cells.unshift([r, c]);
+                    r -= deltaRow;
+                    c -= deltaCol;
+                }
+                
+                return cells;
+            }
+
+            /**
+             * Gestisce la vittoria di un giocatore
+             */
+            handleWin(winningCells) {
+                this.gameActive = false;
+                this.stopTimer();
+                
+                // Aggiorna il punteggio
+                if (this.currentPlayer === 1) {
+                    this.scores.player1++;
+                } else {
+                    this.scores.player2++;
+                }
+                
+                // Evidenzia le celle vincenti
+                this.highlightWinningCells(winningCells);
+                
+                // Mostra il messaggio di vittoria
+                const playerName = this.currentPlayer === 1 ? 'Giocatore 1' : 
+                                 (this.gameMode === 'ai' ? 'AI' : 'Giocatore 2');
+                this.showWinnerMessage(`🎉 ${playerName} ha vinto! 🎉`);
+                
+                // Riproduci suono di vittoria
+                this.playVictorySound();
+                
+                this.updateDisplay();
+            }
+
+            /**
+             * Gestisce il pareggio
+             */
+            handleDraw() {
+                this.gameActive = false;
+                this.stopTimer();
+                this.showWinnerMessage('🤝 Pareggio! 🤝');
+                this.playSound(330, 0.5);
+            }
+
+            /**
+             * Evidenzia le celle vincenti
+             */
+            highlightWinningCells(winningCells) {
+                winningCells.forEach(([row, col]) => {
+                    const cellIndex = row * this.COLS + col;
+                    const cell = this.gridElement.children[cellIndex];
+                    const piece = cell.querySelector('.piece');
+                    if (piece) {
+                        piece.classList.add('winning');
+                    }
+                });
+            }
+
+            /**
+             * Esegue una mossa dell'AI (algoritmo semplice)
+             */
+            makeAIMove() {
+                if (!this.gameActive || this.currentPlayer !== 2) return;
+                
+                // Strategia AI semplice:
+                // 1. Controlla se può vincere
+                // 2. Controlla se deve bloccare l'avversario
+                // 3. Gioca in una colonna casuale valida
+                
+                let bestMove = this.findWinningMove(2); // AI può vincere?
+                if (bestMove === -1) {
+                    bestMove = this.findWinningMove(1); // Deve bloccare il giocatore?
+                }
+                if (bestMove === -1) {
+                    bestMove = this.findRandomMove(); // Mossa casuale
+                }
+                
+                if (bestMove !== -1) {
+                    this.makeMove(bestMove);
+                }
+            }
+
+            /**
+             * Trova una mossa vincente per il giocatore specificato
+             */
+            findWinningMove(player) {
+                for (let col = 0; col < this.COLS; col++) {
+                    if (this.board[0][col] !== 0) continue; // Colonna piena
+                    
+                    // Simula la mossa
+                    let row = -1;
+                    for (let r = this.ROWS - 1; r >= 0; r--) {
+                        if (this.board[r][col] === 0) {
+                            row = r;
+                            break;
+                        }
+                    }
+                    
+                    if (row !== -1) {
+                        this.board[row][col] = player;
+                        const winningCells = this.checkWin(row, col);
+                        this.board[row][col] = 0; // Annulla la simulazione
+                        
+                        if (winningCells.length >= this.CONNECT) {
+                            return col;
+                        }
+                    }
+                }
+                return -1;
+            }
+
+            /**
+             * Trova una mossa casuale valida
+             */
+            findRandomMove() {
+                const validCols = [];
+                for (let col = 0; col < this.COLS; col++) {
+                    if (this.board[0][col] === 0) {
+                        validCols.push(col);
+                    }
+                }
+                
+                if (validCols.length > 0) {
+                    return validCols[Math.floor(Math.random() * validCols.length)];
+                }
+                return -1;
+            }
+
+            /**
+             * Avvia il timer del gioco
+             */
+            startTimer() {
+                this.startTime = Date.now();
+                this.timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    this.timerElement.textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            /**
+             * Ferma il timer del gioco
+             */
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+
+            /**
+             * Riproduce il suono di vittoria
+             */
+            playVictorySound() {
+                if (!this.audioContext) return;
+                
+                // Sequenza di note per la vittoria
+                const notes = [523, 659, 784, 1047]; // Do, Mi, Sol, Do alto
+                notes.forEach((freq, index) => {
+                    setTimeout(() => {
+                        this.playSound(freq, 0.3, 'square');
+                    }, index * 150);
+                });
+            }
+
+            /**
+             * Mostra un messaggio temporaneo
+             */
+            showMessage(message, type = 'info') {
+                this.gameStatusElement.textContent = message;
+                this.gameStatusElement.className = `game-status ${type}`;
+                
+                setTimeout(() => {
+                    if (this.gameActive) {
+                        this.gameStatusElement.textContent = '';
+                        this.gameStatusElement.className = 'game-status';
+                    }
+                }, 3000);
+            }
+
+            /**
+             * Mostra il messaggio di vittoria persistente
+             */
+            showWinnerMessage(message) {
+                this.gameStatusElement.innerHTML = `<div class="winner-message">${message}</div>`;
+            }
+
+            /**
+             * Aggiorna tutti gli elementi dell'interfaccia
+             */
+            updateDisplay() {
+                // Aggiorna il turno corrente
+                if (this.gameActive) {
+                    const playerName = this.currentPlayer === 1 ? 'Giocatore 1' : 
+                                     (this.gameMode === 'ai' ? 'AI' : 'Giocatore 2');
+                    const indicatorClass = this.currentPlayer === 1 ? 'player1-indicator' : 'player2-indicator';
+                    
+                    this.currentPlayerElement.innerHTML = 
+                        `Turno: ${playerName} <span class="player-indicator ${indicatorClass}"></span>`;
+                } else {
+                    this.currentPlayerElement.innerHTML = 'Partita terminata';
+                }
+                
+                // Aggiorna le statistiche
+                this.movesCountElement.textContent = this.movesCount;
+                this.player1ScoreElement.textContent = this.scores.player1;
+                this.player2ScoreElement.textContent = this.scores.player2;
+            }
+
+            /**
+             * Resetta il gioco mantenendo i punteggi
+             */
+            resetGame() {
+                this.gameActive = true;
+                this.currentPlayer = 1;
+                this.movesCount = 0;
+                this.stopTimer();
+                
+                // Reset del timer display
+                this.timerElement.textContent = '00:00';
+                
+                // Pulisci la board
+                this.initializeBoard();
+                
+                // Ricrea la griglia
+                this.createGrid();
+                
+                // Pulisci i messaggi
+                this.gameStatusElement.innerHTML = '';
+                
+                // Aggiorna il display
+                this.updateDisplay();
+                
+                // Riproduci suono di reset
+                this.playSound(220, 0.2);
+            }
+
+            /**
+             * Resetta tutti i punteggi
+             */
+            resetScores() {
+                this.scores.player1 = 0;
+                this.scores.player2 = 0;
+                this.updateDisplay();
+                this.playSound(330, 0.2);
+            }
+        }
+
+        // Inizializza il gioco quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', () => {
+            new ConnectFour();
+        });
+
+        // Gestione della visualizzazione responsive
+        window.addEventListener('resize', () => {
+            // Forza il ridisegno per dispositivi che cambiano orientamento
+            setTimeout(() => {
+                const gameBoard = document.querySelector('.game-board');
+                gameBoard.style.transform = 'scale(0.99)';
+                setTimeout(() => {
+                    gameBoard.style.transform = 'scale(1)';
+                }, 50);
+            }, 100);
+        });
+
+        // Previeni il refresh accidentale durante il gioco
+        window.addEventListener('beforeunload', (e) => {
+            const game = window.connectFourGame;
+            if (game && game.gameActive && game.movesCount > 0) {
+                e.preventDefault();
+                e.returnValue = 'Sei sicuro di voler lasciare la partita in corso?';
+            }
+        });
+
+        // Aggiungi supporto per i tasti freccia (navigazione con tastiera)
+        document.addEventListener('keydown', (e) => {
+            const game = window.connectFourGame;
+            if (!game || !game.gameActive) return;
+            
+            // Evidenzia la colonna selezionata con le frecce
+            let currentCol = parseInt(document.querySelector('.cell.keyboard-selected')?.dataset.col || '3');
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    currentCol = Math.max(0, currentCol - 1);
+                    highlightColumn(currentCol);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    currentCol = Math.min(6, currentCol + 1);
+                    highlightColumn(currentCol);
+                    break;
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    game.handleCellClick(currentCol);
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    clearColumnHighlight();
+                    break;
+            }
+        });
+
+        /**
+         * Evidenzia una colonna per la navigazione con tastiera
+         */
+        function highlightColumn(col) {
+            // Rimuovi highlight precedenti
+            clearColumnHighlight();
+            
+            // Aggiungi highlight alla colonna selezionata
+            for (let row = 0; row < 6; row++) {
+                const cellIndex = row * 7 + col;
+                const cell = document.querySelector(`#game-grid .cell:nth-child(${cellIndex + 1})`);
+                if (cell && !cell.classList.contains('filled')) {
+                    cell.classList.add('keyboard-selected');
+                }
+            }
+        }
+
+        /**
+         * Rimuove l'highlight delle colonne
+         */
+        function clearColumnHighlight() {
+            document.querySelectorAll('.cell.keyboard-selected').forEach(cell => {
+                cell.classList.remove('keyboard-selected');
+            });
+        }
+
+        // Stile per la selezione da tastiera
+        const keyboardStyle = document.createElement('style');
+        keyboardStyle.textContent = `
+            .cell.keyboard-selected {
+                border-color: #F4D03F !important;
+                background: radial-gradient(circle, #555 30%, #333 70%) !important;
+                animation: keyboardPulse 1s infinite;
+            }
+            
+            @keyframes keyboardPulse {
+                0%, 100% { box-shadow: 0 0 5px #F4D03F; }
+                50% { box-shadow: 0 0 15px #F4D03F; }
+            }
+        `;
+        document.head.appendChild(keyboardStyle);
+
+        // Aggiungi istruzioni per la navigazione da tastiera
+        const instructions = document.createElement('div');
+        instructions.innerHTML = `
+            <div style="
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(30, 30, 30, 0.9);
+                color: #F4D03F;
+                padding: 10px 15px;
+                border-radius: 10px;
+                font-size: 0.9rem;
+                border: 1px solid #F4D03F;
+                max-width: 250px;
+                z-index: 1000;
+                display: none;
+            " id="keyboard-instructions">
+                <div style="font-weight: bold; margin-bottom: 5px;">🎮 Controlli Tastiera:</div>
+                <div>← → : Naviga colonne</div>
+                <div>Enter/Spazio : Gioca</div>
+                <div>Esc : Rimuovi selezione</div>
+            </div>
+        `;
+        document.body.appendChild(instructions);
+
+        // Mostra/nascondi istruzioni con Alt+H
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'h') {
+                e.preventDefault();
+                const instructions = document.getElementById('keyboard-instructions');
+                instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        // Aggiungi effetti sonori più avanzati
+        class SoundManager {
+            constructor() {
+                this.audioContext = null;
+                this.init();
+            }
+
+            init() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Audio not supported');
+                }
+            }
+
+            /**
+             * Crea un suono con inviluppo ADSR
+             */
+            playTone(frequency, duration, attack = 0.01, decay = 0.1, sustain = 0.3, release = 0.2) {
+                if (!this.audioContext) return;
+
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                const now = this.audioContext.currentTime;
+                
+                // ADSR Envelope
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + attack);
+                gainNode.gain.linearRampToValueAtTime(sustain, now + attack + decay);
+                gainNode.gain.setValueAtTime(sustain, now + duration - release);
+                gainNode.gain.linearRampToValueAtTime(0, now + duration);
+                
+                oscillator.start(now);
+                oscillator.stop(now + duration);
+            }
+
+            /**
+             * Suono di caduta della pedina
+             */
+            playDropSound() {
+                // Simula il suono di una pedina che cade
+                const frequencies = [440, 330, 220];
+                frequencies.forEach((freq, index) => {
+                    setTimeout(() => {
+                        this.playTone(freq, 0.1, 0.01, 0.02, 0.5, 0.05);
+                    }, index * 50);
+                });
+            }
+
+            /**
+             * Suono di vittoria elaborato
+             */
+            playWinSound() {
+                // Arpeggio maggiore
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C, E, G, C, E
+                notes.forEach((freq, index) => {
+                    setTimeout(() => {
+                        this.playTone(freq, 0.4, 0.05, 0.1, 0.7, 0.2);
+                    }, index * 200);
+                });
+            }
+
+            /**
+             * Suono di errore
+             */
+            playErrorSound() {
+                this.playTone(150, 0.3, 0.01, 0.05, 0.8, 0.2);
+            }
+        }
+
+        // Integra il sound manager nel gioco
+        window.soundManager = new SoundManager();
+
+        // Aggiungi metadati per PWA (Progressive Web App)
+        const manifest = {
+            name: "Connect Four - Forza Quattro",
+            short_name: "Connect4",
+            description: "Gioco classico Connect Four con AI",
+            start_url: "/",
+            display: "standalone",
+            background_color: "#1e1e1e",
+            theme_color: "#F4D03F",
+            icons: [
+                {
+                    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23F4D03F'/%3E%3Ctext x='50' y='50' font-size='50' text-anchor='middle' dy='0.3em'%3E🔴%3C/text%3E%3C/svg%3E",
+                    sizes: "192x192",
+                    type: "image/svg+xml"
+                }
+            ]
+        };
+
+        // Salva lo stato del gioco nel localStorage (se disponibile)
+        function saveGameState(game) {
+            try {
+                const gameState = {
+                    scores: game.scores,
+                    gameMode: game.gameMode,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('connectFourState', JSON.stringify(gameState));
+            } catch (e) {
+                // localStorage non disponibile
+            }
+        }
+
+        function loadGameState() {
+            try {
+                const saved = localStorage.getItem('connectFourState');
+                if (saved) {
+                    const gameState = JSON.parse(saved);
+                    // Carica solo se il salvataggio è recente (meno di 24 ore)
+                    if (Date.now() - gameState.timestamp < 24 * 60 * 60 * 1000) {
+                        return gameState;
+                    }
+                }
+            } catch (e) {
+                // localStorage non disponibile o dati corrotti
+            }
+            return null;
+        }
+
+        // Debug mode per sviluppatori
+        window.connectFourDebug = {
+            showBoard: () => {
+                const game = window.connectFourGame;
+                if (game) {
+                    console.table(game.board);
+                }
+            },
+            setPlayer: (player) => {
+                const game = window.connectFourGame;
+                if (game && (player === 1 || player === 2)) {
+                    game.currentPlayer = player;
+                    game.updateDisplay();
+                }
+            },
+            autoPlay: (moves = 5) => {
+                const game = window.connectFourGame;
+                if (!game || !game.gameActive) return;
+                
+                let moveCount = 0;
+                const interval = setInterval(() => {
+                    if (moveCount >= moves || !game.gameActive) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    
+                    const validCols = [];
+                    for (let col = 0; col < 7; col++) {
+                        if (game.board[0][col] === 0) {
+                            validCols.push(col);
+                        }
+                    }
+                    
+                    if (validCols.length > 0) {
+                        const randomCol = validCols[Math.floor(Math.random() * validCols.length)];
+                        game.handleCellClick(randomCol);
+                        moveCount++;
+                    }
+                }, 1000);
+            }
+        };
+
+        console.log('%c🎮 Connect Four Loaded!', 'color: #F4D03F; font-size: 16px; font-weight: bold;');
+        console.log('%cUsa window.connectFourDebug per funzioni di debug', 'color: #4ECDC4;');
+    </script>
+</body>
+</html>

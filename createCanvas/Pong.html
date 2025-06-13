@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <script>
+        var ballX = 300;
+        var ballY = 200;
+        var ballSpeedX = 4;
+        var ballSpeedY = 3;
+        var ballSize = 20;
+
+        var paddleW = 10;
+        var paddleH = 80;
+
+        var leftY = 160;
+        var rightY = 160;
+        var leftScore = 0;
+        var rightScore = 0;
+
+        function setup() {
+            let canvas = createCanvas(600, 400);
+            canvas.parent("canvas-container");
+        }
+
+        function draw() {
+            background(0);
+            fill(255);
+
+            // disegna la pallina
+            ellipse(ballX, ballY, ballSize, ballSize);
+
+            // movimento pallina
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // rimbalzo su pareti superiore/inferiore
+            if (ballY < 0 || ballY > height) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            // paddle sinistra (giocatore 1)
+            rect(20, leftY, paddleW, paddleH);
+            // paddle destra (giocatore 2)
+            rect(width - 30, rightY, paddleW, paddleH);
+
+            // controlli paddle
+            if (keyIsDown(87)) { // W
+                leftY -= 5;
+            }
+            if (keyIsDown(83)) { // S
+                leftY += 5;
+            }
+            if (keyIsDown(UP_ARROW)) {
+                rightY -= 5;
+            }
+            if (keyIsDown(DOWN_ARROW)) {
+                rightY += 5;
+            }
+
+            // collisione paddle sinistra
+            if (ballX < 30 && ballY > leftY && ballY < leftY + paddleH) {
+                ballSpeedX = -ballSpeedX;
+            }
+
+            // collisione paddle destra
+            if (ballX > width - 30 && ballY > rightY && ballY < rightY + paddleH) {
+                ballSpeedX = -ballSpeedX;
+            }
+
+            // punto per destra
+            if (ballX < 0) {
+                rightScore++;
+                resetBall();
+            }
+
+            // punto per sinistra
+            if (ballX > width) {
+                leftScore++;
+                resetBall();
+            }
+
+            // punteggio
+            textSize(32);
+            text(leftScore, 150, 40);
+            text(rightScore, width - 170, 40);
+        }
+
+        function resetBall() {
+            ballX = width / 2;
+            ballY = height / 2;
+            ballSpeedX = -ballSpeedX;
+            ballSpeedY = random(-4, 4);
+        }
+    </script>
+</body>
+</html>

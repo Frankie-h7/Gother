@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+        /* Stile generale */
+        :root {
+            --dark-bg: #1a1a1a;
+            --darker-bg: #121212;
+            --accent-color: #d4a017; /* Giallo ocra */
+            --accent-hover: #f0b82b;
+            --text-color: #e0e0e0;
+            --grid-border: #333333;
+            --x-color: #d4a017;
+            --o-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            transition: background-color 0.3s ease;
+            overflow-x: hidden;
+            overflow: hidden; /* Disabilita lo scroll globale */
+
+                        /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+
+    margin: 20px auto; /* Centra orizzontalmente */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra gli elementi interni */
+    /* ... altre proprietà ... */
+    justify-content: flex-start; /* Allinea in alto */
+    flex: 1 0 auto; /* Permette al container di ridimensionarsi */
+ /* overflow-y: auto; /* Abilita scroll solo se necessario */
+    max-height: 90vh; /* Altezza massima del viewport */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(212, 160, 23, 0.3);
+            letter-spacing: 1px;
+        }
+
+        /* Menu iniziale */
+        .game-menu {
+            background-color: var(--darker-bg);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 500px;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s, transform 0.5s;
+            /* ... altre proprietà esistenti ... */
+            position: relative; /* Aggiunto */
+            z-index: 10; /* Aggiunto per sovrapporsi */
+        }
+
+        .game-menu.hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .menu-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .mode-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-selection {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            transition: opacity 0.3s;
+        }
+
+        .difficulty-selection.visible {
+            display: flex;
+        }
+
+        .btn {
+            background-color: var(--darker-bg);
+            color: var(--text-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 5px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-color);
+            color: var(--darker-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-start {
+            margin-top: 10px;
+            font-weight: bold;
+            background-color: var(--accent-color);
+            color: var(--darker-bg);
+        }
+
+        .btn-start:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Tabellone di gioco */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin: 10px 0; /* Margini ridotti */
+            max-width: 400px;
+            max-height: 300px;
+            width: 90%; /* Larghezza relativa */
+            aspect-ratio: 1/1;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.5s, transform 0.5s;
+            /* ... altre proprietà esistenti ... */
+    transition: opacity 0.3s, transform 0.5s, visibility 0.3s; /* Aggiunto visibility */
+        }
+
+        .game-board:not(.active) {
+    opacity: 0;
+    transform: scale(0.9);
+    visibility: hidden; /* Aggiunto */
+    position: absolute; /* Previene occupazione spazio */
+}
+
+        .game-board.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .cell {
+            background-color: var(--darker-bg);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell:hover {
+            background-color: #222;
+            box-shadow: 0 0 10px rgba(212, 160, 23, 0.3);
+        }
+
+        .cell.x::before, .cell.x::after {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 10%;
+            background-color: var(--x-color);
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .cell.x::before {
+            transform: rotate(45deg);
+        }
+
+        .cell.x::after {
+            transform: rotate(-45deg);
+        }
+
+        .cell.o::before {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 60%;
+            border: 10px solid var(--o-color); /* Aumentato da 10% */
+            border-radius: 50%;
+            transition: all 0.2s;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
+            box-shadow: 0 0 10px rgba(224, 224, 224, 0.5); /* Opzionale: effetto glow */
+        }
+
+        .cell.win {
+            animation: win-animation 1s forwards;
+        }
+
+        @keyframes win-animation {
+            0% { background-color: var(--darker-bg); }
+            50% { background-color: var(--accent-color); }
+            100% { background-color: var(--accent-color); }
+        }
+
+        /* Pannello info */
+        .game-info {
+            background-color: var(--darker-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .game-info.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .current-player {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            font-size: 1.1rem;
+        }
+
+        .score {
+            text-align: center;
+            flex: 1;
+        }
+
+        .score-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+        }
+
+        .player-x .score-value {
+            color: var(--x-color);
+        }
+
+        .player-o .score-value {
+            color: var(--o-color);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .controls .btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* Modal di fine partita */
+        .game-over-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .game-over-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: var(--darker-bg);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--accent-color);
+        }
+
+        .game-over-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+        }
+
+        .modal-message {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* CSS AGGIUNTIVO */
+        /* Overlay "Sto pensando..." */
+.ai-thinking-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.ai-thinking-overlay.active {
+    opacity: 1;
+}
+
+.ai-thinking-text {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    text-shadow: 0 0 15px rgba(212, 160, 23, 0.5);
+    font-weight: bold;
+    letter-spacing: 2px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.8; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0.8; transform: scale(0.95); }
+}
+
+/* Stile per pulsanti selezionati */
+.btn.active {
+    background-color: var(--accent-color);
+    color: var(--darker-bg);
+    box-shadow: 0 0 15px rgba(212, 160, 23, 0.7);
+    border: 2px solid var(--accent-hover);
+    position: relative;
+}
+
+/* Effetto bordo animato */
+.btn.active::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid var(--accent-hover);
+    border-radius: 7px;
+    animation: pulseBorder 1.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes pulseBorder {
+    0% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.7; transform: scale(1); }
+}
+
+.btn-start:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(212, 160, 23, 0.4);
+}
+
+.btn-start:active {
+    transform: translateY(1px);
+}
+        /* CSS AGGIUNTIVO */
+
+        /* Media Query per dispositivi mobili */
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 1rem;
+            }
+            
+            .cell {
+                font-size: 2rem;
+            }
+            
+            .game-menu, .game-info {
+                padding: 15px;
+                width: 95%; /* Più stretto su mobile */
+            }
+
+            .ai-thinking-text {
+                font-size: 2rem; /* Più piccolo su mobile */
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic-Tac-Toe</h1>
+        
+        <!-- Menu di selezione -->
+        <div class="game-menu" id="gameMenu">
+            <h2 class="menu-title">Seleziona la Modalità di Gioco</h2>
+            <div class="mode-selection">
+                <button class="btn" id="btnVsPlayer">Gioca contro un Amico</button>
+                <button class="btn" id="btnVsAI">Gioca contro l'IA</button>
+            </div>
+            
+            <div class="difficulty-selection" id="difficultySelection">
+                <h3>Seleziona Difficoltà</h3>
+                <button class="btn difficulty-btn" data-difficulty="easy">Facile</button>
+                <button class="btn difficulty-btn" data-difficulty="medium">Medio</button>
+                <button class="btn difficulty-btn" data-difficulty="hard">Difficile</button>
+                <button class="btn difficulty-btn" data-difficulty="impossible">Impossibile</button>
+            </div>
+            
+            <button class="btn btn-start" id="btnStartGame">Inizia Partita</button>
+        </div>
+        
+        <!-- Tabellone di gioco -->
+        <div class="game-board" id="gameBoard">
+            <!-- Le celle saranno generate dinamicamente dal JS -->
+        </div>
+        
+        <!-- Info di gioco -->
+        <div class="game-info" id="gameInfo">
+            <div class="status">Turno: <span class="current-player">X</span></div>
+            
+            <div class="scoreboard">
+                <div class="score player-x">
+                    <div class="score-title">Giocatore X</div>
+                    <div class="score-value" id="scoreX">0</div>
+                </div>
+                <div class="score player-o">
+                    <div class="score-title">Giocatore O</div>
+                    <div class="score-value" id="scoreO">0</div>
+                </div>
+                <div class="score player-ties">
+                    <div class="score-title">Pareggi</div>
+                    <div class="score-value" id="scoreTies">0</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="btnNewGame">Nuova Partita</button>
+                <button class="btn" id="btnResetScore">Azzera Punteggio</button>
+                <button class="btn" id="btnMainMenu">Menu Principale</button>
+            </div>
+        </div>
+        
+        <!-- Modal fine partita -->
+        <div class="game-over-modal" id="gameOverModal">
+            <div class="modal-content">
+                <h2 class="modal-title" id="modalTitle">Partita Terminata</h2>
+                <p class="modal-message" id="modalMessage">Il vincitore è...</p>
+                <div class="modal-buttons">
+                    <button class="btn" id="btnPlayAgain">Gioca Ancora</button>
+                    <button class="btn" id="btnBackToMenu">Menu Principale</button>
+                </div>
+            </div>
+        </div>
+        <div class="ai-thinking-overlay" id="aiThinkingOverlay">
+            <div class="ai-thinking-text">Sto pensando...</div>
+        </div>
+    </div>
+    
+    <script>
+        // ======= AUDIO =======
+        // Gli audio vengono predisposti ma i link sono vuoti come richiesto
+        const audio = {
+            click: new Audio("..."),  // Suono click sulla cella
+            win: new Audio("..."),    // Suono vittoria
+            lose: new Audio("..."),   // Suono sconfitta
+            draw: new Audio("..."),   // Suono pareggio
+            start: new Audio("...")   // Suono inizio partita
+        };
+        
+        // ======= GESTIONE STATO DEL GIOCO =======
+        const GameState = {
+            // Costanti per lo stato del gioco
+            MENU: 'menu',
+            PLAYING: 'playing',
+            GAME_OVER: 'game_over',
+            
+            // Stato corrente
+            currentState: 'menu',
+            gameMode: null,          // 'player' o 'ai'
+            aiDifficulty: null,      // 'easy', 'medium', 'hard', 'impossible'
+            currentPlayer: 'X',      // 'X' o 'O'
+            board: Array(9).fill(''), // La tabella di gioco 3x3 (array piatto)
+            scores: {
+                X: 0,
+                O: 0,
+                ties: 0
+            },
+            movesCount: 0,
+            gameActive: false,
+            
+            // Combinazioni vincenti (indici dell'array board)
+            winPatterns: [
+                [0, 1, 2], // Orizzontale prima riga
+                [3, 4, 5], // Orizzontale seconda riga
+                [6, 7, 8], // Orizzontale terza riga
+                [0, 3, 6], // Verticale prima colonna
+                [1, 4, 7], // Verticale seconda colonna
+                [2, 5, 8], // Verticale terza colonna
+                [0, 4, 8], // Diagonale da in alto a sinistra
+                [2, 4, 6]  // Diagonale da in alto a destra
+            ],
+            
+            // Metodo per cambiare lo stato del gioco
+            changeState(newState) {
+                this.currentState = newState;
+                UI.updateUI();
+            },
+            
+            // Inizializza una nuova partita
+            initGame() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'X';
+                this.movesCount = 0;
+                this.gameActive = true;
+                this.changeState(GameState.PLAYING);
+                
+                try { audio.start.play(); } catch(e) {}
+            },
+            
+            // Esegue una mossa sulla posizione specificata
+            makeMove(position) {
+                // Ignora se la cella è già occupata o il gioco è terminato
+                if (this.board[position] !== '' || !this.gameActive) {
+                    return false;
+                }
+                
+                // Esegui la mossa
+                this.board[position] = this.currentPlayer;
+                this.movesCount++;
+                
+                try { audio.click.play(); } catch(e) {}
+                
+                // Controlla stato del gioco
+                if (this.checkWin()) {
+                    this.handleWin();
+                    return true;
+                } else if (this.checkDraw()) {
+                    this.handleDraw();
+                    return true;
+                }
+                
+                // Passa al giocatore successivo
+                this.switchPlayer();
+                
+                // Se è il turno dell'IA e la modalità è AI, fai eseguire la mossa all'IA
+                if (this.gameMode === 'ai' && this.currentPlayer === 'O' && this.gameActive) {
+                    setTimeout(() => {
+                                // Mostra l'overlay
+                    document.getElementById('aiThinkingOverlay').classList.add('active');
+    
+                    // Ritardo per l'animazione
+                    setTimeout(() => {
+                        const aiMove = AI.makeMove();
+                        this.makeMove(aiMove);
+                        UI.updateBoard();
+        
+                    // Nascondi l'overlay
+                    document.getElementById('aiThinkingOverlay').classList.remove('active');
+            }, 800); // Aumentato il delay per far vedere bene l'overlay
+        });
+
+                }
+                
+                return true;
+            },// Forza il reflow prima della mossa
+              // Aggiunge un leggero ritardo per rendere la mossa dell'IA più naturale
+            // Cambia il giocatore corrente
+            switchPlayer() {
+                this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                UI.updateGameInfo();
+            },
+            
+            // Controlla se c'è un vincitore
+            checkWin() {
+                for (const pattern of this.winPatterns) {
+                    const [a, b, c] = pattern;
+                    if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
+                        return {
+                            winner: this.board[a],
+                            pattern: pattern
+                        };
+                    }
+                }
+                return null;
+            },
+            
+            // Controlla se c'è un pareggio
+            checkDraw() {
+                return this.movesCount === 9;
+            },
+            
+            // Gestisce la vittoria
+            handleWin() {
+                const result = this.checkWin();
+                if (!result) return;
+                
+                this.gameActive = false;
+                this.scores[result.winner]++;
+                
+                // Evidenzia le celle vincenti
+                UI.highlightWinningCells(result.pattern);
+                
+                try { 
+                    // Suona audio vittoria o sconfitta in base al vincitore
+                    if (this.gameMode === 'ai' && result.winner === 'X') {
+                        audio.win.play();
+                    } else if (this.gameMode === 'ai' && result.winner === 'O') {
+                        audio.lose.play();
+                    } else {
+                        audio.win.play();
+                    }
+                } catch(e) {}
+                
+                // Mostra il modal dopo un breve ritardo per permettere di vedere la combinazione vincente
+                setTimeout(() => {
+                    UI.showGameOverModal(`${result.winner === 'X' ? 'X' : 'O'} ha vinto!`);
+                }, 1000);
+                
+                UI.updateScoreboard();
+            },
+            
+            // Gestisce il pareggio
+            handleDraw() {
+                this.gameActive = false;
+                this.scores.ties++;
+                
+                try { audio.draw.play(); } catch(e) {}
+                
+                setTimeout(() => {
+                    UI.showGameOverModal("Pareggio!");
+                }, 500);
+                
+                UI.updateScoreboard();
+            },
+            
+            // Resetta i punteggi
+            resetScores() {
+                this.scores.X = 0;
+                this.scores.O = 0;
+                this.scores.ties = 0;
+                UI.updateScoreboard();
+            }
+        };
+        
+        // ======= LOGICA DELL'INTELLIGENZA ARTIFICIALE =======
+        const AI = {
+            makeMove() {
+                // Scegli la mossa in base alla difficoltà
+                switch (GameState.aiDifficulty) {
+                    case 'easy':
+                        return this.makeEasyMove();
+                    case 'medium':
+                        return Math.random() < 0.6 ? this.makeMediumMove() : this.makeEasyMove();
+                    case 'hard':
+                        return Math.random() < 0.7 ? this.makeHardMove() : this.makeMediumMove();
+                    case 'impossible':
+                        return this.makeImpossibleMove();
+                    default:
+                        return this.makeEasyMove();
+                }
+            },
+            
+            // Mossa casuale (livello facile)
+            makeEasyMove() {
+                const emptyCells = this.getEmptyCells();
+                if (emptyCells.length === 0) return -1;
+                
+                const randomIndex = Math.floor(Math.random() * emptyCells.length);
+                return emptyCells[randomIndex];
+            },
+            
+            // Livello medio: blocca mosse vincenti avversarie o gioca casualmente
+            makeMediumMove() {
+                // Controlla se può vincere con la prossima mossa
+                const winningMove = this.findWinningMove('O');
+                if (winningMove !== -1) return winningMove;
+                
+                // Blocca la mossa vincente dell'avversario
+                const blockingMove = this.findWinningMove('X');
+                if (blockingMove !== -1) return blockingMove;
+                
+                // Se c'è la cella centrale libera, prendila (buona strategia)
+                if (GameState.board[4] === '') return 4;
+                
+                // Altrimenti fai una mossa casuale
+                return this.makeEasyMove();
+            },
+            
+            // Livello difficile: usa strategie più avanzate
+            makeHardMove() {
+                // Controlla se può vincere con la prossima mossa
+                const winningMove = this.findWinningMove('O');
+                if (winningMove !== -1) return winningMove;
+                
+                // Blocca la mossa vincente dell'avversario
+                const blockingMove = this.findWinningMove('X');
+                if (blockingMove !== -1) return blockingMove;
+                
+                // Se c'è la cella centrale libera, prendila (buona strategia)
+                if (GameState.board[4] === '') return 4;
+                
+                // Preferisci gli angoli se sono liberi
+                const corners = [0, 2, 6, 8].filter(idx => GameState.board[idx] === '');
+                if (corners.length > 0) {
+                    return corners[Math.floor(Math.random() * corners.length)];
+                }
+                
+                // Altrimenti prendi una cella libera qualsiasi
+                return this.makeEasyMove();
+            },
+            
+            // Livello impossibile: usa l'algoritmo minimax per giocare perfettamente
+            makeImpossibleMove() {
+                // Se è la prima mossa dell'IA e il centro è libero, prendi il centro
+                if (GameState.movesCount === 1 && GameState.board[4] === '') {
+                    return 4;
+                }
+                
+                // Altrimenti usa minimax per trovare la mossa ottimale
+                return this.minimax(GameState.board, 'O').index;
+            },
+            
+            // Trova le celle vuote
+            getEmptyCells() {
+                return GameState.board.map((cell, index) => {
+                    if (cell === '') return index;
+                    return null;
+                }).filter(index => index !== null);
+            },
+            
+            // Trova una mossa vincente per il giocatore specificato
+            findWinningMove(player) {
+                // Per ogni cella vuota, controlla se giocare lì porterebbe alla vittoria
+                for (const index of this.getEmptyCells()) {
+                    const boardCopy = [...GameState.board];
+                    boardCopy[index] = player;
+                    
+                    // Controlla se questa mossa vincerebbe
+                    for (const pattern of GameState.winPatterns) {
+                        const [a, b, c] = pattern;
+                        if (boardCopy[a] && boardCopy[a] === boardCopy[b] && boardCopy[a] === boardCopy[c]) {
+                            return index;
+                        }
+                    }
+                }
+                
+                return -1; // Nessuna mossa vincente trovata
+            },
+            
+            // Algoritmo Minimax per la modalità impossibile
+            minimax(board, player, depth = 0, isMaximizing = true) {
+                // Clone del tabellone per manipolazioni
+                const currentBoard = [...board];
+                
+                // Controlla se c'è un vincitore
+                const winner = this.checkWinnerMinimax(currentBoard);
+                if (winner === 'O') return { score: 10 - depth };
+                if (winner === 'X') return { score: depth - 10 };
+                
+                // Controlla se c'è un pareggio
+                const emptyCells = currentBoard.map((cell, index) => {
+                    if (cell === '') return index;
+                    return null;
+                }).filter(index => index !== null);
+                
+                if (emptyCells.length === 0) return { score: 0 };
+                
+                // Inizializza l'oggetto risultato
+                const result = { score: isMaximizing ? -Infinity : Infinity };
+                
+                // Esplora tutte le mosse possibili
+                for (const index of emptyCells) {
+                    // Fai la mossa
+                    currentBoard[index] = player;
+                    
+                    // Calcola il punteggio ricorsivamente
+                    const nextPlayer = player === 'O' ? 'X' : 'O';
+                    const scoreObj = this.minimax(currentBoard, nextPlayer, depth + 1, !isMaximizing);
+                    
+                    // Annulla la mossa
+                    currentBoard[index] = '';
+                    
+                    // Aggiorna il punteggio migliore
+                    if (isMaximizing) {
+                        if (scoreObj.score > result.score) {
+                            result.score = scoreObj.score;
+                            result.index = index;
+                        }
+                    } else {
+                        if (scoreObj.score < result.score) {
+                            result.score = scoreObj.score;
+                            result.index = index;
+                        }
+                    }
+                }
+                
+                return result;
+            },
+            
+            // Controlla il vincitore per l'algoritmo minimax
+            checkWinnerMinimax(board) {
+                for (const pattern of GameState.winPatterns) {
+                    const [a, b, c] = pattern;
+                    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                        return board[a];
+                    }
+                }
+                return null;
+            }
+        };
+        
+        // ======= GESTIONE INTERFACCIA UTENTE =======
+        const UI = {
+            // Elementi DOM
+            elements: {
+                gameMenu: document.getElementById('gameMenu'),
+                difficultySelection: document.getElementById('difficultySelection'),
+                gameBoard: document.getElementById('gameBoard'),
+                gameInfo: document.getElementById('gameInfo'),
+                gameOverModal: document.getElementById('gameOverModal'),
+                currentPlayerEl: document.querySelector('.current-player'),
+                scoreX: document.getElementById('scoreX'),
+                scoreO: document.getElementById('scoreO'),
+                scoreTies: document.getElementById('scoreTies'),
+                modalTitle: document.getElementById('modalTitle'),
+                modalMessage: document.getElementById('modalMessage')
+            },
+            
+            // Inizializza l'interfaccia utente
+            init() {
+                this.createGameBoard();
+                this.setupEventListeners();
+                this.updateUI();
+            },
+            
+            // Crea la tabella di gioco
+            createGameBoard() {
+                const gameBoard = this.elements.gameBoard;
+                gameBoard.innerHTML = '';
+                
+                // Crea le 9 celle
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.index = i;
+                    gameBoard.appendChild(cell);
+                }
+            },
+            
+            // Configura gli event listener
+            setupEventListeners() {
+                // Gestione click su celle della tabella
+                this.elements.gameBoard.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('cell')) {
+                        const index = parseInt(e.target.dataset.index);
+                        
+                        // Ignora se è il turno dell'IA
+                        if (GameState.gameMode === 'ai' && GameState.currentPlayer === 'O') return;
+                        
+                        if (GameState.makeMove(index)) {
+                            this.updateBoard();
+                        }
+                    }
+                });
+                
+                // Gestione click su bottone "Vs Player"
+                // Modifica gli event listener esistenti per i bottoni modalità
+document.getElementById('btnVsPlayer').addEventListener('click', function() {
+    GameState.gameMode = 'player';
+    document.getElementById('difficultySelection').classList.remove('visible');
+    
+    // Aggiungi rimozione/stato attivo
+    this.classList.add('active');
+    document.getElementById('btnVsAI').classList.remove('active');
+});
+                
+                // Gestione click su bottone "Vs AI"
+                document.getElementById('btnVsAI').addEventListener('click', function() {
+    GameState.gameMode = 'ai';
+    document.getElementById('difficultySelection').classList.add('visible');
+    
+    // Aggiungi rimozione/stato attivo
+    this.classList.add('active');
+    document.getElementById('btnVsPlayer').classList.remove('active');
+});
+                
+                // Gestione click sui bottoni difficoltà
+                // Modifica gli event listener per i bottoni difficoltà
+document.querySelectorAll('.difficulty-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Rimuovi da tutti i bottoni difficoltà
+        document.querySelectorAll('.difficulty-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+                        
+                        // Aggiungi la classe attiva al bottone cliccato
+                        this.classList.add('active');
+        GameState.aiDifficulty = this.dataset.difficulty;
+                    });
+                });
+                
+                // Gestione click su bottone "Inizia Partita"
+                document.getElementById('btnStartGame').addEventListener('click', () => {
+                    if (!GameState.gameMode) {
+                        alert('Seleziona una modalità di gioco!');
+                        return;
+                    }
+                    
+                    if (GameState.gameMode === 'ai' && !GameState.aiDifficulty) {
+                        alert('Seleziona un livello di difficoltà!');
+                        return;
+                    }
+                    
+                    GameState.initGame();
+                });
+                
+                // Gestione click su bottone "Nuova Partita"
+                document.getElementById('btnNewGame').addEventListener('click', () => {
+                    GameState.initGame();
+                });
+                
+                // Gestione click su bottone "Azzera Punteggio"
+                document.getElementById('btnResetScore').addEventListener('click', () => {
+                    GameState.resetScores();
+                });
+                
+                // Gestione click su bottone "Menu Principale"
+                document.getElementById('btnMainMenu').addEventListener('click', () => {
+                    GameState.changeState(GameState.MENU);
+                });
+                
+                // Gestione click su bottone "Gioca Ancora"
+                document.getElementById('btnPlayAgain').addEventListener('click', () => {
+                    this.hideGameOverModal();
+                    GameState.initGame();
+                });
+                
+                // Gestione click su bottone "Torna al Menu"
+                document.getElementById('btnBackToMenu').addEventListener('click', () => {
+                    this.hideGameOverModal();
+                    GameState.changeState(GameState.MENU);
+                });
+            },
+            
+            // Aggiorna l'interfaccia in base allo stato del gioco
+            updateUI() {
+                switch (GameState.currentState) {
+                    // Nella funzione UI.updateUI(), caso GameState.MENU:
+                    case GameState.MENU:
+                            this.elements.gameMenu.classList.remove('hidden');
+    // Ripristina selezione precedente
+    if(GameState.gameMode === 'player') {
+        document.getElementById('btnVsPlayer').classList.add('active');
+    } else if(GameState.gameMode === 'ai') {
+        document.getElementById('btnVsAI').classList.add('active');
+    }
+
+    // Aggiungi queste righe:
+    this.elements.gameBoard.style.display = 'none'; // Nasconde completamente
+    // Oppure per la Soluzione 2:
+    // this.elements.gameBoard.style.opacity = '0';
+    break;
+                    case GameState.PLAYING:
+                        this.elements.gameMenu.classList.add('hidden');
+                        this.elements.gameBoard.classList.add('active');
+                        this.elements.gameInfo.classList.add('active');
+                        this.updateBoard();
+                        this.updateGameInfo();
+
+                            // Aggiungi queste righe:
+    this.elements.gameBoard.style.display = 'grid'; // Mostra di nuovo
+    // Oppure per la Soluzione 2:
+    // this.elements.gameBoard.style.opacity = '1';
+                        break;
+                    case GameState.GAME_OVER:
+                        // Gestito dai metodi specifici per fine partita
+                        break;
+                }
+            },
+            
+            // Aggiorna la tabella di gioco in base allo stato interno
+            updateBoard() {
+                const cells = this.elements.gameBoard.querySelectorAll('.cell');
+                
+                cells.forEach((cell, index) => {
+                    // Rimuovi le classi esistenti
+                    cell.classList.remove('x', 'o', 'win');
+                    
+                    // Aggiungi la classe in base al valore nella cella
+                    if (GameState.board[index] === 'X') {
+                        cell.classList.add('x');
+                    } else if (GameState.board[index] === 'O') {
+                        cell.classList.add('o');
+                    }
+                });
+            },
+            
+            // Aggiorna le informazioni di gioco
+            updateGameInfo() {
+                this.elements.currentPlayerEl.textContent = GameState.currentPlayer;
+            },
+            
+            // Aggiorna il punteggio
+            updateScoreboard() {
+                this.elements.scoreX.textContent = GameState.scores.X;
+                this.elements.scoreO.textContent = GameState.scores.O;
+                this.elements.scoreTies.textContent = GameState.scores.ties;
+            },
+            
+            // Evidenzia le celle vincenti
+            highlightWinningCells(pattern) {
+                const cells = this.elements.gameBoard.querySelectorAll('.cell');
+                
+                pattern.forEach(index => {
+                    cells[index].classList.add('win');
+                });
+            },
+            
+            // Mostra il modal di fine partita
+            showGameOverModal(message) {
+                this.elements.modalMessage.textContent = message;
+                this.elements.gameOverModal.classList.add('active');
+            },
+            
+            // Nasconde il modal di fine partita
+            hideGameOverModal() {
+                this.elements.gameOverModal.classList.remove('active');
+            }
+        };
+        
+        // Inizializza il gioco quando il DOM è completamente caricato
+        document.addEventListener('DOMContentLoaded', () => {
+            UI.init();
+        });
+    </script>
+</body>
+</html>

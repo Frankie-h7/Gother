@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeon Escape - Avventura Testuale</title>
+    <style>
+        /* ===== STILE GENERALE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+
+            /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* ===== CONTENITORE PRINCIPALE ===== */
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            min-height: 500px;
+            background-color: #1a1a1a;
+            border: 3px solid #c9a227; /* Rifiniture giallo ocra */
+            border-radius: 10px;
+            box-shadow: 0 0 15px #c9a22777;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== HEADER DEL GIOCO ===== */
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #c9a227;
+            border-bottom: 2px solid #c9a227;
+            padding-bottom: 10px;
+        }
+
+        .game-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #c9a22766;
+            letter-spacing: 3px;
+        }
+
+        /* ===== AREA DI GIOCO ===== */
+        .game-content {
+            position: relative;
+            min-height: 300px;
+            margin-bottom: 20px;
+        }
+
+        /* Area del testo della storia */
+        .story-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            min-height: 200px;
+        }
+
+        /* ===== PULSANTI E INTERAZIONI ===== */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #292929;
+            color: #c9a227;
+            border: 2px solid #c9a227;
+            border-radius: 5px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background-color: #3a3a3a;
+            box-shadow: 0 0 10px #c9a22755;
+        }
+
+        /* Effetto pop-up per i pulsanti */
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 15px #c9a22799;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+
+        /* ===== SISTEMA DI STATUS ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: #252525;
+            border: 1px solid #c9a227;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-item-icon {
+            color: #c9a227;
+            font-weight: bold;
+        }
+
+        /* ===== INVENTARIO ===== */
+        .inventory {
+            background-color: #252525;
+            border: 1px solid #c9a227;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .inventory.show {
+            max-height: 200px;
+        }
+
+        .inventory-title {
+            color: #c9a227;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .inventory-item {
+            background-color: #333;
+            border: 1px solid #c9a227;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+
+        /* ===== MENU PRINCIPALE ===== */
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .menu-title {
+            font-size: 3rem;
+            color: #c9a227;
+            text-shadow: 0 0 10px #c9a22777;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .menu-button {
+            padding: 15px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        /* ===== IMPOSTAZIONI ===== */
+        .settings-panel {
+            background-color: #252525;
+            border: 2px solid #c9a227;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .settings-title {
+            color: #c9a227;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .settings-option {
+            margin-bottom: 15px;
+        }
+
+        .settings-option label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #c9a227;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* ===== SOVRAPPOSIZIONI E TRANSIZIONI ===== */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Animazione di digitazione per il testo */
+        .typing-effect {
+            border-right: 2px solid #c9a227;
+            white-space: nowrap;
+            overflow: hidden;
+            margin: 0;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #c9a227 }
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 15px;
+            }
+
+            .game-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .story-text {
+                font-size: 1rem;
+            }
+
+            button {
+                padding: 10px 15px;
+            }
+
+            .menu-title {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <!-- Il contenuto sarà generato dinamicamente tramite JavaScript -->
+    </div>
+
+    <!-- Suoni del gioco precaricati -->
+    <audio id="sound-click" preload="auto">
+        <source src="sounds/click.wav"></source>
+    </audio>
+    <audio id="sound-footsteps" preload="auto">
+        <source src="sounds/footsteps.wav"></source>
+    </audio>
+    <audio id="sound-door" preload="auto">
+        <source src="sounds/knok-door.wav"></source>
+    </audio>
+    <audio id="sound-ambience" preload="auto" loop>
+        <source src="sounds/alone-in-town.wav">
+    </audio>
+    <audio id="sound-typing" preload="auto">
+        <source src="sounds/keyboard-typing.mp3"></source>
+    </audio>
+    
+    <script>
+        // ===== INIZIALIZZAZIONE DEL GIOCO =====
+        const gameContainer = document.getElementById('gameContainer');
+        
+        // Suoni del gioco
+        const soundClick = document.getElementById('sound-click');
+        const soundFootsteps = document.getElementById('sound-footsteps');
+        const soundDoor = document.getElementById('sound-door');
+        const soundAmbience = document.getElementById('sound-ambience');
+        
+        // Stato del gioco
+        const gameState = {
+            playerName: '',
+            health: 100,
+            inventory: [],
+            currentLocation: 'start',
+            visitedLocations: [],
+            choices: [],
+            soundEnabled: true,
+            textSpeedFast: false
+        };
+        
+        // ===== GESTIONE DEI SALVATAGGI =====
+        
+        // Salva lo stato del gioco
+        function saveGame() {
+            localStorage.setItem('dungeonEscapeGame', JSON.stringify(gameState));
+            playSound(soundClick);
+            showNotification('Gioco salvato!');
+        }
+        
+        // Carica lo stato del gioco salvato
+        function loadGame() {
+            const savedGame = localStorage.getItem('dungeonEscapeGame');
+            if (savedGame) {
+                Object.assign(gameState, JSON.parse(savedGame));
+                playSound(soundClick);
+                showNotification('Gioco caricato!');
+                renderGame(gameState.currentLocation);
+                return true;
+            }
+            return false;
+        }
+        
+        // Elimina il salvataggio
+        function deleteSave() {
+            localStorage.removeItem('dungeonEscapeGame');
+            playSound(soundClick);
+            showNotification('Salvataggio eliminato!');
+        }
+        
+        // ===== SISTEMA DI NOTIFICHE =====
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.backgroundColor = '#c9a227';
+            notification.style.color = '#1a1a1a';
+            notification.style.padding = '10px 20px';
+            notification.style.borderRadius = '5px';
+            notification.style.fontWeight = 'bold';
+            notification.style.zIndex = '1000';
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s ease';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+        
+        // ===== SISTEMA AUDIO =====
+        
+        function playSound(sound) {
+            if (gameState.soundEnabled) {
+                sound.currentTime = 0;
+                sound.play();
+            }
+        }
+        
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            if (gameState.soundEnabled) {
+                soundAmbience.play();
+                showNotification('Audio attivato');
+            } else {
+                soundAmbience.pause();
+                showNotification('Audio disattivato');
+            }
+        }
+        
+        // ===== ANIMAZIONE DEL TESTO =====
+        
+        function animateText(element, text, callback) {
+            element.textContent = '';
+            const typingSound = document.getElementById('sound-typing');
+    
+    if (gameState.textSpeedFast) {
+        element.textContent = text;
+        if (callback) callback();
+        return;
+    }
+    
+    // Avvia il suono di digitazione
+    if (gameState.soundEnabled) {
+        typingSound.currentTime = 0;
+        typingSound.loop = true;
+        typingSound.play();
+    }
+    
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(interval);
+            // Interrompi il suono quando il testo è finito
+            typingSound.pause();
+            if (callback) callback();
+        }
+    }, 30); // Velocità di digitazione
+}
+        
+        function toggleTextSpeed() {
+            gameState.textSpeedFast = !gameState.textSpeedFast;
+            showNotification(gameState.textSpeedFast ? 'Velocità testo: rapida' : 'Velocità testo: normale');
+        }
+        
+        // ===== CONTENUTO DEL GIOCO =====
+        
+        // Mappa delle location del gioco
+        const gameLocations = {
+            // Schermata iniziale
+            'start': {
+                title: 'Dungeon Escape',
+                description: 'Ti risvegli in una cella buia e umida. L\'unica luce proviene da una piccola fessura nella parete di pietra. La tua testa pulsa di dolore mentre cerchi di ricordare come sei finito qui.',
+                choices: [
+                    { text: 'Esamina la cella', nextLocation: 'examine_cell' },
+                    { text: 'Chiama aiuto', nextLocation: 'call_for_help' },
+                    { text: 'Cerca di forzare la porta', nextLocation: 'force_door' }
+                ],
+                onEnter: () => {
+                    playSound(soundAmbience);
+                    if (!gameState.visitedLocations.includes('start')) {
+                        gameState.visitedLocations.push('start');
+                    }
+                }
+            },
+            
+            // Esamina la cella
+            'examine_cell': {
+                title: 'La Cella',
+                description: 'Nella penombra, noti che la cella è piccola, circa 3 metri per 3. C\'è una branda sgangherata in un angolo, un secchio in un altro. Sul pavimento, tra la sporcizia, qualcosa luccica debolmente.',
+                choices: [
+                    { text: 'Esamina l\'oggetto luccicante', nextLocation: 'examine_object' },
+                    { text: 'Controlla la branda', nextLocation: 'check_bed' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('examine_cell')) {
+                        gameState.visitedLocations.push('examine_cell');
+                    }
+                }
+            },
+            
+            // Esamina l'oggetto luccicante
+            'examine_object': {
+                title: 'Un Ritrovamento',
+                description: 'Ti chini per raccogliere l\'oggetto. È una vecchia chiave arrugginita. Potrebbe essere utile, anche se non sai ancora dove usarla.',
+                choices: [
+                    { text: 'Prendi la chiave', nextLocation: 'take_key' },
+                    { text: 'Lasciala dov\'è', nextLocation: 'examine_cell' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('examine_object')) {
+                        gameState.visitedLocations.push('examine_object');
+                    }
+                }
+            },
+            
+            // Prendi la chiave
+            'take_key': {
+                title: 'Una Chiave per la Libertà?',
+                description: 'Hai raccolto la chiave e l\'hai messa in tasca. Chissà dove potrà essere usata...',
+                choices: [
+                    { text: 'Controlla la branda', nextLocation: 'check_bed' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    if (!gameState.inventory.includes('Chiave arrugginita')) {
+                        gameState.inventory.push('Chiave arrugginita');
+                        showNotification('Hai ottenuto: Chiave arrugginita');
+                    }
+                    if (!gameState.visitedLocations.includes('take_key')) {
+                        gameState.visitedLocations.push('take_key');
+                    }
+                }
+            },
+            
+            // Controlla la branda
+            'check_bed': {
+                title: 'Una Scoperta Inaspettata',
+                description: 'Sollevi il sottile materasso della branda. Sotto di esso, c\'è un piccolo spazio nascosto. Vedi uno sgualcito pezzo di carta con quello che sembra un disegno.',
+                choices: [
+                    { text: 'Prendi il pezzo di carta', nextLocation: 'take_paper' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('check_bed')) {
+                        gameState.visitedLocations.push('check_bed');
+                    }
+                }
+            },
+            
+            // Prendi il pezzo di carta
+            'take_paper': {
+                title: 'Una Mappa?',
+                description: 'Esamini il pezzo di carta. È una rozza mappa del dungeon, o almeno di una parte di esso. Mostra alcuni passaggi e quella che sembra essere un\'uscita a nord. Potrebbe essere utile per trovare la via d\'uscita.',
+                choices: [
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    if (!gameState.inventory.includes('Mappa del dungeon')) {
+                        gameState.inventory.push('Mappa del dungeon');
+                        showNotification('Hai ottenuto: Mappa del dungeon');
+                    }
+                    if (!gameState.visitedLocations.includes('take_paper')) {
+                        gameState.visitedLocations.push('take_paper');
+                    }
+                }
+            },
+            
+            // Chiama aiuto
+            'call_for_help': {
+                title: 'Un Grido nel Vuoto',
+                description: 'Chiami aiuto ripetutamente, ma la tua voce sembra perdersi nel silenzio del dungeon. Dopo qualche minuto, senti dei passi avvicinarsi. Una guardia appare davanti alla porta della cella.',
+                choices: [
+                    { text: 'Chiedi di essere liberato', nextLocation: 'ask_for_freedom' },
+                    { text: 'Chiedi informazioni', nextLocation: 'ask_for_info' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('call_for_help')) {
+                        gameState.visitedLocations.push('call_for_help');
+                    }
+                }
+            },
+            
+            // Chiedi di essere liberato
+            'ask_for_freedom': {
+                title: 'La Guardia Sogghigna',
+                description: '"Liberarti? Hah!" La guardia ride amaramente. "Nessuno esce vivo da questo posto, a meno che il Maestro non lo desideri. E lui non lo desidera quasi mai." La guardia si allontana, lasciandoti solo con i tuoi pensieri.',
+                choices: [
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    if (!gameState.visitedLocations.includes('ask_for_freedom')) {
+                        gameState.visitedLocations.push('ask_for_freedom');
+                    }
+                }
+            },
+            
+            // Chiedi informazioni
+            'ask_for_info': {
+                title: 'Informazioni Preziose',
+                description: '"Vuoi sapere dove sei? Sei nei sotterranei del Castello Nero. Sei stato catturato mentre vagavi nei territori proibiti." La guardia si guarda attorno nervosamente prima di abbassare la voce. "C\'è un passaggio segreto dietro la pietra instabile nella parete est. Potrebbe essere la tua unica speranza..."',
+                choices: [
+                    { text: 'Ringrazia la guardia', nextLocation: 'thank_guard' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    gameState.choices.push('info_from_guard');
+                    if (!gameState.visitedLocations.includes('ask_for_info')) {
+                        gameState.visitedLocations.push('ask_for_info');
+                    }
+                }
+            },
+            
+            // Ringrazia la guardia
+            'thank_guard': {
+                title: 'Un Alleato Inaspettato',
+                description: 'Ringrazi la guardia per l\'informazione. "Non ringraziarmi," sussurra. "Non ho mai detto nulla. E farai meglio a sbrigarti. Il Maestro eseguirà i rituali all\'alba." Si allontana rapidamente.',
+                choices: [
+                    { text: 'Ispeziona la parete est', nextLocation: 'inspect_east_wall' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    if (!gameState.visitedLocations.includes('thank_guard')) {
+                        gameState.visitedLocations.push('thank_guard');
+                    }
+                }
+            },
+            
+            // Ispeziona la parete est
+            'inspect_east_wall': {
+                title: 'La Parete Est',
+                description: 'Ti avvicini alla parete est della cella. È costellata di crepe e macchie di umidità. Passando le mani sulla superficie ruvida, noti una pietra che sembra leggermente più mobile delle altre.',
+                choices: [
+                    { text: 'Spingi la pietra mobile', nextLocation: 'push_stone' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('inspect_east_wall')) {
+                        gameState.visitedLocations.push('inspect_east_wall');
+                    }
+                }
+            },
+            
+            // Spingi la pietra mobile
+            'push_stone': {
+                title: 'Un Passaggio Segreto',
+                description: 'Con un po\' di forza, riesci a spingere la pietra, che ruota rivelando un piccolo passaggio. È buio e stretto, ma potrebbe essere la tua via di fuga.',
+                choices: [
+                    { text: 'Entra nel passaggio', nextLocation: 'enter_passage' },
+                    { text: 'Torna alla posizione iniziale', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    playSound(soundDoor);
+                    if (!gameState.visitedLocations.includes('push_stone')) {
+                        gameState.visitedLocations.push('push_stone');
+                    }
+                }
+            },
+            
+            // Entra nel passaggio
+            'enter_passage': {
+                title: 'Il Passaggio Segreto',
+                description: 'Ti intrufoli nel passaggio, che è appena abbastanza grande per permetterti di strisciare. L\'aria è stantia e il buio è quasi totale. Avanzi lentamente, sentendo il terreno irregolare sotto di te.',
+                choices: [
+                    { text: 'Continua ad avanzare', nextLocation: 'advance_tunnel' },
+                    { text: 'Torna indietro', nextLocation: 'start' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('enter_passage')) {
+                        gameState.visitedLocations.push('enter_passage');
+                    }
+                }
+            },
+            
+            // Avanza nel tunnel
+            'advance_tunnel': {
+                title: 'Nelle Profondità',
+                description: 'Continui ad avanzare nel tunnel per quello che sembra un\'eternità. Improvvisamente, il passaggio si allarga in una piccola stanza sotterranea. Ci sono due tunnel che si diramano: uno a sinistra e uno a destra.',
+                choices: [
+                    { text: 'Prendi il tunnel a sinistra', nextLocation: 'left_tunnel' },
+                    { text: 'Prendi il tunnel a destra', nextLocation: 'right_tunnel' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('advance_tunnel')) {
+                        gameState.visitedLocations.push('advance_tunnel');
+                    }
+                }
+            },
+            
+            // Tunnel a sinistra
+            'left_tunnel': {
+                title: 'Il Tunnel Sinistro',
+                description: 'Il tunnel a sinistra è ancora più stretto del precedente. Avanzando, noti che l\'aria diventa sempre più fredda e umida. Dopo un po\', il tunnel termina in una grotta naturale con un piccolo lago sotterraneo.',
+                choices: [
+                    { text: 'Esplora la grotta', nextLocation: 'explore_cave' },
+                    { text: 'Torna indietro', nextLocation: 'advance_tunnel' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('left_tunnel')) {
+                        gameState.visitedLocations.push('left_tunnel');
+                    }
+                }
+            },
+            
+            // Esplora la grotta
+            'explore_cave': {
+                title: 'La Grotta del Lago',
+                description: 'La grotta è illuminata da uno strano bagliore bluastro che sembra provenire dal lago stesso. Sulle pareti vedi strani simboli incisi. In un angolo, noti quello che sembra un piccolo altare con un oggetto luccicante sopra.',
+                choices: [
+                    { text: 'Esamina i simboli', nextLocation: 'examine_symbols' },
+                    { text: 'Avvicinati all\'altare', nextLocation: 'approach_altar' },
+                    { text: 'Torna indietro', nextLocation: 'left_tunnel' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('explore_cave')) {
+                        gameState.visitedLocations.push('explore_cave');
+                    }
+                }
+            },
+            
+            // Esamina i simboli
+            'examine_symbols': {
+                title: 'Gli Antichi Simboli',
+                description: 'I simboli sembrano essere un linguaggio antico. Non riesci a comprenderli completamente, ma intuisci che parlano di un antico rito di purificazione. Menzionano un "amuleto della libertà" che può aprire ogni porta.',
+                choices: [
+                    { text: 'Avvicinati all\'altare', nextLocation: 'approach_altar' },
+                    { text: 'Torna indietro', nextLocation: 'explore_cave' }
+                ],
+                onEnter: () => {
+                    gameState.choices.push('read_symbols');
+                    if (!gameState.visitedLocations.includes('examine_symbols')) {
+                        gameState.visitedLocations.push('examine_symbols');
+                    }
+                }
+            },
+            
+            // Avvicinati all'altare
+
+            // Avvicinati all'altare
+            'approach_altar': {
+                title: 'L\'Amuleto della Libertà',
+                description: 'Ti avvicini lentamente all\'altare. Sopra c\'è un piccolo amuleto d\'oro a forma di chiave. Emette un lieve bagliore blu, simile a quello del lago.',
+                choices: [
+                    { text: 'Prendi l\'amuleto', nextLocation: 'take_amulet' },
+                    { text: 'Torna indietro', nextLocation: 'explore_cave' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('approach_altar')) {
+                        gameState.visitedLocations.push('approach_altar');
+                    }
+                }
+            },
+            
+            // Prendi l'amuleto
+            'take_amulet': {
+                title: 'Un Potere Antico',
+                description: 'Prendi l\'amuleto e lo esamini attentamente. Appena lo tocchi, senti un calore diffondersi nel tuo corpo. L\'amuleto emette un bagliore più intenso per un istante, poi torna normale. Senti che ora possiede un potere speciale, forse proprio quello menzionato nei simboli.',
+                choices: [
+                    { text: 'Indossa l\'amuleto', nextLocation: 'wear_amulet' },
+                    { text: 'Mettilo in tasca', nextLocation: 'pocket_amulet' }
+                ],
+                onEnter: () => {
+                    if (!gameState.visitedLocations.includes('take_amulet')) {
+                        gameState.visitedLocations.push('take_amulet');
+                    }
+                }
+            },
+            
+            // Indossa l'amuleto
+            'wear_amulet': {
+                title: 'Una Nuova Forza',
+                description: 'Indossi l\'amuleto al collo. Immediatamente, senti una strana energia fluire attraverso di te. Ti senti più forte, più resistente. Forse l\'amuleto ti proteggerà durante la fuga.',
+                choices: [
+                    { text: 'Torna al bivio dei tunnel', nextLocation: 'advance_tunnel' }
+                ],
+                onEnter: () => {
+                    if (!gameState.inventory.includes('Amuleto della Libertà')) {
+                        gameState.inventory.push('Amuleto della Libertà');
+                        gameState.health += 20; // Bonus di salute
+                        showNotification('Hai ottenuto: Amuleto della Libertà');
+                        showNotification('Salute aumentata di 20 punti!');
+                    }
+                    if (!gameState.visitedLocations.includes('wear_amulet')) {
+                        gameState.visitedLocations.push('wear_amulet');
+                    }
+                }
+            },
+            
+            // Metti l'amuleto in tasca
+            'pocket_amulet': {
+                title: 'Un Tesoro Nascosto',
+                description: 'Decidi di mettere l\'amuleto in tasca per sicurezza. Ora devi tornare al bivio e scegliere il prossimo passo.',
+                choices: [
+                    { text: 'Torna al bivio dei tunnel', nextLocation: 'advance_tunnel' }
+                ],
+                onEnter: () => {
+                    if (!gameState.inventory.includes('Amuleto della Libertà')) {
+                        gameState.inventory.push('Amuleto della Libertà');
+                        showNotification('Hai ottenuto: Amuleto della Libertà');
+                    }
+                    if (!gameState.visitedLocations.includes('pocket_amulet')) {
+                        gameState.visitedLocations.push('pocket_amulet');
+                    }
+                }
+            },
+            
+            // Tunnel a destra
+            'right_tunnel': {
+                title: 'Il Tunnel Destro',
+                description: 'Il tunnel a destra è più largo e sembra essere stato scavato di recente. L\'aria è più fresca, suggerendo che potrebbe portare verso l\'esterno. Dopo un breve tratto, arrivi a una porta di legno massiccia, chiusa a chiave.',
+                choices: [
+                    { text: 'Esamina la porta', nextLocation: 'examine_door' },
+                    { text: 'Torna indietro', nextLocation: 'advance_tunnel' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('right_tunnel')) {
+                        gameState.visitedLocations.push('right_tunnel');
+                    }
+                }
+            },
+            
+            // Esamina la porta
+            'examine_door': {
+                title: 'Una Porta Robusta',
+                description: 'La porta è fatta di legno massiccio rinforzato con bande di ferro. C\'è una serratura elaborata che sembra richiedere una chiave speciale. Non sembra possibile sfondarla con la forza bruta.',
+                choices: function() {
+                    let options = [{ text: 'Torna indietro', nextLocation: 'right_tunnel' }];
+                    
+                    if (gameState.inventory.includes('Chiave arrugginita')) {
+                        options.unshift({ text: 'Usa la chiave arrugginita', nextLocation: 'use_rusty_key' });
+                    }
+                    
+                    if (gameState.inventory.includes('Amuleto della Libertà')) {
+                        options.unshift({ text: 'Usa l\'amuleto della libertà', nextLocation: 'use_amulet' });
+                    }
+                    
+                    return options;
+                },
+                onEnter: () => {
+                    if (!gameState.visitedLocations.includes('examine_door')) {
+                        gameState.visitedLocations.push('examine_door');
+                    }
+                }
+            },
+            
+            // Usa la chiave arrugginita
+            'use_rusty_key': {
+                title: 'La Chiave Sbagliata',
+                description: 'Provi a inserire la chiave arrugginita nella serratura, ma non entra. Sembra essere di dimensioni sbagliate per questa porta. Dovrai trovare un altro modo per aprirla.',
+                choices: function() {
+                    let options = [{ text: 'Torna indietro', nextLocation: 'examine_door' }];
+                    
+                    if (gameState.inventory.includes('Amuleto della Libertà')) {
+                        options.unshift({ text: 'Usa l\'amuleto della libertà', nextLocation: 'use_amulet' });
+                    }
+                    
+                    return options;
+                },
+                onEnter: () => {
+                    if (!gameState.visitedLocations.includes('use_rusty_key')) {
+                        gameState.visitedLocations.push('use_rusty_key');
+                    }
+                }
+            },
+            
+            // Usa l'amuleto
+            'use_amulet': {
+                title: 'Il Potere dell\'Amuleto',
+                description: 'Avvicini l\'amuleto alla serratura. Sorprendentemente, inizia a brillare intensamente. La luce si intensifica fino a diventare accecante, poi svanisce improvvisamente. Con un click, la serratura si apre.',
+                choices: [
+                    { text: 'Apri la porta', nextLocation: 'open_door' }
+                ],
+                onEnter: () => {
+                    playSound(soundDoor);
+                    if (!gameState.visitedLocations.includes('use_amulet')) {
+                        gameState.visitedLocations.push('use_amulet');
+                    }
+                }
+            },
+            
+            // Apri la porta
+            'open_door': {
+                title: 'Una Via d\'Uscita',
+                description: 'La porta si apre lentamente, rivelando un corridoio illuminato da torce. L\'aria è decisamente più fresca qui. Sembra che ti stia avvicinando alla libertà.',
+                choices: [
+                    { text: 'Segui il corridoio', nextLocation: 'follow_corridor' }
+                ],
+                onEnter: () => {
+                    playSound(soundDoor);
+                    if (!gameState.visitedLocations.includes('open_door')) {
+                        gameState.visitedLocations.push('open_door');
+                    }
+                }
+            },
+            
+            // Segui il corridoio
+            'follow_corridor': {
+                title: 'Il Corridoio della Speranza',
+                description: 'Il corridoio si estende davanti a te, curvando leggermente a sinistra. Le pareti sono rivestite di torce che proiettano ombre danzanti. In lontananza, senti quello che potrebbe essere il suono del vento.',
+                choices: [
+                    { text: 'Continua a seguire il corridoio', nextLocation: 'continue_corridor' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('follow_corridor')) {
+                        gameState.visitedLocations.push('follow_corridor');
+                    }
+                }
+            },
+            
+            // Continua nel corridoio
+            'continue_corridor': {
+                title: 'La Fine del Viaggio',
+                description: 'Dopo aver seguito il corridoio per quello che sembra un\'eternità, finalmente vedi una luce più intensa in fondo. Man mano che ti avvicini, realizzi che è la luce del giorno che filtra attraverso una grata. Sei arrivato all\'uscita del dungeon!',
+                choices: [
+                    { text: 'Esamina la grata', nextLocation: 'examine_grate' }
+                ],
+                onEnter: () => {
+                    playSound(soundFootsteps);
+                    if (!gameState.visitedLocations.includes('continue_corridor')) {
+                        gameState.visitedLocations.push('continue_corridor');
+                    }
+                }
+            },
+            
+            // Esamina la grata
+            'examine_grate': {
+                title: 'L\'Ultima Barriera',
+                description: 'La grata è di ferro arrugginito e sembra pesante. È bloccata con un lucchetto antico, simile alla serratura della porta che hai appena superato.',
+                choices: function() {
+                    let options = [{ text: 'Prova a forzare la grata', nextLocation: 'force_grate' }];
+                    
+                    if (gameState.inventory.includes('Amuleto della Libertà')) {
+                        options.unshift({ text: 'Usa l\'amuleto della libertà', nextLocation: 'use_amulet_grate' });
+                    }
+                    
+                    return options;
+                },
+                onEnter: () => {
+                    if (!gameState.visitedLocations.includes('examine_grate')) {
+                        gameState.visitedLocations.push('examine_grate');
+                    }
+                }
+            },
+            
+            // Usa l'amuleto sulla grata
+            'use_amulet_grate': {
+                title: 'La Libertà ti Attende',
+                description: 'Avvicini l\'amuleto al lucchetto della grata. Come prima, inizia a brillare intensamente e il lucchetto si apre con un click. Spingi la grata e finalmente puoi vedere il cielo aperto. Sei libero!',
+                choices: [
+                    { text: 'Esci all\'aperto', nextLocation: 'escape_success' }
+                ],
+                onEnter: () => {
+                    playSound(soundDoor);
+                    if (!gameState.visitedLocations.includes('use_amulet_grate')) {
+                        gameState.visitedLocations.push('use_amulet_grate');
+                    }
+                }
+            },
+            
+            // Prova a forzare la grata
+            'force_grate': {
+                title: 'Uno Sforzo Vano',
+                description: 'Provi con tutte le tue forze a smuovere la grata, ma è troppo pesante e ben fissata. Dopo diversi tentativi, sei esausto e le tue mani sono graffiate e doloranti.',
+                choices: function() {
+                    let options = [{ text: 'Cerca un altro modo', nextLocation: 'examine_grate' }];
+                    
+                    if (gameState.inventory.includes('Amuleto della Libertà')) {
+                        options.unshift({ text: 'Usa l\'amuleto della libertà', nextLocation: 'use_amulet_grate' });
+                    }
+                    
+                    return options;
+                },
+                onEnter: () => {
+                    gameState.health -= 10; // Perdi salute per lo sforzo
+                    showNotification('Hai perso 10 punti salute!');
+                    if (!gameState.visitedLocations.includes('force_grate')) {
+                        gameState.visitedLocations.push('force_grate');
+                    }
+                }
+            },
+            
+            // Fuga riuscita
+            'escape_success': {
+                title: 'Libertà!',
+                description: 'Esci dal dungeon e ti ritrovi in una foresta. L\'aria fresca riempie i tuoi polmoni mentre il sole ti riscalda il viso. Ce l\'hai fatta! Sei riuscito a scappare dal dungeon e ora sei libero di proseguire il tuo viaggio.\n\nFINE DEL GIOCO\n\nGrazie per aver giocato a Dungeon Escape!',
+                choices: [
+                    { text: 'Ricomincia', nextLocation: 'main_menu' }
+                ],
+                onEnter: () => {
+                    playSound(soundAmbience);
+                    if (!gameState.visitedLocations.includes('escape_success')) {
+                        gameState.visitedLocations.push('escape_success');
+                    }
+                }
+            },
+            
+            // Forza la porta della cella
+            'force_door': {
+                title: 'Un Tentativo Disperato',
+                description: 'Ti scagli contro la porta della cella con tutta la forza che hai. Il dolore è intenso, ma la porta non si muove di un millimetro. Dopo diversi tentativi, sei esausto e dolorante.',
+                choices: [
+                    { text: 'Esamina la cella', nextLocation: 'examine_cell' },
+                    { text: 'Chiama aiuto', nextLocation: 'call_for_help' }
+                ],
+                onEnter: () => {
+                    gameState.health -= 15; // Perdi salute per lo sforzo
+                    showNotification('Hai perso 15 punti salute!');
+                    if (!gameState.visitedLocations.includes('force_door')) {
+                        gameState.visitedLocations.push('force_door');
+                    }
+                }
+            },
+            
+            // Menu principale
+            'main_menu': {
+                title: '',
+                description: '',
+                choices: [],
+                onEnter: () => {
+                    renderMainMenu();
+                }
+            },
+            
+            // Schermata delle impostazioni
+            'settings': {
+                title: '',
+                description: '',
+                choices: [],
+                onEnter: () => {
+                    renderSettings();
+                }
+            }
+        };
+        
+        // ===== RENDERING DEL GIOCO =====
+        
+        // Rendering del menu principale
+        function renderMainMenu() {
+            gameContainer.innerHTML = `
+                <div class="main-menu">
+                    <h1 class="menu-title typing-effect">DUNGEON ESCAPE</h1>
+                    <div class="menu-buttons">
+                        <button class="menu-button" id="newGame">Nuova Partita</button>
+                        <button class="menu-button" id="loadGame">Carica Partita</button>
+                        <button class="menu-button" id="settings">Impostazioni</button>
+                        <button class="menu-button" id="credits">Crediti</button>
+                    </div>
+                </div>
+            `;
+            
+            // Event listener per i pulsanti del menu
+            document.getElementById('newGame').addEventListener('click', () => {
+                playSound(soundClick);
+                // Reset dello stato del gioco
+                Object.assign(gameState, {
+                    playerName: 'Prigioniero',
+                    health: 100,
+                    inventory: [],
+                    currentLocation: 'start',
+                    visitedLocations: [],
+                    choices: []
+                });
+                renderGame('start');
+            });
+            
+            document.getElementById('loadGame').addEventListener('click', () => {
+                if (!loadGame()) {
+                    showNotification('Nessun salvataggio trovato!');
+                }
+            });
+            
+            document.getElementById('settings').addEventListener('click', () => {
+                playSound(soundClick);
+                renderGame('settings');
+            });
+            
+            document.getElementById('credits').addEventListener('click', () => {
+                playSound(soundClick);
+                showCredits();
+            });
+        }
+        
+        // Rendering della schermata dei crediti
+        function showCredits() {
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            overlay.innerHTML = `
+                <div class="settings-panel">
+                    <h2 class="settings-title">CREDITI</h2>
+                    <p style="text-align: center; margin-bottom: 20px;">
+                        Dungeon Escape<br>
+                        Un'avventura testuale<br><br>
+                        Creato da [Frankie]<br>
+                        © 2023 Tutti i diritti riservati
+                    </p>
+                    <button id="closeCredits" style="width: 100%;">Chiudi</button>
+                </div>
+            `;
+            
+            gameContainer.appendChild(overlay);
+            setTimeout(() => {
+                overlay.classList.add('show');
+            }, 10);
+            
+            document.getElementById('closeCredits').addEventListener('click', () => {
+                playSound(soundClick);
+                overlay.classList.remove('show');
+                setTimeout(() => {
+                    gameContainer.removeChild(overlay);
+                }, 500);
+            });
+        }
+        
+        // Rendering della schermata delle impostazioni
+        function renderSettings() {
+            gameContainer.innerHTML = `
+                <div class="settings-panel">
+                    <h2 class="settings-title">IMPOSTAZIONI</h2>
+                    
+                    <div class="settings-option">
+                        <label>
+                            Audio
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="soundToggle" ${gameState.soundEnabled ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <label>
+                            Velocità testo rapida
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="textSpeedToggle" ${gameState.textSpeedFast ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <button id="deleteSaveBtn">Elimina salvataggio</button>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <button id="backToMenuBtn">Torna al menu</button>
+                    </div>
+                </div>
+            `;
+            
+            // Event listeners per le impostazioni
+            document.getElementById('soundToggle').addEventListener('change', (e) => {
+                toggleSound();
+            });
+            
+            document.getElementById('textSpeedToggle').addEventListener('change', (e) => {
+                toggleTextSpeed();
+            });
+            
+            document.getElementById('deleteSaveBtn').addEventListener('click', () => {
+                deleteSave();
+            });
+            
+            document.getElementById('backToMenuBtn').addEventListener('click', () => {
+                playSound(soundClick);
+                renderGame('main_menu');
+            });
+        }
+        
+        // Rendering del gioco
+        function renderGame(locationId) {
+            const location = gameLocations[locationId];
+            gameState.currentLocation = locationId;
+            
+            // Se è il menu principale o le impostazioni, usa il loro rendering specifico
+            if (locationId === 'main_menu') {
+                renderMainMenu();
+                return;
+            } else if (locationId === 'settings') {
+                renderSettings();
+                return;
+            }
+            
+            // Esegui l'azione onEnter della location
+            if (location.onEnter) {
+                location.onEnter();
+            }
+            
+            // Struttura base del gioco
+            gameContainer.innerHTML = `
+                <div class="game-header">
+                    <h1>${location.title}</h1>
+                </div>
+                
+                <div class="game-content">
+                    <div class="story-text" id="storyText"></div>
+                    
+                    <div class="button-container" id="choiceButtons">
+                        <!-- I pulsanti delle scelte verranno generati dinamicamente -->
+                    </div>
+                </div>
+                
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="status-item-icon">❤️</span>
+                        <span>${gameState.health}</span>
+                    </div>
+                    <div class="status-item">
+                        <button id="inventoryToggle">Inventario (${gameState.inventory.length})</button>
+                    </div>
+                    <div class="status-item">
+                        <button id="saveButton">Salva</button>
+                    </div>
+                    <div class="status-item">
+                        <button id="menuButton">Menu</button>
+                    </div>
+                </div>
+                
+                <div class="inventory" id="inventoryPanel">
+                    <div class="inventory-title" id="inventoryTitle">
+                        <span>Inventario</span>
+                        <span>×</span>
+                    </div>
+                    <div class="inventory-items" id="inventoryItems">
+                        <!-- Gli oggetti dell'inventario verranno generati dinamicamente -->
+                    </div>
+                </div>
+            `;
+            
+            // Animazione del testo della storia
+            const storyText = document.getElementById('storyText');
+            animateText(storyText, location.description, () => {
+                // Genera i pulsanti delle scelte dopo l'animazione del testo
+                const choiceButtons = document.getElementById('choiceButtons');
+                let choices = location.choices;
+                
+                // Se le scelte sono una funzione, la esegui per ottenere le scelte dinamiche
+                if (typeof choices === 'function') {
+                    choices = choices();
+                }
+                
+                choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.textContent = choice.text;
+                    button.addEventListener('click', () => {
+                        playSound(soundClick);
+                        renderGame(choice.nextLocation);
+                    });
+                    choiceButtons.appendChild(button);
+                });
+            });
+            
+            // Event listener per il pulsante dell'inventario
+            const inventoryToggle = document.getElementById('inventoryToggle');
+            const inventoryPanel = document.getElementById('inventoryPanel');
+            const inventoryTitle = document.getElementById('inventoryTitle');
+            
+            inventoryToggle.addEventListener('click', () => {
+                playSound(soundClick);
+                inventoryPanel.classList.toggle('show');
+                
+                // Genera gli elementi dell'inventario
+                const inventoryItems = document.getElementById('inventoryItems');
+                inventoryItems.innerHTML = '';
+                
+                if (gameState.inventory.length === 0) {
+                    inventoryItems.innerHTML = '<div class="inventory-item">Inventario vuoto</div>';
+                } else {
+                    gameState.inventory.forEach(item => {
+                        const itemElement = document.createElement('div');
+                        itemElement.className = 'inventory-item';
+                        itemElement.textContent = item;
+                        inventoryItems.appendChild(itemElement);
+                    });
+                }
+            });
+            
+            inventoryTitle.addEventListener('click', () => {
+                playSound(soundClick);
+                inventoryPanel.classList.remove('show');
+            });
+            
+            // Event listener per il pulsante di salvataggio
+            document.getElementById('saveButton').addEventListener('click', () => {
+                saveGame();
+            });
+            
+            // Event listener per il pulsante del menu
+            document.getElementById('menuButton').addEventListener('click', () => {
+                playSound(soundClick);
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'overlay';
+                overlay.innerHTML = `
+                    <div class="settings-panel">
+                        <h2 class="settings-title">MENU</h2>
+                        <button id="resumeGame" style="width: 100%; margin-bottom: 10px;">Riprendi</button>
+                        <button id="saveGameMenu" style="width: 100%; margin-bottom: 10px;">Salva</button>
+                        <button id="settingsMenu" style="width: 100%; margin-bottom: 10px;">Impostazioni</button>
+                        <button id="quitToMenu" style="width: 100%;">Torna al menu principale</button>
+                    </div>
+                `;
+                
+                gameContainer.appendChild(overlay);
+                setTimeout(() => {
+                    overlay.classList.add('show');
+                }, 10);
+                
+                document.getElementById('resumeGame').addEventListener('click', () => {
+                    playSound(soundClick);
+                    overlay.classList.remove('show');
+                    setTimeout(() => {
+                        gameContainer.removeChild(overlay);
+                    }, 500);
+                });
+                
+                document.getElementById('saveGameMenu').addEventListener('click', () => {
+                    saveGame();
+                    overlay.classList.remove('show');
+                    setTimeout(() => {
+                        gameContainer.removeChild(overlay);
+                    }, 500);
+                });
+                
+                document.getElementById('settingsMenu').addEventListener('click', () => {
+                    playSound(soundClick);
+                    overlay.classList.remove('show');
+                    setTimeout(() => {
+                        gameContainer.removeChild(overlay);
+                        renderGame('settings');
+                    }, 500);
+                });
+                
+                document.getElementById('quitToMenu').addEventListener('click', () => {
+                    playSound(soundClick);
+                    overlay.classList.remove('show');
+                    setTimeout(() => {
+                        gameContainer.removeChild(overlay);
+                        renderGame('main_menu');
+                    }, 500);
+                });
+            });
+        }
+        
+        // Avvia il gioco con il menu principale
+        renderGame('main_menu');
+    </script>
+</body>
+</html>

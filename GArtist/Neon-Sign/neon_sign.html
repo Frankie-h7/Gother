@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insegna al Neon CSS</title>
+    <style>
+        /* Importazione font elegante e arrotondato */
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+        
+        /* Reset CSS di base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Stile del background con gradiente scuro */
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #121212 0%, #1e1e1e 50%, #0a0a0a 100%);
+            font-family: 'Pacifico', cursive;
+            position: relative;
+            overflow: hidden;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        /* Contenitore dell'insegna per centratura */
+        .neon-container {
+            text-align: center;
+            padding: 3rem;
+            position: relative;
+        }
+        
+        /* Stile base dell'insegna al neon */
+        .neon-sign {
+            font-size: 5rem;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            
+            /* Effetto di base del neon - colore principale rosa/fucsia */
+            --neon-color: #ff00de;
+            --neon-intensity: 1;
+            
+            /* Text shadow per effetto di bagliore luminoso */
+            text-shadow:
+                0 0 5px var(--neon-color),
+                0 0 10px var(--neon-color),
+                0 0 20px var(--neon-color),
+                0 0 40px var(--neon-color),
+                0 0 80px var(--neon-color);
+                
+            /* Filtro per migliorare l'effetto di bagliore */
+            filter: brightness(var(--neon-intensity)) drop-shadow(0 0 2px var(--neon-color));
+            
+            /* Animazione di pulsazione di base */
+            animation: neonPulse 1.5s infinite alternate ease-in-out,
+                       flickering 6s infinite;
+                       
+            /* Transizione fluida per l'effetto hover */
+            transition: all 0.3s ease;
+        }
+        
+        /* Effetto al passaggio del mouse */
+        .neon-sign:hover {
+            --neon-intensity: 1.4;
+            text-shadow:
+                0 0 5px var(--neon-color),
+                0 0 10px var(--neon-color),
+                0 0 20px var(--neon-color),
+                0 0 40px var(--neon-color),
+                0 0 80px var(--neon-color),
+                0 0 120px var(--neon-color);
+            filter: brightness(var(--neon-intensity)) drop-shadow(0 0 5px var(--neon-color));
+        }
+        
+        /* Prima parola con colore diverso */
+        .neon-sign .word1 {
+            --neon-color-1: #00ffff;
+            color: #fff;
+            text-shadow:
+                0 0 5px var(--neon-color-1),
+                0 0 10px var(--neon-color-1),
+                0 0 20px var(--neon-color-1),
+                0 0 40px var(--neon-color-1),
+                0 0 80px var(--neon-color-1);
+            filter: brightness(var(--neon-intensity)) drop-shadow(0 0 2px var(--neon-color-1));
+            animation: neonPulse 2s infinite alternate ease-in-out,
+                       flickering 7s infinite;
+        }
+        
+        /* Seconda parola con colore diverso */
+        .neon-sign .word2 {
+            --neon-color-2: #ff3300;
+            color: #fff;
+            text-shadow:
+                0 0 5px var(--neon-color-2),
+                0 0 10px var(--neon-color-2),
+                0 0 20px var(--neon-color-2),
+                0 0 40px var(--neon-color-2),
+                0 0 80px var(--neon-color-2);
+            filter: brightness(var(--neon-intensity)) drop-shadow(0 0 2px var(--neon-color-2));
+            animation: neonPulse 1.7s infinite alternate ease-in-out,
+                       flickering 8s infinite;
+        }
+        
+        /* Effetto riflesso sul "muro" sotto il testo */
+        .neon-reflection {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 0, 222, 0.1) 0%,
+                rgba(0, 255, 255, 0.05) 25%,
+                rgba(255, 51, 0, 0.05) 50%,
+                transparent 70%
+            );
+            filter: blur(20px);
+            z-index: 0;
+            opacity: 0.7;
+            animation: reflectionPulse 3s infinite alternate ease-in-out;
+        }
+        
+        /* Animazione di pulsazione dell'insegna */
+        @keyframes neonPulse {
+            0% {
+                filter: brightness(0.8) drop-shadow(0 0 2px currentColor);
+            }
+            100% {
+                filter: brightness(1.2) drop-shadow(0 0 5px currentColor);
+            }
+        }
+        
+        /* Animazione di pulsazione del riflesso */
+        @keyframes reflectionPulse {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+        }
+        
+        /* Animazione di flickering casuale */
+        @keyframes flickering {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                opacity: 1;
+            }
+            20%, 24%, 55% {
+                opacity: 0.7;
+            }
+            52%, 85% {
+                opacity: 0.95;
+            }
+            72% {
+                opacity: 0.8;
+            }
+            74%, 76% {
+                opacity: 0.9;
+            }
+            75% {
+                opacity: 0.7;
+            }
+        }
+        
+        /* Stile per il testo sotto l'insegna */
+        .subtext {
+            margin-top: 2rem;
+            font-family: Arial, sans-serif;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: subtextGlow 4s infinite alternate ease-in-out;
+        }
+        
+        /* Animazione del testo secondario */
+        @keyframes subtextGlow {
+            0% {
+                text-shadow: none;
+                opacity: 0.6;
+            }
+            100% {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+                opacity: 0.9;
+            }
+        }
+
+        /* Effetto di tubo neon attorno al contenitore */
+        .neon-border {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border-radius: 20px;
+            z-index: 0;
+            border: 4px solid transparent;
+            box-shadow: 
+                0 0 5px #ff00de,
+                0 0 10px #ff00de,
+                inset 0 0 5px #ff00de,
+                inset 0 0 10px #ff00de;
+            opacity: 0.7;
+            animation: borderPulse 3s infinite alternate ease-in-out;
+        }
+        
+        /* Animazione del bordo neon */
+        @keyframes borderPulse {
+            0% {
+                box-shadow: 
+                    0 0 5px #ff00de,
+                    0 0 10px #ff00de,
+                    inset 0 0 5px #ff00de,
+                    inset 0 0 10px #ff00de;
+                opacity: 0.5;
+            }
+            100% {
+                box-shadow: 
+                    0 0 10px #ff00de,
+                    0 0 20px #ff00de,
+                    inset 0 0 10px #ff00de,
+                    inset 0 0 20px #ff00de;
+                opacity: 0.8;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="neon-container">
+        <div class="neon-border"></div>
+        <div class="neon-reflection"></div>
+        <h1 class="neon-sign">
+            <span class="word1">Neon</span> 
+            <span class="word2">Dreams</span>
+        </h1>
+        <p class="subtext">Est. 2025</p>
+    </div>
+    
+    <script>
+        // Script per randomizzare leggermente l'effetto flickering
+        document.addEventListener('DOMContentLoaded', function() {
+            const neonElements = document.querySelectorAll('.neon-sign, .word1, .word2');
+            
+            neonElements.forEach(el => {
+                // Aggiungiamo un leggero ritardo casuale all'animazione per rendere l'effetto più realistico
+                const randomDelay = Math.random() * 2;
+                el.style.animationDelay = `${randomDelay}s`;
+            });
+        });
+    </script>
+</body>
+</html>

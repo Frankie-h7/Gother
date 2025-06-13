@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiro con l'Arco</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #3498db);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            cursor: crosshair;
+        }
+        
+        #game-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #ui-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            color: white;
+        }
+        
+        #score {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .control-panel {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 20;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        #game-mode {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            color: white;
+        }
+        
+        #power-meter {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            width: 20px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #power-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, green, yellow, red);
+            transition: height 0.1s;
+        }
+        
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+        
+        #intro-screen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #f39c12;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #intro-screen p {
+            font-size: 18px;
+            margin-bottom: 10px;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        #start-button {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #f39c12;
+        }
+        
+        #level-indicator {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            z-index: 10;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-container">
+            <div id="score">Punteggio: 0</div>
+        </div>
+        <div id="game-mode">Modalità: Tiro Libero</div>
+        <div id="level-indicator">Livello: 1</div>
+        <div id="power-meter">
+            <div id="power-level"></div>
+        </div>
+        <div class="control-panel">
+            <button id="mode-toggle">Cambia Modalità</button>
+            <button id="reset-button">Reset</button>
+        </div>
+    </div>
+    
+    <div id="intro-screen">
+        <h1>Tiro con l'Arco</h1>
+        <p>Benvenuto al gioco di tiro con l'arco! Metti alla prova la tua precisione e abilità.</p>
+        <p><strong>Come giocare:</strong></p>
+        <p>• Usa il mouse per mirare</p>
+        <p>• Tieni premuto il tasto sinistro per tendere l'arco</p>
+        <p>• Rilascia per scoccare la freccia</p>
+        <p>• Colpisci il centro del bersaglio per ottenere più punti</p>
+        <button id="start-button">Inizia a Giocare!</button>
+    </div>
+
+    <script>
+        // Elementi DOM
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameModeElement = document.getElementById('game-mode');
+        const levelIndicator = document.getElementById('level-indicator');
+        const powerMeter = document.getElementById('power-level');
+        const modeToggleButton = document.getElementById('mode-toggle');
+        const resetButton = document.getElementById('reset-button');
+        const introScreen = document.getElementById('intro-screen');
+        const startButton = document.getElementById('start-button');
+        
+        // Impostazioni gioco
+        let gameActive = false;
+        let score = 0;
+        let level = 1;
+        let gameMode = 'free'; // 'free' o 'target'
+        
+        // Dimensioni canvas
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+        
+        // Oggetto arco
+        const bow = {
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 120,
+            angle: 0,
+            tension: 0,
+            maxTension: 100,
+            color: '#8B4513',
+            stringColor: '#F5F5DC',
+            isDrawing: false,
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                // Disegna l'arco
+                ctx.beginPath();
+                const bendFactor = this.tension / 100 * 15;
+                
+                // Arco esterno
+                ctx.lineWidth = 8;
+                ctx.strokeStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height/2);
+                ctx.quadraticCurveTo(
+                    bendFactor, 0,
+                    0, this.height/2
+                );
+                ctx.stroke();
+                
+                // Corda dell'arco
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = this.stringColor;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height/2);
+                ctx.lineTo(this.tension / 10, 0);
+                ctx.lineTo(0, this.height/2);
+                ctx.stroke();
+                
+                ctx.restore();
+            },
+            
+            update(mouseX, mouseY) {
+                if (gameActive) {
+                    // Calcola l'angolo tra l'arco e il mouse
+                    const dx = mouseX - this.x;
+                    const dy = mouseY - this.y;
+                    this.angle = Math.atan2(dy, dx);
+                    
+                    // Aggiorna la tensione se l'arco viene teso
+                    if (this.isDrawing && this.tension < this.maxTension) {
+                        this.tension += 2;
+                        powerMeter.style.height = `${this.tension}%`;
+                    }
+                }
+            },
+            
+            reset() {
+                this.tension = 0;
+                this.isDrawing = false;
+                powerMeter.style.height = '0%';
+            }
+        };
+        
+        // Classe freccia
+        class Arrow {
+            constructor(x, y, angle, power) {
+                this.x = x;
+                this.y = y;
+                this.angle = angle;
+                this.velocity = power / 10;
+                this.length = 60;
+                this.width = 6;
+                this.active = true;
+                this.gravity = 0.05;
+                this.speedX = Math.cos(angle) * this.velocity;
+                this.speedY = Math.sin(angle) * this.velocity;
+                this.trail = [];
+                this.maxTrailLength = 10;
+            }
+            
+            draw() {
+                // Disegna la scia
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                
+                for (let i = 0; i < this.trail.length - 1; i++) {
+                    const opacity = i / this.trail.length;
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(this.trail[i].x, this.trail[i].y);
+                    ctx.lineTo(this.trail[i+1].x, this.trail[i+1].y);
+                    ctx.stroke();
+                }
+                
+                // Disegna la freccia
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(Math.atan2(this.speedY, this.speedX));
+                
+                // Asta della freccia
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#A0522D';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-this.length, 0);
+                ctx.stroke();
+                
+                // Punta della freccia
+                ctx.fillStyle = '#808080';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-12, -6);
+                ctx.lineTo(-12, 6);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Piume della freccia
+                ctx.fillStyle = '#FF6347';
+                
+                // Piuma superiore
+                ctx.beginPath();
+                ctx.moveTo(-this.length + 10, 0);
+                ctx.lineTo(-this.length + 30, -8);
+                ctx.lineTo(-this.length + 35, -6);
+                ctx.lineTo(-this.length + 10, 0);
+                ctx.fill();
+                
+                // Piuma inferiore
+                ctx.beginPath();
+                ctx.moveTo(-this.length + 10, 0);
+                ctx.lineTo(-this.length + 30, 8);
+                ctx.lineTo(-this.length + 35, 6);
+                ctx.lineTo(-this.length + 10, 0);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            update() {
+                if (!this.active) return;
+                
+                // Aggiunge la posizione attuale alla scia
+                this.trail.push({ x: this.x, y: this.y });
+                
+                // Limita la lunghezza della scia
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+                
+                // Applica la gravità
+                this.speedY += this.gravity;
+                
+                // Aggiorna posizione
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                // Controlla se la freccia è fuori dallo schermo
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.active = false;
+                }
+                
+                // Controlla collisioni con bersagli
+                targets.forEach(target => {
+                    if (this.checkCollision(target)) {
+                        this.active = false;
+                        calculateScore(this, target);
+                        
+                        // Effetto di impatto
+                        createImpactEffect(this.x, this.y);
+                    }
+                });
+            }
+            
+            checkCollision(target) {
+                const dx = this.x - target.x;
+                const dy = this.y - target.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                return distance <= target.radius;
+            }
+        }
+        
+        // Classe bersaglio
+        class Target {
+            constructor(x, y, speedX = 0, speedY = 0) {
+                this.x = x;
+                this.y = y;
+                this.radius = 50;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.active = true;
+                this.colors = ['#FF0000', '#FFFFFF', '#FF0000', '#FFFFFF', '#FF0000'];
+                this.ringWidths = [0.2, 0.4, 0.6, 0.8, 1.0];
+            }
+            
+            draw() {
+                ctx.save();
+                
+                // Disegnare gli anelli del bersaglio
+                for (let i = this.colors.length - 1; i >= 0; i--) {
+                    ctx.fillStyle = this.colors[i];
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * this.ringWidths[i], 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+            
+            update() {
+                if (!this.active) return;
+                
+                // Movimento del bersaglio
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                // Rimbalza sui bordi dello schermo
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.speedX = -this.speedX;
+                }
+                
+                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
+                    this.speedY = -this.speedY;
+                }
+            }
+        }
+        
+        // Array per le frecce e i bersagli
+        let arrows = [];
+        let targets = [];
+        let impactEffects = [];
+        
+        // Funzione per creare un effetto di impatto
+        function createImpactEffect(x, y) {
+            const particles = [];
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (Math.PI * 2) * (i / particleCount);
+                const speed = 2 + Math.random() * 3;
+                
+                particles.push({
+                    x, y,
+                    speedX: Math.cos(angle) * speed,
+                    speedY: Math.sin(angle) * speed,
+                    size: 2 + Math.random() * 4,
+                    life: 30,
+                    color: `hsl(${Math.random() * 60}, 100%, 50%)`
+                });
+            }
+            
+            impactEffects.push({
+                particles,
+                life: 30
+            });
+        }
+        
+        // Funzione per aggiornare e disegnare gli effetti di impatto
+        function updateImpactEffects() {
+            for (let i = impactEffects.length - 1; i >= 0; i--) {
+                const effect = impactEffects[i];
+                effect.life--;
+                
+                if (effect.life <= 0) {
+                    impactEffects.splice(i, 1);
+                    continue;
+                }
+                
+                for (const particle of effect.particles) {
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    particle.size *= 0.95;
+                    
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Funzione per calcolare il punteggio in base alla distanza dal centro
+        function calculateScore(arrow, target) {
+            const dx = arrow.x - target.x;
+            const dy = arrow.y - target.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Calcola il punteggio in base alla distanza dal centro (più vicino = più punti)
+            let points = 0;
+            
+            if (distance < target.radius * 0.2) {
+                points = 50; // Centro
+            } else if (distance < target.radius * 0.4) {
+                points = 40;
+            } else if (distance < target.radius * 0.6) {
+                points = 30;
+            } else if (distance < target.radius * 0.8) {
+                points = 20;
+            } else {
+                points = 10; // Bordo esterno
+            }
+            
+            // Aumenta il punteggio
+            score += points;
+            scoreElement.textContent = `Punteggio: ${score}`;
+            
+            // Controlla se aumentare il livello (ogni 100 punti)
+            if (gameMode === 'target' && score >= level * 100) {
+                level++;
+                levelIndicator.textContent = `Livello: ${level}`;
+                
+                // Aggiungi un nuovo bersaglio o aumenta la difficoltà
+                createTargetsForLevel(level);
+            }
+        }
+        
+        // Funzione per creare bersagli in base al livello
+        function createTargetsForLevel(level) {
+            targets = [];
+            
+            // Aumenta la difficoltà con il livello
+            const targetCount = Math.min(level, 5);
+            const speed = Math.min(level * 0.5, 5);
+            
+            for (let i = 0; i < targetCount; i++) {
+                const x = Math.random() * (canvas.width - 200) + 100;
+                const y = Math.random() * (canvas.height - 200) + 100;
+                const speedX = (Math.random() - 0.5) * speed;
+                const speedY = (Math.random() - 0.5) * speed;
+                
+                targets.push(new Target(x, y, speedX, speedY));
+            }
+        }
+        
+        // Funzione per cambiare modalità di gioco
+        function toggleGameMode() {
+            if (gameMode === 'free') {
+                gameMode = 'target';
+                gameModeElement.textContent = 'Modalità: Sfida a Bersagli';
+                createTargetsForLevel(level);
+            } else {
+                gameMode = 'free';
+                gameModeElement.textContent = 'Modalità: Tiro Libero';
+                
+                // In modalità tiro libero, crea un bersaglio fisso
+                targets = [new Target(canvas.width / 2, canvas.height / 2)];
+            }
+        }
+        
+        // Funzione di reset
+        function resetGame() {
+            score = 0;
+            level = 1;
+            arrows = [];
+            bow.reset();
+            scoreElement.textContent = `Punteggio: ${score}`;
+            levelIndicator.textContent = `Livello: ${level}`;
+            
+            // Ricrea i bersagli in base alla modalità
+            if (gameMode === 'free') {
+                targets = [new Target(canvas.width / 2, canvas.height / 2)];
+            } else {
+                createTargetsForLevel(level);
+            }
+        }
+        
+        // Event Listeners
+        canvas.addEventListener('mousedown', () => {
+            if (gameActive) {
+                bow.isDrawing = true;
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            if (gameActive && bow.isDrawing) {
+                // Crea una nuova freccia
+                const bowTipX = bow.x + Math.cos(bow.angle) * 20;
+                const bowTipY = bow.y + Math.sin(bow.angle) * 20;
+                
+                const newArrow = new Arrow(
+                    bowTipX,
+                    bowTipY,
+                    bow.angle,
+                    bow.tension
+                );
+                
+                arrows.push(newArrow);
+                
+                // Resetta l'arco
+                bow.reset();
+            }
+        });
+        
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            
+            // Aggiorna la posizione dell'arco
+            bow.update(mouseX, mouseY);
+        });
+        
+        modeToggleButton.addEventListener('click', toggleGameMode);
+        resetButton.addEventListener('click', resetGame);
+        
+        startButton.addEventListener('click', () => {
+            introScreen.style.display = 'none';
+            gameActive = true;
+            resetGame();
+        });
+        
+        // Loop principale del gioco
+        function gameLoop() {
+            // Pulisci il canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Aggiorna e disegna i bersagli
+            targets.forEach(target => {
+                target.update();
+                target.draw();
+            });
+            
+            // Aggiorna e disegna le frecce
+            arrows.forEach(arrow => {
+                arrow.update();
+                if (arrow.active) {
+                    arrow.draw();
+                }
+            });
+            
+            // Rimuovi le frecce inattive
+            arrows = arrows.filter(arrow => arrow.active);
+            
+            // Posiziona l'arco nella parte inferiore centrale
+            bow.x = canvas.width / 2;
+            bow.y = canvas.height - 50;
+            
+            // Disegna l'arco
+            bow.draw();
+            
+            // Aggiorna e disegna gli effetti di impatto
+            updateImpactEffects();
+            
+            // Continua il loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Inizializzazione
+        function init() {
+            resizeCanvas();
+            
+            // Modalità tiro libero di default
+            targets = [new Target(canvas.width / 2, canvas.height / 2)];
+            
+            // Avvia il loop del gioco
+            gameLoop();
+        }
+        
+        // Gestisci il ridimensionamento della finestra
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            
+            // Aggiorna la posizione dell'arco
+            bow.x = canvas.width / 2;
+            bow.y = canvas.height - 50;
+        });
+        
+        // Inizializza il gioco
+        init();
+    </script>
+</body>
+</html>

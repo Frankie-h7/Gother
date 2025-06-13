@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ludo - Gioco Professionale</title>
+    <style>
+        :root {
+            --dark-bg: #1a1a1a;
+            --darker-bg: #0f0f0f;
+            --accent-yellow: #d4af37;
+            --accent-yellow-dark: #b8941f;
+            --text-light: #ffffff;
+            --text-muted: #cccccc;
+            --red-player: #e74c3c;
+            --blue-player: #3498db;
+            --green-player: #2ecc71;
+            --yellow-player: #f1c40f;
+            --board-border: #333;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            --glow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* Menu Iniziale */
+        .main-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .menu-container {
+            background: rgba(26, 26, 26, 0.9);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--accent-yellow);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            max-height: 600px;
+        }
+
+        .game-title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-section h3 {
+            color: var(--accent-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .menu-button {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-yellow-dark) 100%);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 0.5rem;
+            margin: 0.5rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow);
+        }
+
+        .menu-button.active {
+            background: linear-gradient(135deg, var(--text-light) 0%, var(--text-muted) 100%);
+        }
+
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option.selected {
+            border-color: var(--accent-yellow);
+            transform: scale(1.2);
+        }
+
+        .color-option.red { background: var(--red-player); }
+        .color-option.blue { background: var(--blue-player); }
+        .color-option.green { background: var(--green-player); }
+        .color-option.yellow { background: var(--yellow-player); }
+
+        /* Area di Gioco */
+        .game-container {
+            display: none;
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 0.1rem 0.8rem;
+            border-radius: 15px;
+            border: 1px solid var(--accent-yellow);
+        }
+
+        .current-player {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .game-board-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .board-wrapper {
+            position: relative;
+        }
+
+        .game-board {
+            width: 600px;
+            height: 600px;
+            background: var(--text-light);
+            border: 4px solid var(--board-border);
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            gap: 1px;
+            box-shadow: var(--shadow);
+        }
+
+        .cell {
+            background: var(--text-light);
+            border: 1px solid #eee;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .cell.safe {
+            background: #f8f9fa;
+        }
+
+        .cell.home-red { background: var(--red-player); }
+        .cell.home-blue { background: var(--blue-player); }
+        .cell.home-green { background: var(--green-player); }
+        .cell.home-yellow { background: var(--yellow-player); }
+
+        .cell.path-red { background: rgba(231, 76, 60, 0.3); }
+        .cell.path-blue { background: rgba(52, 152, 219, 0.3); }
+        .cell.path-green { background: rgba(46, 204, 113, 0.3); }
+        .cell.path-yellow { background: rgba(241, 196, 15, 0.3); }
+
+        .cell.center {
+            background: linear-gradient(45deg, var(--red-player) 25%, var(--blue-player) 25%, var(--blue-player) 50%, var(--green-player) 50%, var(--green-player) 75%, var(--yellow-player) 75%);
+        }
+
+        .cell.highlight {
+            background: var(--accent-yellow) !important;
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .piece:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+        }
+
+        .piece.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px var(--accent-yellow);
+            animation: glow 1s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px var(--accent-yellow); }
+            to { box-shadow: 0 0 30px var(--accent-yellow), 0 0 40px var(--accent-yellow); }
+        }
+
+        .piece.red { background: var(--red-player); }
+        .piece.blue { background: var(--blue-player); }
+        .piece.green { background: var(--green-player); }
+        .piece.yellow { background: var(--yellow-player); }
+
+        /* Area Controlli */
+        .game-controls {
+            background: rgba(26, 26, 26, 0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--accent-yellow);
+            min-width: 250px;
+        }
+
+        .dice-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: var(--text-light);
+            border: 3px solid var(--accent-yellow);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--darker-bg);
+            cursor: pointer;
+            margin: 1rem auto;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .dice:hover {
+            transform: scale(1.1);
+            box-shadow: var(--glow);
+        }
+
+        .dice.rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-yellow-dark) 100%);
+            color: var(--darker-bg);
+            border: none;
+            padding: 1rem 2rem;
+            margin: 0.5rem 0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow);
+        }
+
+        .control-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .player-status {
+            margin-bottom: 1rem;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-info.active {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--accent-yellow);
+        }
+
+        .player-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        /* Chat */
+        .chat-container {
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 15px;
+            border: 1px solid var(--accent-yellow);
+            padding: 1rem;
+            margin-top: 2rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .chat-messages {
+            height: 120px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .chat-message {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--accent-yellow);
+            border-radius: 5px;
+            padding: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .chat-input button {
+            background: var(--accent-yellow);
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        /* Victory Screen */
+        .victory-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .victory-content {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid var(--accent-yellow);
+            box-shadow: var(--glow);
+        }
+
+        .victory-title {
+            font-size: 3rem;
+            color: var(--accent-yellow);
+            margin-bottom: 2rem;
+            animation: celebrate 2s infinite;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-board {
+                width: 90vw;
+                height: 90vw;
+                max-width: 500px;
+                max-height: 500px;
+            }
+
+            .game-board-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .game-controls {
+                min-width: auto;
+                width: 100%;
+                max-width: 500px;
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .game-stats {
+                justify-content: center;
+            }
+
+            .menu-container {
+                padding: 2rem;
+            }
+
+            .game-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Iniziale -->
+    <div class="main-menu" id="mainMenu">
+        <div class="menu-container">
+            <h1 class="game-title">🎲 LUDO</h1>
+            
+            <div class="menu-section">
+                <h3>Modalità di Gioco</h3>
+                <button class="menu-button active" data-mode="local">Multiplayer Locale</button>
+                <button class="menu-button" data-mode="ai">Vs Computer</button>
+                <button class="menu-button" data-mode="online">Online (Demo)</button>
+            </div>
+
+            <div class="menu-section">
+                <h3>Impostazioni</h3>
+                <button class="menu-button" id="soundToggle">🔊 Suoni: ON</button>
+                <button class="menu-button" id="animationsToggle">✨ Animazioni: ON</button>
+                <button class="menu-button" id="timerToggle">⏱️ Timer: OFF</button>
+            </div>
+
+            <div class="menu-section">
+                <h3>Colore Giocatore</h3>
+                <div class="color-picker">
+                    <div class="color-option red selected" data-color="red"></div>
+                    <div class="color-option blue" data-color="blue"></div>
+                    <div class="color-option green" data-color="green"></div>
+                    <div class="color-option yellow" data-color="yellow"></div>
+                </div>
+            </div>
+
+            <button class="menu-button" id="startGame" style="font-size: 1.2rem; margin-top: 0.2rem; padding: 10px;">🎮 INIZIA PARTITA</button>
+        </div>
+    </div>
+
+    <!-- Area di Gioco -->
+    <div class="game-container" id="gameContainer">
+        <div class="game-header">
+            <div class="current-player" id="currentPlayer">Turno: Giocatore Rosso</div>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="turnCount">1</div>
+                    <div class="stat-label">Turno</div>
+                </div>
+                <div class="stat-item" id="timerDisplay" style="display: none;">
+                    <div class="stat-value" id="timerValue">30</div>
+                    <div class="stat-label">Secondi</div>
+                </div>
+                <button class="control-button" id="resetGame">🔄 Reset</button>
+            </div>
+        </div>
+
+        <div class="game-board-container">
+            <div class="board-wrapper">
+                <div class="game-board" id="gameBoard"></div>
+            </div>
+
+            <div class="game-controls">
+                <div class="dice-container">
+                    <h3>Lancia il Dado</h3>
+                    <div class="dice" id="dice">🎲</div>
+                    <button class="control-button" id="rollDice">Lancia Dado</button>
+                </div>
+
+                <div class="player-status">
+                    <h3>Giocatori</h3>
+                    <div class="player-info active" data-player="0">
+                        <div style="display: flex; align-items: center;">
+                            <div class="player-color red"></div>
+                            <span>Rosso</span>
+                        </div>
+                        <span>Casa: 4</span>
+                    </div>
+                    <div class="player-info" data-player="1">
+                        <div style="display: flex; align-items: center;">
+                            <div class="player-color blue"></div>
+                            <span>Blu</span>
+                        </div>
+                        <span>Casa: 4</span>
+                    </div>
+                    <div class="player-info" data-player="2">
+                        <div style="display: flex; align-items: center;">
+                            <div class="player-color green"></div>
+                            <span>Verde</span>
+                        </div>
+                        <span>Casa: 4</span>
+                    </div>
+                    <div class="player-info" data-player="3">
+                        <div style="display: flex; align-items: center;">
+                            <div class="player-color yellow"></div>
+                            <span>Giallo</span>
+                        </div>
+                        <span>Casa: 4</span>
+                    </div>
+                </div>
+
+                <button class="control-button" id="endTurn" disabled>Termina Turno</button>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-container" id="chatContainer" style="display: none;">
+            <h3>Chat</h3>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Scrivi un messaggio...">
+                <button id="sendMessage">Invia</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schermata Vittoria -->
+    <div class="victory-screen" id="victoryScreen">
+        <div class="victory-content">
+            <h1 class="victory-title" id="victoryTitle">🏆 VITTORIA!</h1>
+            <p id="victoryMessage">Il Giocatore Rosso ha vinto!</p>
+            <button class="menu-button" id="playAgain">Gioca Ancora</button>
+            <button class="menu-button" id="backToMenu">Menu Principale</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Gioco Ludo Professionale
+         * Implementazione completa con modalità multiplayer, AI e online
+         */
+
+        class LudoGame {
+            constructor() {
+                // Configurazione del gioco
+                this.gameMode = 'local';
+                this.settings = {
+                    sounds: true,
+                    animations: true,
+                    timer: false,
+                    playerColor: 'red'
+                };
+
+                // Stato del gioco
+                this.currentPlayer = 0;
+                this.players = ['red', 'blue', 'green', 'yellow'];
+                this.gameState = 'menu'; // menu, playing, ended
+                this.turnCount = 1;
+                this.diceValue = 0;
+                this.selectedPiece = null;
+                this.timer = null;
+                this.timeLeft = 30;
+
+                // Posizioni delle pedine (4 pedine per giocatore)
+                this.pieces = {
+                    red: [null, null, null, null],
+                    blue: [null, null, null, null],
+                    green: [null, null, null, null],
+                    yellow: [null, null, null, null]
+                };
+
+                // Percorsi per ogni colore
+                this.paths = this.generatePaths();
+                this.board = [];
+
+                this.initializeEventListeners();
+                this.createBoard();
+                this.placePieces();
+            }
+
+            /**
+             * Genera i percorsi per ogni colore sul tabellone
+             */
+            generatePaths() {
+                return {
+                    red: this.generateRedPath(),
+                    blue: this.generateBluePath(),
+                    green: this.generateGreenPath(),
+                    yellow: this.generateYellowPath()
+                };
+            }
+
+            generateRedPath() {
+                const path = [];
+                // Partenza casella rossa (1,6)
+                for (let i = 1; i < 6; i++) path.push([1, i]);
+                // Giro esterno
+                for (let i = 0; i < 6; i++) path.push([0, i]);
+                for (let i = 0; i < 6; i++) path.push([i, 0]);
+                for (let i = 0; i < 6; i++) path.push([6, i]);
+                for (let i = 6; i < 9; i++) path.push([i, 6]);
+                for (let i = 6; i < 15; i++) path.push([8, i]);
+                for (let i = 8; i < 15; i++) path.push([i, 14]);
+                for (let i = 14; i >= 9; i--) path.push([14, i]);
+                for (let i = 14; i >= 9; i--) path.push([i, 8]);
+                for (let i = 8; i >= 0; i--) path.push([6, i]);
+                // Rettilineo finale
+                for (let i = 7; i < 14; i++) path.push([i, 7]);
+                return path;
+            }
+
+            generateBluePath() {
+                const path = [];
+                // Implementazione simile per blu, verde e giallo
+                // Per semplicità, uso lo stesso percorso base con offset
+                return this.generateRedPath();
+            }
+
+            generateGreenPath() {
+                return this.generateRedPath();
+            }
+
+            generateYellowPath() {
+                return this.generateRedPath();
+            }
+
+            /**
+             * Inizializza tutti gli event listener
+             */
+            initializeEventListeners() {
+                // Menu principale
+                document.getElementById('startGame').addEventListener('click', () => this.startGame());
+                document.getElementById('resetGame').addEventListener('click', () => this.resetGame());
+                document.getElementById('playAgain').addEventListener('click', () => this.resetGame());
+                document.getElementById('backToMenu').addEventListener('click', () => this.showMenu());
+
+                // Controlli modalità
+                document.querySelectorAll('[data-mode]').forEach(button => {
+                    button.addEventListener('click', (e) => this.selectGameMode(e.target.dataset.mode));
+                });
+
+                // Controlli impostazioni
+                document.getElementById('soundToggle').addEventListener('click', () => this.toggleSetting('sounds'));
+                document.getElementById('animationsToggle').addEventListener('click', () => this.toggleSetting('animations'));
+                document.getElementById('timerToggle').addEventListener('click', () => this.toggleSetting('timer'));
+
+                // Selezione colore
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.addEventListener('click', (e) => this.selectColor(e.target.dataset.color));
+                });
+
+                // Controlli di gioco
+                document.getElementById('rollDice').addEventListener('click', () => this.rollDice());
+                document.getElementById('endTurn').addEventListener('click', () => this.endTurn());
+
+                // Chat
+                document.getElementById('sendMessage').addEventListener('click', () => this.sendChatMessage());
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendChatMessage();
+                });
+            }
+
+            /**
+             * Crea il tabellone di gioco dinamicamente
+             */
+            createBoard() {
+                const board = document.getElementById('gameBoard');
+                board.innerHTML = '';
+
+                // Crea la griglia 15x15
+                for (let row = 0; row < 15; row++) {
+                    this.board[row] = [];
+                    for (let col = 0; col < 15; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+
+                        // Definisce le aree speciali
+                        this.setCellType(cell, row, col);
+
+                        board.appendChild(cell);
+                        this.board[row][col] = cell;
+                    }
+                }
+            }
+
+            /**
+             * Definisce il tipo di cella basato sulla posizione
+             */
+            setCellType(cell, row, col) {
+                // Zone casa
+                if (row >= 1 && row <= 5 && col >= 1 && col <= 5) {
+                    cell.classList.add('home-red');
+                } else if (row >= 1 && row <= 5 && col >= 9 && col <= 13) {
+                    cell.classList.add('home-blue');
+                } else if (row >= 9 && row <= 13 && col >= 1 && col <= 5) {
+                    cell.classList.add('home-green');
+                } else if (row >= 9 && row <= 13 && col >= 9 && col <= 13) {
+                    cell.classList.add('home-yellow');
+                }
+
+                // Centro
+                if (row >= 6 && row <= 8 && col >= 6 && col <= 8) {
+                    cell.classList.add('center');
+                }
+
+                // Percorsi colorati
+                if (row === 6 && col >= 1 && col <= 5) cell.classList.add('path-red');
+                if (col === 8 && row >= 1 && row <= 5) cell.classList.add('path-blue');
+                if (row === 8 && col >= 9 && col <= 13) cell.classList.add('path-green');
+                if (col === 6 && row >= 9 && row <= 13) cell.classList.add('path-yellow');
+
+                // Caselle sicure
+                if ((row === 0 && col === 6) || (row === 6 && col === 0) || 
+                    (row === 8 && col === 14) || (row === 14 && col === 8)) {
+                    cell.classList.add('safe');
+                }
+
+                // Aggiungi event listener per il click
+                cell.addEventListener('click', () => this.onCellClick(row, col));
+            }
+
+            /**
+             * Posiziona le pedine iniziali
+             */
+            placePieces() {
+                const homePositions = {
+                    red: [[2, 2], [2, 4], [4, 2], [4, 4]],
+                    blue: [[2, 10], [2, 12], [4, 10], [4, 12]],
+                    green: [[10, 2], [10, 4], [12, 2], [12, 4]],
+                    yellow: [[10, 10], [10, 12], [12, 10], [12, 12]]
+                };
+
+                Object.keys(homePositions).forEach(color => {
+                    homePositions[color].forEach((pos, index) => {
+                        const [row, col] = pos;
+                        const piece = document.createElement('div');
+                        piece.className = `piece ${color}`;
+                        piece.dataset.color = color;
+                        piece.dataset.index = index;
+                        piece.addEventListener('click', () => this.onPieceClick(color, index));
+
+                        this.board[row][col].appendChild(piece);
+                        this.pieces[color][index] = -1; // -1 indica che è in casa
+                    });
+                });
+            }
+
+            /**
+             * Seleziona la modalità di gioco
+             */
+            selectGameMode(mode) {
+                this.gameMode = mode;
+                document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+
+                // Mostra/nasconde chat per modalità online
+                const chatContainer = document.getElementById('chatContainer');
+                chatContainer.style.display = mode === 'online' ? 'block' : 'none';
+            }
+
+            /**
+             * Cambia le impostazioni del gioco
+             */
+            toggleSetting(setting) {
+                this.settings[setting] = !this.settings[setting];
+                const button = document.getElementById(`${setting}Toggle`);
+                const icons = {
+                    sounds: this.settings.sounds ? '🔊' : '🔇',
+                    animations: this.settings.animations ? '✨' : '⭕',
+                    timer: this.settings.timer ? '⏱️' : '⏱️'
+                };
+                const status = this.settings[setting] ? 'ON' : 'OFF';
+                button.textContent = `${icons[setting]} ${setting.charAt(0).toUpperCase() + setting.slice(1)}: ${status}`;
+            }
+
+            /**
+             * Seleziona il colore del giocatore
+             */
+            selectColor(color) {
+                this.settings.playerColor = color;
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                document.querySelector(`[data-color="${color}"]`).classList.add('selected');
+            }
+
+            /**
+             * Inizia il gioco
+             */
+            startGame() {
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('gameContainer').style.display = 'block';
+                this.gameState = 'playing';
+                this.updateUI();
+                this.playSound('gameStart');
+
+                if (this.settings.timer) {
+                    document.getElementById('timerDisplay').style.display = 'block';
+                    this.startTimer();
+                }
+            }
+
+            /**
+             * Mostra il menu principale
+             */
+            showMenu() {
+                document.getElementById('gameContainer').style.display = 'none';
+                document.getElementById('victoryScreen').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'flex';
+                this.gameState = 'menu';
+                this.stopTimer();
+            }
+
+            /**
+             * Reset del gioco
+             */
+            resetGame() {
+                this.currentPlayer = 0;
+                this.turnCount = 1;
+                this.diceValue = 0;
+                this.selectedPiece = null;
+                this.pieces = {
+                    red: [null, null, null, null],
+                    blue: [null, null, null, null],
+                    green: [null, null, null, null],
+                    yellow: [null, null, null, null]
+                };
+
+                // Pulisce il tabellone
+                document.querySelectorAll('.piece').forEach(piece => piece.remove());
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('highlight');
+                });
+
+                // Riposiziona le pedine
+                this.placePieces();
+                this.updateUI();
+                document.getElementById('victoryScreen').style.display = 'none';
+
+                if (this.gameState === 'menu') {
+                    this.startGame();
+                }
+            }
+
+            /**
+             * Lancia il dado
+             */
+            rollDice() {
+                if (this.gameState !== 'playing') return;
+
+                const dice = document.getElementById('dice');
+                const rollButton = document.getElementById('rollDice');
+
+                rollButton.disabled = true;
+                
+                if (this.settings.animations) {
+                    dice.classList.add('rolling');
+                }
+
+                this.playSound('diceRoll');
+
+                // Simula il rotolo del dado
+                setTimeout(() => {
+                    this.diceValue = Math.floor(Math.random() * 6) + 1;
+                    dice.textContent = this.diceValue;
+                    dice.classList.remove('rolling');
+
+                    this.highlightValidMoves();
+                    this.checkAITurn();
+                }, 500);
+            }
+
+            /**
+             * Evidenzia le mosse valide
+             */
+            highlightValidMoves() {
+                const currentColor = this.players[this.currentPlayer];
+                let hasValidMove = false;
+
+                // Rimuove highlight precedenti
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('highlight');
+                });
+
+                // Controlla ogni pedina del giocatore corrente
+                for (let i = 0; i < 4; i++) {
+                    const piecePosition = this.pieces[currentColor][i];
+                    
+                    if (this.canMovePiece(currentColor, i)) {
+                        hasValidMove = true;
+                        this.highlightPieceDestination(currentColor, i);
+                    }
+                }
+
+                // Se non ci sono mosse valide, termina automaticamente il turno
+                if (!hasValidMove) {
+                    setTimeout(() => this.endTurn(), 1000);
+                } else {
+                    document.getElementById('endTurn').disabled = false;
+                }
+            }
+
+            /**
+             * Controlla se una pedina può muoversi
+             */
+            canMovePiece(color, pieceIndex) {
+                const position = this.pieces[color][pieceIndex];
+                
+                // Se è in casa, può uscire solo con 6
+                if (position === -1) {
+                    return this.diceValue === 6;
+                }
+
+                // Se è sul percorso, può sempre muoversi (controlli aggiuntivi per vittoria)
+                const newPosition = position + this.diceValue;
+                return newPosition <= 56; // Massimo percorso
+            }
+
+            /**
+             * Evidenzia la destinazione di una pedina
+             */
+            highlightPieceDestination(color, pieceIndex) {
+                let targetRow, targetCol;
+
+                if (this.pieces[color][pieceIndex] === -1 && this.diceValue === 6) {
+                    // Posizione di partenza
+                    const startPositions = {
+                        red: [1, 6],
+                        blue: [6, 13],
+                        green: [13, 8],
+                        yellow: [8, 1]
+                    };
+                    [targetRow, targetCol] = startPositions[color];
+                } else if (this.pieces[color][pieceIndex] >= 0) {
+                    // Calcola nuova posizione sul percorso
+                    const newPos = this.pieces[color][pieceIndex] + this.diceValue;
+                    [targetRow, targetCol] = this.getPositionCoordinates(color, newPos);
+                }
+
+                if (targetRow !== undefined && targetCol !== undefined) {
+                    this.board[targetRow][targetCol].classList.add('highlight');
+                }
+            }
+
+            /**
+             * Converte posizione numerica in coordinate
+             */
+            getPositionCoordinates(color, position) {
+                // Mapping semplificato delle posizioni
+                const pathCoordinates = {
+                    red: [
+                        [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6],
+                        [6, 5], [6, 4], [6, 3], [6, 2], [6, 1], [6, 0],
+                        [7, 0], [8, 0], [8, 1], [8, 2], [8, 3], [8, 4],
+                        [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10],
+                        [8, 11], [8, 12], [8, 13], [8, 14], [9, 14], [10, 14],
+                        [11, 14], [12, 14], [13, 14], [14, 14], [14, 13], [14, 12],
+                        [14, 11], [14, 10], [14, 9], [14, 8], [13, 8], [12, 8],
+                        [11, 8], [10, 8], [9, 8], [8, 8], [7, 8], [6, 8],
+                        [6, 9], [6, 10], [6, 11], [6, 12], [6, 13], [6, 14],
+                        [7, 7] // Centro
+                    ]
+                };
+
+                if (pathCoordinates[color] && pathCoordinates[color][position]) {
+                    return pathCoordinates[color][position];
+                }
+                return [7, 7]; // Default centro
+            }
+
+            /**
+             * Gestisce il click su una cella
+             */
+            onCellClick(row, col) {
+                if (this.gameState !== 'playing' || !this.diceValue) return;
+                
+                const cell = this.board[row][col];
+                if (!cell.classList.contains('highlight')) return;
+
+                this.movePieceToCell(row, col);
+            }
+
+            /**
+             * Gestisce il click su una pedina
+             */
+            onPieceClick(color, index) {
+                if (this.gameState !== 'playing' || this.players[this.currentPlayer] !== color) return;
+                if (!this.diceValue || !this.canMovePiece(color, index)) return;
+
+                // Deseleziona pedina precedente
+                if (this.selectedPiece) {
+                    this.selectedPiece.classList.remove('selected');
+                }
+
+                // Seleziona nuova pedina
+                const pieceElement = document.querySelector(`[data-color="${color}"][data-index="${index}"]`);
+                pieceElement.classList.add('selected');
+                this.selectedPiece = pieceElement;
+
+                this.playSound('pieceSelect');
+            }
+
+            /**
+             * Muove una pedina in una cella
+             */
+            movePieceToCell(targetRow, targetCol) {
+                const currentColor = this.players[this.currentPlayer];
+                let movedPiece = null;
+
+                // Trova la pedina da muovere
+                for (let i = 0; i < 4; i++) {
+                    if (this.canMovePiece(currentColor, i)) {
+                        const expectedTarget = this.getExpectedTarget(currentColor, i);
+                        if (expectedTarget && expectedTarget[0] === targetRow && expectedTarget[1] === targetCol) {
+                            movedPiece = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (movedPiece === null) return;
+
+                this.movePiece(currentColor, movedPiece, targetRow, targetCol);
+            }
+
+            /**
+             * Calcola la destinazione prevista per una pedina
+             */
+            getExpectedTarget(color, pieceIndex) {
+                if (this.pieces[color][pieceIndex] === -1 && this.diceValue === 6) {
+                    const startPositions = {
+                        red: [1, 6],
+                        blue: [6, 13],
+                        green: [13, 8],
+                        yellow: [8, 1]
+                    };
+                    return startPositions[color];
+                } else if (this.pieces[color][pieceIndex] >= 0) {
+                    const newPos = this.pieces[color][pieceIndex] + this.diceValue;
+                    return this.getPositionCoordinates(color, newPos);
+                }
+                return null;
+            }
+
+            /**
+             * Muove fisicamente una pedina
+             */
+            movePiece(color, pieceIndex, targetRow, targetCol) {
+                const pieceElement = document.querySelector(`[data-color="${color}"][data-index="${pieceIndex}"]`);
+                const targetCell = this.board[targetRow][targetCol];
+
+                // Controlla se c'è una pedina avversaria da catturare
+                const existingPiece = targetCell.querySelector('.piece');
+                if (existingPiece && existingPiece.dataset.color !== color) {
+                    this.capturePiece(existingPiece);
+                }
+
+                // Muove la pedina
+                if (this.settings.animations) {
+                    pieceElement.style.transition = 'all 0.5s ease';
+                }
+
+                targetCell.appendChild(pieceElement);
+
+                // Aggiorna la posizione
+                if (this.pieces[color][pieceIndex] === -1) {
+                    this.pieces[color][pieceIndex] = 0; // Prima mossa
+                } else {
+                    this.pieces[color][pieceIndex] += this.diceValue;
+                }
+
+                // Rimuove selezione e highlight
+                pieceElement.classList.remove('selected');
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('highlight');
+                });
+
+                this.playSound('pieceMove');
+
+                // Controlla vittoria
+                if (this.checkVictory(color)) {
+                    this.endGame(color);
+                    return;
+                }
+
+                // Se non è un 6, termina il turno
+                if (this.diceValue !== 6) {
+                    setTimeout(() => this.endTurn(), 500);
+                } else {
+                    // Con un 6, può tirare di nuovo
+                    document.getElementById('rollDice').disabled = false;
+                }
+
+                this.diceValue = 0;
+                document.getElementById('endTurn').disabled = true;
+            }
+
+            /**
+             * Cattura una pedina avversaria
+             */
+            capturePiece(pieceElement) {
+                const color = pieceElement.dataset.color;
+                const index = parseInt(pieceElement.dataset.index);
+
+                // Trova posizione casa
+                const homePositions = {
+                    red: [[2, 2], [2, 4], [4, 2], [4, 4]],
+                    blue: [[2, 10], [2, 12], [4, 10], [4, 12]],
+                    green: [[10, 2], [10, 4], [12, 2], [12, 4]],
+                    yellow: [[10, 10], [10, 12], [12, 10], [12, 12]]
+                };
+
+                const [homeRow, homeCol] = homePositions[color][index];
+                this.board[homeRow][homeCol].appendChild(pieceElement);
+                this.pieces[color][index] = -1;
+
+                this.playSound('capture');
+                this.updatePlayerStatus();
+            }
+
+            /**
+             * Controlla condizione di vittoria
+             */
+            checkVictory(color) {
+                return this.pieces[color].every(pos => pos >= 56);
+            }
+
+            /**
+             * Termina il gioco
+             */
+            endGame(winnerColor) {
+                this.gameState = 'ended';
+                document.getElementById('victoryTitle').textContent = '🏆 VITTORIA!';
+                document.getElementById('victoryMessage').textContent = `Il Giocatore ${this.getColorName(winnerColor)} ha vinto!`;
+                document.getElementById('victoryScreen').style.display = 'flex';
+                this.playSound('victory');
+                this.stopTimer();
+            }
+
+            /**
+             * Termina il turno corrente
+             */
+            endTurn() {
+                this.currentPlayer = (this.currentPlayer + 1) % 4;
+                this.turnCount++;
+                this.diceValue = 0;
+                
+                if (this.selectedPiece) {
+                    this.selectedPiece.classList.remove('selected');
+                    this.selectedPiece = null;
+                }
+
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('highlight');
+                });
+
+                document.getElementById('rollDice').disabled = false;
+                document.getElementById('endTurn').disabled = true;
+
+                this.updateUI();
+
+                if (this.settings.timer) {
+                    this.resetTimer();
+                }
+
+                // Se è modalità AI e tocca al computer
+                if (this.gameMode === 'ai' && this.currentPlayer !== 0) {
+                    setTimeout(() => this.performAIMove(), 1000);
+                }
+            }
+
+            /**
+             * Controlla se è il turno dell'AI
+             */
+            checkAITurn() {
+                if (this.gameMode === 'ai' && this.currentPlayer !== 0) {
+                    setTimeout(() => this.performAIMove(), 1500);
+                }
+            }
+
+            /**
+             * Esegue una mossa dell'AI
+             */
+            performAIMove() {
+                const aiColor = this.players[this.currentPlayer];
+                const validMoves = [];
+
+                // Trova tutte le mosse valide
+                for (let i = 0; i < 4; i++) {
+                    if (this.canMovePiece(aiColor, i)) {
+                        const target = this.getExpectedTarget(aiColor, i);
+                        if (target) {
+                            validMoves.push({ piece: i, target: target });
+                        }
+                    }
+                }
+
+                if (validMoves.length > 0) {
+                    // Strategia AI semplice: priorità a uscire dalla base o catturare
+                    const bestMove = this.selectBestAIMove(aiColor, validMoves);
+                    const [targetRow, targetCol] = bestMove.target;
+                    
+                    setTimeout(() => {
+                        this.movePiece(aiColor, bestMove.piece, targetRow, targetCol);
+                    }, 500);
+                } else {
+                    setTimeout(() => this.endTurn(), 1000);
+                }
+            }
+
+            /**
+             * Seleziona la migliore mossa per l'AI
+             */
+            selectBestAIMove(color, validMoves) {
+                // Priorità 1: Catturare avversari
+                for (let move of validMoves) {
+                    const [row, col] = move.target;
+                    const existingPiece = this.board[row][col].querySelector('.piece');
+                    if (existingPiece && existingPiece.dataset.color !== color) {
+                        return move;
+                    }
+                }
+
+                // Priorità 2: Uscire dalla base
+                for (let move of validMoves) {
+                    if (this.pieces[color][move.piece] === -1) {
+                        return move;
+                    }
+                }
+
+                // Priorità 3: Muovere la pedina più avanti
+                return validMoves.reduce((best, move) => {
+                    const bestPos = this.pieces[color][best.piece];
+                    const movePos = this.pieces[color][move.piece];
+                    return movePos > bestPos ? move : best;
+                });
+            }
+
+            /**
+             * Avvia il timer
+             */
+            startTimer() {
+                this.resetTimer();
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    document.getElementById('timerValue').textContent = this.timeLeft;
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endTurn();
+                    }
+                }, 1000);
+            }
+
+            /**
+             * Reset del timer
+             */
+            resetTimer() {
+                this.timeLeft = 30;
+                document.getElementById('timerValue').textContent = this.timeLeft;
+            }
+
+            /**
+             * Ferma il timer
+             */
+            stopTimer() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+            }
+
+            /**
+             * Aggiorna l'interfaccia utente
+             */
+            updateUI() {
+                const currentColor = this.players[this.currentPlayer];
+                const colorName = this.getColorName(currentColor);
+                
+                document.getElementById('currentPlayer').textContent = `Turno: Giocatore ${colorName}`;
+                document.getElementById('turnCount').textContent = this.turnCount;
+
+                // Aggiorna status giocatori
+                document.querySelectorAll('.player-info').forEach((info, index) => {
+                    info.classList.toggle('active', index === this.currentPlayer);
+                });
+
+                this.updatePlayerStatus();
+            }
+
+            /**
+             * Aggiorna lo status dei giocatori
+             */
+            updatePlayerStatus() {
+                this.players.forEach((color, index) => {
+                    const homePieces = this.pieces[color].filter(pos => pos === -1).length;
+                    const playerInfo = document.querySelector(`[data-player="${index}"] span:last-child`);
+                    if (playerInfo) {
+                        playerInfo.textContent = `Casa: ${homePieces}`;
+                    }
+                });
+            }
+
+            /**
+             * Ottiene il nome del colore localizzato
+             */
+            getColorName(color) {
+                const names = {
+                    red: 'Rosso',
+                    blue: 'Blu',
+                    green: 'Verde',
+                    yellow: 'Giallo'
+                };
+                return names[color] || color;
+            }
+
+            /**
+             * Invia messaggio in chat
+             */
+            sendChatMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (message) {
+                    const chatMessages = document.getElementById('chatMessages');
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'chat-message';
+                    messageElement.innerHTML = `<strong>Tu:</strong> ${message}`;
+                    chatMessages.appendChild(messageElement);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    input.value = '';
+                    this.playSound('message');
+                }
+            }
+
+            /**
+             * Riproduce effetti sonori
+             */
+            playSound(type) {
+                if (!this.settings.sounds) return;
+
+                // Simulazione suoni con Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                const frequencies = {
+                    diceRoll: 220,
+                    pieceMove: 330,
+                    pieceSelect: 440,
+                    capture: 180,
+                    victory: 550,
+                    gameStart: 660,
+                    message: 880
+                };
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequencies[type] || 440, audioContext.currentTime);
+                oscillator.type = 'square';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+        }
+
+        // Inizializza il gioco quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', () => {
+            window.ludoGame = new LudoGame();
+        });
+    </script>
+</body>
+</html>

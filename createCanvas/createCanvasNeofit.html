@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pallina e Piattaforma</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  </head>
+  <body>
+    <script>
+      var pallinaX = 200;
+      var pallinaY = 100;
+      var velX = 3;
+      var velY = 4;
+
+      var larghezza = 100;
+      var altezza = 15;
+
+      var fineGioco = false;
+
+      function setup() {
+        createCanvas(400, 400);
+      }
+
+      function draw() {
+        background(200);
+
+        if (fineGioco == true) {
+          textSize(30);
+          fill(255, 0, 0);
+          text("Game Over", 120, 200);
+          noLoop();
+        }
+
+        // disegna la pallina
+        ellipse(pallinaX, pallinaY, 20, 20);
+
+        // muovi la pallina
+        pallinaX = pallinaX + velX;
+        pallinaY = pallinaY + velY;
+
+        // rimbalzo pareti
+        if (pallinaX < 0 || pallinaX > width) {
+          velX = velX * -1;
+        }
+
+        // rimbalzo sopra
+        if (pallinaY < 0) {
+          velY = velY * -1;
+        }
+
+        // piattaforma
+        rect(mouseX - larghezza / 2, height - altezza, larghezza, altezza);
+
+        // rimbalzo sulla piattaforma
+        if (
+          pallinaY + 10 > height - altezza &&
+          pallinaX > mouseX - larghezza / 2 &&
+          pallinaX < mouseX + larghezza / 2
+        ) {
+          velY = velY * -1;
+        }
+
+        // game over
+        if (pallinaY > height + 20) {
+          fineGioco = true;
+        }
+      }
+    </script>
+  </body>
+</html>

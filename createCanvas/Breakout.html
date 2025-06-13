@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Breakout</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      background-color: #222;
+      height: 100vh;
+    }
+    #canvas-container {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <script>
+    let ball;
+    let paddle;
+    let bricks = [];
+    let cols = 8;
+    let rows = 5;
+    let brickWidth = 60;
+    let brickHeight = 20;
+    let gameOver = false;
+
+    function setup() {
+      let canvas = createCanvas(610, 400);
+      canvas.parent("canvas-container"); // <-- può anche non servire
+
+      ball = {
+        x: width / 2,
+        y: height - 30,
+        r: 10,
+        speedX: 3,
+        speedY: -3
+      };
+
+      paddle = {
+        w: 80,
+        h: 15,
+      };
+
+      // Crea i mattoncini
+      for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+          bricks.push({
+            x: i * (brickWidth + 10) + 30,
+            y: j * (brickHeight + 10) + 30,
+            w: brickWidth,
+            h: brickHeight,
+            visible: true
+          });
+        }
+      }
+    }
+
+    function draw() {
+      background(30);
+
+      // Paddle
+      fill(255);
+      let paddleX = constrain(mouseX - paddle.w / 2, 0, width - paddle.w);
+      rect(paddleX, height - paddle.h, paddle.w, paddle.h);
+
+      // Pallina
+      ellipse(ball.x, ball.y, ball.r * 2);
+      ball.x += ball.speedX;
+      ball.y += ball.speedY;
+
+      // Collisioni pareti
+      if (ball.x < 0 || ball.x > width) ball.speedX *= -1;
+      if (ball.y < 0) ball.speedY *= -1;
+
+      // Collisione paddle
+      if (
+        ball.y + ball.r > height - paddle.h &&
+        ball.x > paddleX &&
+        ball.x < paddleX + paddle.w
+      ) {
+        ball.speedY *= -1;
+        ball.y = height - paddle.h - ball.r; // corregge l'overlap
+      }
+
+      // Game over
+      if (ball.y > height) {
+        textSize(32);
+        fill(255, 0, 0);
+        text("Game Over", width / 2 - 90, height / 2);
+        noLoop();
+        return;
+      }
+
+      // Mattoncini
+      for (let i = 0; i < bricks.length; i++) {
+        let b = bricks[i];
+        if (b.visible) {
+          fill(100, 200, 255);
+          rect(b.x, b.y, b.w, b.h);
+
+          // Collisione pallina con mattoncini
+          if (
+            ball.x > b.x &&
+            ball.x < b.x + b.w &&
+            ball.y - ball.r < b.y + b.h &&
+            ball.y + ball.r > b.y
+          ) {
+            ball.speedY *= -1;
+            b.visible = false;
+          }
+        }
+      }
+
+      // Vittoria (se tutti i mattoncini sono invisibili)
+      if (bricks.every(b => !b.visible)) {
+        textSize(32);
+        fill(0, 255, 0);
+        text("Hai Vinto!", width / 2 - 80, height / 2);
+        noLoop();
+      }
+    }
+  </script>
+</body>
+</html>

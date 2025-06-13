@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexa Fall</title>
+    <style>
+        /* CSS Reset e variabili globali */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-yellow: #d4af37;
+            --accent-yellow-light: #f0d66e;
+            --text-white: #ffffff;
+            --text-gray: #cccccc;
+            --shadow-glow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        /* Container principale */
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Menu principale */
+        .main-menu {
+            text-align: center;
+            background: rgba(45, 45, 45, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-glow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .game-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .menu-options {
+            display: grid;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .menu-button {
+            background: linear-gradient(45deg, var(--accent-yellow), var(--accent-yellow-light));
+            color: var(--primary-dark);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transform: translateY(0);
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+
+        .level-selector {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .level-button {
+            aspect-ratio: 1;
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 15px;
+            color: var(--text-white);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-button:hover {
+            background: var(--accent-yellow);
+            color: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .level-button.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #444;
+            border-color: #666;
+        }
+
+        /* Area di gioco */
+        .game-area {
+            display: none;
+            text-align: center;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .info-item {
+            background: var(--secondary-dark);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid var(--accent-yellow);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .info-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .control-button {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-yellow);
+            color: var(--text-white);
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-button:hover {
+            background: var(--accent-yellow);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Pulsante suggerimento con lampadina */
+        .hint-button {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1a1a1a;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hint-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .hint-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .lightbulb-icon {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .hint-counter {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Canvas di gioco */
+        .game-canvas {
+            background: radial-gradient(circle at center, rgba(45, 45, 45, 0.8), rgba(26, 26, 26, 0.9));
+            border-radius: 20px;
+            border: 2px solid var(--accent-yellow);
+            box-shadow: var(--shadow-glow);
+            margin: 20px auto;
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* Messaggi di gioco */
+        .game-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(45, 45, 45, 0.95);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: var(--shadow-glow);
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .message-title {
+            font-size: 2rem;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+        }
+
+        .message-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: var(--text-gray);
+        }
+
+        /* Effetti di particelle */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-fall 2s ease-out forwards;
+        }
+
+        @keyframes particle-fall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100px) scale(0);
+            }
+        }
+
+        /* Animazioni */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .game-info {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .game-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .control-button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .main-menu {
+                padding: 20px;
+            }
+
+            .game-title {
+                font-size: 2rem;
+            }
+
+            .info-item {
+                padding: 8px 15px;
+            }
+        }
+
+        /* Nuove regole CSS */
+        .level-selector {
+            max-width: 500px; /* Limita la larghezza massima */
+            margin: 20px auto;
+        }
+
+        .level-button {
+            width: 100%;
+            max-width: 800px; /* Dimensione massima */
+            min-width: 60px; /* Dimensione minima */
+        }
+
+/* SEZIONE AGGIUNTA */
+/* 4. Aggiungi stili CSS per il canvas */
+.game-canvas {
+    background: radial-gradient(circle at center, rgba(45, 45, 45, 0.8), rgba(26, 26, 26, 0.9));
+    border-radius: 20px;
+    border: 2px solid var(--accent-yellow);
+    box-shadow: var(--shadow-glow);
+    margin: 20px auto;
+    display: block;
+    cursor: crosshair;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4/3; /* Mantiene l'aspect ratio originale */
+    max-width: 800px;
+    max-height: 600px;
+}
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Menu Principale -->
+        <div id="mainMenu" class="main-menu">
+            <h1 class="game-title">HEXA FALL</h1>
+            <div class="menu-options">
+                <button class="menu-button" onclick="showLevelSelector()">Inizia Partita</button>
+                <button class="menu-button" onclick="toggleSettings()">Impostazioni</button>
+                <button class="menu-button" onclick="resetGame()">Reset Progresso</button>
+            </div>
+            
+            <div id="levelSelector" class="level-selector">
+                <!-- I livelli verranno generati dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Area di Gioco -->
+        <div id="gameArea" class="game-area">
+            <div class="game-header">
+                <div class="game-info">
+                    <div class="info-item">
+                        <span class="info-label">Livello</span>
+                        <span id="currentLevel" class="info-value">1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Punteggio</span>
+                        <span id="score" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Blocchi Rimossi</span>
+                        <span id="blocksRemoved" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tempo</span>
+                        <span id="timer" class="info-value">00:00</span>
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <button id="hintButton" class="hint-button" onclick="showHint()" title="Suggerimento">
+                        <span class="lightbulb-icon">💡</span>
+                        <span id="hintCounter" class="hint-counter">3</span>
+                    </button>
+                    <button class="control-button" onclick="pauseGame()">⏸️ Pausa</button>
+                    <button class="control-button" onclick="backToMenu()">🏠 Menu</button>
+                </div>
+            </div>
+            
+            <canvas id="gameCanvas" class="game-canvas" width="800" height="600"></canvas>
+        </div>
+
+        <!-- Messaggio di Gioco -->
+        <div id="gameMessage" class="game-message">
+            <h2 id="messageTitle" class="message-title">Livello Completato!</h2>
+            <p id="messageText" class="message-text">Congratulazioni! Hai completato il livello.</p>
+            <button class="menu-button" onclick="hideMessage()">Continua</button>
+        </div>
+    </div>
+
+    <script>
+        // === CONFIGURAZIONE GLOBALE ===
+// SEZIONE MODIFICATA
+const CONFIG = {
+    canvas: {
+        originalWidth: 800,  // Aggiungi riferimento alle dimensioni originali
+        originalHeight: 600
+    },
+    // ... resto della configurazione
+
+            physics: {
+                gravity: 0.8,
+                friction: 0.98,
+                bounce: 0.3
+            },
+            hexagon: {
+                size: 30,
+                color: '#d4af37',
+                strokeColor: '#f0d66e'
+            },
+            block: {
+                width: 60,
+                height: 20,
+                color: '#666666',
+                highlightColor: '#888888',
+                removeColor: '#ff4444'
+            },
+            sounds: {
+                enabled: true
+            },
+            animations: {
+                enabled: true
+            }
+        };
+
+        // === STATO GLOBALE DEL GIOCO ===
+        let gameState = {
+            currentLevel: 1,
+            maxLevel: 1,
+            score: 0,
+            blocksRemoved: 0,
+            hints: 3,
+            gameTime: 0,
+            gameTimer: null,
+            paused: false,
+            gameStarted: false
+        };
+
+        // === VARIABILI CANVAS E RENDERING ===
+        let canvas, ctx;
+        let animationFrame;
+
+        // === OGGETTI DI GIOCO ===
+        let hexagon = {
+            x: 400,
+            y: 300,
+            vx: 0,
+            vy: 0,
+            size: 30,
+            angle: 0,
+            onGround: false
+        };
+
+        let blocks = [];
+        let particles = [];
+        let highlightedBlock = null;
+        let hintBlock = null;
+
+        // === LIVELLI DI GIOCO ===
+        const LEVELS = {
+            1: {
+                blocks: [
+                    {x: 300, y: 400, width: 200, height: 20},
+                    {x: 320, y: 380, width: 160, height: 20},
+                    {x: 340, y: 360, width: 120, height: 20}
+                ],
+                hexagonStart: {x: 400, y: 320},
+                objective: "Rimuovi i blocchi mantenendo l'esagono in equilibrio!"
+            },
+            2: {
+                blocks: [
+                    {x: 250, y: 450, width: 100, height: 20},
+                    {x: 450, y: 450, width: 100, height: 20},
+                    {x: 300, y: 400, width: 200, height: 20},
+                    {x: 350, y: 350, width: 100, height: 20}
+                ],
+                hexagonStart: {x: 400, y: 310},
+                objective: "Livello più complesso - fai attenzione all'equilibrio!"
+            },
+            3: {
+                blocks: [
+                    {x: 200, y: 500, width: 80, height: 20},
+                    {x: 320, y: 500, width: 80, height: 20},
+                    {x: 440, y: 500, width: 80, height: 20},
+                    {x: 260, y: 450, width: 120, height: 20},
+                    {x: 420, y: 450, width: 120, height: 20},
+                    {x: 350, y: 400, width: 100, height: 20},
+                    {x: 375, y: 350, width: 50, height: 20}
+                ],
+                hexagonStart: {x: 400, y: 310},
+                objective: "Torre instabile - ogni mossa è cruciale!"
+            }
+        };
+
+        // === INIZIALIZZAZIONE ===
+        // SEZIONE MODIFICATA
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+                // Forza il ridimensionamento iniziale
+    resizeCanvas();
+    
+    // Aggiungi un timeout per un secondo ridimensionamento dopo il layout
+    setTimeout(() => {
+        resizeCanvas();
+        if (gameState.gameStarted) {
+            initializeLevel(gameState.currentLevel);
+        }
+    }, 100);
+    
+    window.addEventListener('resize', function() {
+        resizeCanvas();
+        if (gameState.gameStarted) {
+            initializeLevel(gameState.currentLevel);
+        }
+    });
+    
+    // Resto del codice di inizializzazione...
+
+            // Adatta canvas alle dimensioni dello schermo
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Event listeners
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            
+            // Genera selettore livelli
+            generateLevelSelector();
+            
+            // Carica progresso salvato
+            loadGameProgress();
+            
+            console.log('Hexa Fall inizializzato correttamente!');
+        });
+
+        // === GESTIONE CANVAS ===
+// SEZIONE MODIFICATA
+function resizeCanvas() {
+    const container = canvas.parentElement;
+    const containerWidth = container.clientWidth;
+    const containerHeight = window.innerHeight;
+    
+    // Calcola le dimensioni mantenendo l'aspect ratio originale (4:3)
+    const aspectRatio = 800 / 600;
+    let newWidth = containerWidth - 40;
+    let newHeight = newWidth / aspectRatio;
+    
+    // Se è troppo alto, riduci in base all'altezza
+    if (newHeight > containerHeight - 200) {
+        newHeight = containerHeight - 200;
+        newWidth = newHeight * aspectRatio;
+    }
+    
+    // Imposta le dimensioni minime
+    newWidth = Math.max(newWidth, 300);
+    newHeight = Math.max(newHeight, 225);
+    
+    // Applica le nuove dimensioni
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    CONFIG.canvas.width = newWidth;
+    CONFIG.canvas.height = newHeight;
+    
+    console.log(`Canvas ridimensionato: ${newWidth}x${newHeight}`);
+}
+
+        // === MENU E NAVIGAZIONE ===
+        function showLevelSelector() {
+            const selector = document.getElementById('levelSelector');
+            selector.style.display = selector.style.display === 'grid' ? 'none' : 'grid';
+        }
+
+        function generateLevelSelector() {
+            const selector = document.getElementById('levelSelector');
+            selector.innerHTML = '';
+            
+            for (let i = 1; i <= Object.keys(LEVELS).length; i++) {
+                const button = document.createElement('button');
+                button.className = `level-button ${i > gameState.maxLevel ? 'locked' : ''}`;
+                button.textContent = i;
+                button.onclick = () => i <= gameState.maxLevel ? startLevel(i) : playSound('error');
+                selector.appendChild(button);
+            }
+        }
+
+// SEZIONE MODIFICATA
+function startLevel(level) {
+    gameState.currentLevel = level;
+    gameState.blocksRemoved = 0;
+    gameState.gameTime = 0;
+    gameState.gameStarted = true;
+    gameState.levelCompleted = false; // Resetta lo stato di completamento
+    
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameArea').style.display = 'block';
+    
+    initializeLevel(level);
+    startGameTimer();
+    gameLoop();
+    
+    updateUI();
+    playSound('start');
+}
+
+        function backToMenu() {
+            stopGameTimer();
+            cancelAnimationFrame(animationFrame);
+            
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+            
+            playSound('menu');
+        }
+
+/* Problema 2: Esagono che cade nel vuoto
+Il problema principale è che:
+Le coordinate dei blocchi e dell'esagono sono fisse (es. 400,300)
+Quando il canvas viene ridimensionato, queste coordinate non vengono scalate
+L'esagono inizia in una posizione che potrebbe essere fuori dall'area visibile
+Soluzione completa:
+
+Modifica queste funzioni:
+In initializeLevel():
+In resizeCanvas():
+In startLevel(): */
+
+        // === INIZIALIZZAZIONE LIVELLO ===
+// SEZIONE MODIFICATA
+function initializeLevel(level) {
+    const levelData = LEVELS[level];
+    if (!levelData) return;
+    
+    // Calcola i fattori di scala rispetto alle dimensioni originali (800x600)
+    const scaleX = CONFIG.canvas.width / 800;
+    const scaleY = CONFIG.canvas.height / 600;
+    
+    // Posizione iniziale dell'esagono (scalata)
+    hexagon.x = levelData.hexagonStart.x * scaleX;
+    hexagon.y = levelData.hexagonStart.y * scaleY;
+    hexagon.vx = 0;
+    hexagon.vy = 0;
+    hexagon.angle = 0;
+    hexagon.onGround = false;
+    hexagon.size = CONFIG.hexagon.size * Math.min(scaleX, scaleY);
+    
+    // Crea blocchi con dimensioni scalate
+    blocks = levelData.blocks.map((blockData, index) => ({
+        x: blockData.x * scaleX,
+        y: blockData.y * scaleY,
+        width: blockData.width * scaleX,
+        height: blockData.height * scaleY,
+        id: index,
+        removed: false,
+        color: CONFIG.block.color,
+        highlighted: false
+    }));
+    
+    // Reset altre variabili
+    particles = [];
+    highlightedBlock = null;
+    hintBlock = null;
+    gameState.hints = 3;
+    
+    console.log(`Livello ${level} inizializzato con scala ${scaleX.toFixed(2)}x${scaleY.toFixed(2)}`);
+}
+
+        // === GAME LOOP PRINCIPALE ===
+        function gameLoop() {
+            if (!gameState.paused) {
+                update();
+                render();
+            }
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            updatePhysics();
+            updateParticles();
+            checkGameState();
+        }
+
+        // === FISICA ===
+        function updatePhysics() {
+            // Applica gravità all'esagono
+            if (!hexagon.onGround) {
+                hexagon.vy += CONFIG.physics.gravity;
+            }
+            
+            // Aggiorna posizione
+            hexagon.x += hexagon.vx;
+            hexagon.y += hexagon.vy;
+            
+            // Applica attrito
+            hexagon.vx *= CONFIG.physics.friction;
+            hexagon.vy *= CONFIG.physics.friction;
+            
+            // Controlla collisioni con i blocchi
+            checkBlockCollisions();
+            
+            // Controlla limiti del canvas
+            checkBoundaries();
+            
+            // Aggiorna rotazione basata sulla velocità
+            hexagon.angle += hexagon.vx * 0.02;
+        }
+
+        function checkBlockCollisions() {
+            hexagon.onGround = false;
+            
+            for (let block of blocks) {
+                if (block.removed) continue;
+                
+                if (isHexagonOnBlock(hexagon, block)) {
+                    // Esagono sopra il blocco
+                    hexagon.y = block.y - hexagon.size;
+                    hexagon.vy = 0;
+                    hexagon.onGround = true;
+                    
+                    // Aggiungi leggero tremolio se instabile
+                    if (Math.abs(hexagon.x - (block.x + block.width/2)) > block.width/3) {
+                        addShakeEffect();
+                    }
+                    break;
+                }
+            }
+        }
+
+        function isHexagonOnBlock(hex, block) {
+            return hex.x + hex.size > block.x && 
+                   hex.x - hex.size < block.x + block.width &&
+                   hex.y + hex.size > block.y && 
+                   hex.y + hex.size < block.y + block.height + 10 &&
+                   hex.vy >= 0;
+        }
+
+        function checkBoundaries() {
+            // Rimbalzo sui lati
+            if (hexagon.x - hexagon.size < 0 || hexagon.x + hexagon.size > CONFIG.canvas.width) {
+                hexagon.vx *= -CONFIG.physics.bounce;
+                hexagon.x = Math.max(hexagon.size, Math.min(CONFIG.canvas.width - hexagon.size, hexagon.x));
+            }
+            
+            // Controllo caduta dal fondo
+            if (hexagon.y > CONFIG.canvas.height + 100) {
+                gameOver();
+            }
+        }
+
+        // === GESTIONE EVENTI ===
+        function handleCanvasClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // Scala coordinate se canvas è ridimensionato
+            const scaleX = CONFIG.canvas.width / rect.width;
+            const scaleY = CONFIG.canvas.height / rect.height;
+            
+            const clickX = x * scaleX;
+            const clickY = y * scaleY;
+            
+            // Trova blocco cliccato
+            for (let block of blocks) {
+                if (block.removed) continue;
+                
+                if (clickX >= block.x && clickX <= block.x + block.width &&
+                    clickY >= block.y && clickY <= block.y + block.height) {
+                    removeBlock(block);
+                    break;
+                }
+            }
+        }
+
+        function handleMouseMove(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const scaleX = CONFIG.canvas.width / rect.width;
+            const scaleY = CONFIG.canvas.height / rect.height;
+            
+            const mouseX = x * scaleX;
+            const mouseY = y * scaleY;
+            
+            // Evidenzia blocco sotto il mouse
+            highlightedBlock = null;
+            for (let block of blocks) {
+                if (block.removed) continue;
+                
+                if (mouseX >= block.x && mouseX <= block.x + block.width &&
+                    mouseY >= block.y && mouseY <= block.y + block.height) {
+                    highlightedBlock = block;
+                    break;
+                }
+            }
+        }
+
+        // === GESTIONE BLOCCHI ===
+        function removeBlock(block) {
+            if (block.removed) return;
+            
+            block.removed = true;
+            gameState.blocksRemoved++;
+            gameState.score += 100;
+            
+            // Effetti visivi
+            createParticles(block.x + block.width/2, block.y + block.height/2);
+            addShakeEffect();
+            
+            // Suono
+            playSound('blockRemove');
+            
+            // Aggiorna UI
+            updateUI();
+            
+            // Controlla se livello completato
+            if (blocks.every(b => b.removed)) {
+                levelCompleted();
+            }
+            
+            console.log(`Blocco rimosso. Punteggio: ${gameState.score}`);
+        }
+
+        // === SISTEMA SUGGERIMENTI ===
+        function showHint() {
+            if (gameState.hints <= 0) {
+                playSound('error');
+                return;
+            }
+            
+            gameState.hints--;
+            
+            // Trova il blocco più sicuro da rimuovere
+            hintBlock = findSafestBlock();
+            
+            if (hintBlock) {
+                // Effetto visivo lampeggiante
+                hintBlock.hintEffect = true;
+                setTimeout(() => {
+                    if (hintBlock) hintBlock.hintEffect = false;
+                }, 3000);
+                
+                playSound('hint');
+            }
+            
+            updateUI();
+        }
+
+        function findSafestBlock() {
+            // Algoritmo semplificato: trova blocchi che non supportano direttamente l'esagono
+            const supportingBlocks = blocks.filter(block => 
+                !block.removed && isHexagonOnBlock(hexagon, block)
+            );
+            
+            const safeBlocks = blocks.filter(block => 
+                !block.removed && !supportingBlocks.includes(block)
+            );
+            
+            return safeBlocks.length > 0 ? safeBlocks[Math.floor(Math.random() * safeBlocks.length)] : null;
+        }
+
+        // === EFFETTI VISIVI ===
+        function createParticles(x, y) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    decay: 0.02,
+                    size: Math.random() * 4 + 2,
+                    color: CONFIG.hexagon.color
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.5; // Gravità
+                particle.life -= particle.decay;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function addShakeEffect() {
+            if (CONFIG.animations.enabled) {
+                canvas.classList.add('shake');
+                setTimeout(() => canvas.classList.remove('shake'), 500);
+            }
+        }
+
+        // === RENDERING ===
+        function render() {
+            // Clear canvas
+            ctx.clearRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
+            
+            // Render blocchi
+            renderBlocks();
+            
+            // Render esagono
+            renderHexagon();
+            
+            // Render particelle
+            renderParticles();
+            
+            // Render effetti
+            renderEffects();
+        }
+
+        function renderBlocks() {
+            blocks.forEach(block => {
+                if (block.removed) return;
+                
+                ctx.save();
+                
+                // Colore blocco
+                let color = CONFIG.block.color;
+                if (block === highlightedBlock) {
+                    color = CONFIG.block.highlightColor;
+                } else if (block === hintBlock && block.hintEffect) {
+                    color = CONFIG.hexagon.color;
+                    ctx.shadowColor = CONFIG.hexagon.color;
+                    ctx.shadowBlur = 20;
+                }
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+                
+                // Bordo
+                ctx.strokeStyle = CONFIG.hexagon.strokeColor;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x, block.y, block.width, block.height);
+                
+                ctx.restore();
+            });
+        }
+
+        function renderHexagon() {
+            ctx.save();
+            
+            // Posiziona al centro dell'esagono
+            ctx.translate(hexagon.x, hexagon.y);
+            ctx.rotate(hexagon.angle);
+            
+            // Ombra
+            ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetY = 5;
+            
+            // Disegna esagono
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI) / 3;
+                const x = Math.cos(angle) * hexagon.size;
+                const y = Math.sin(angle) * hexagon.size;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            
+            // Riempimento
+            ctx.fillStyle = CONFIG.hexagon.color;
+            ctx.fill();
+            
+            // Bordo
+            ctx.strokeStyle = CONFIG.hexagon.strokeColor;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function renderParticles() {
+            particles.forEach(particle => {
+                ctx.save();
+                
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            });
+        }
+
+        function renderEffects() {
+            // Effetto suggerimento lampeggiante
+            if (hintBlock && hintBlock.hintEffect) {
+                const time = Date.now() * 0.01;
+                const opacity = Math.sin(time) * 0.5 + 0.5;
+                
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(hintBlock.x - 2, hintBlock.y - 2, hintBlock.width + 4, hintBlock.height + 4);
+                ctx.restore();
+            }
+        }
+
+        // === GESTIONE STATI DI GIOCO ===
+// SEZIONE MODIFICATA
+function checkGameState() {
+    // Non controllare lo stato se il livello è già completato o il gioco è in pausa
+    if (gameState.levelCompleted || gameState.paused) return;
+    
+    // Controlla se l'esagono è caduto
+    if (hexagon.y > CONFIG.canvas.height + 100) {
+        gameOver();
+    }
+}
+
+/* Soluzione per il Problema del Game Over dopo il Completamento del Livello
+Il problema si verifica perché:
+Quando tutti i blocchi vengono distrutti, viene chiamata levelCompleted()
+Dopo un breve momento (durante il messaggio di vittoria), l'esagono cade perché non ci sono più blocchi a sostenerlo
+Il controllo delle collisioni continua durante la visualizzazione del messaggio
+Soluzione Completa
+
+Ecco le modifiche necessarie:
+1. Modifica la funzione levelCompleted()
+2. Modifica la funzione checkGameState()
+3. Modifica la funzione startLevel()
+4. Modifica la funzione hideMessage()
+5. Aggiungi lo stato al gameState */
+
+// SEZIONE MODIFICATA
+function levelCompleted() {
+    // Ferma il timer e il game loop
+    stopGameTimer();
+    cancelAnimationFrame(animationFrame);
+    
+    // Imposta lo stato di vittoria
+    gameState.levelCompleted = true;
+    
+    // Calcola bonus tempo
+    const timeBonus = Math.max(0, 60 - gameState.gameTime) * 10;
+    gameState.score += timeBonus;
+    
+    // Sblocca prossimo livello
+    if (gameState.currentLevel >= gameState.maxLevel) {
+        gameState.maxLevel = gameState.currentLevel + 1;
+        saveGameProgress();
+
+        /* SCRIPT AGGIUNTIVI PER LevelCompleted */
+            // ... codice esistente ...
+    // Congela l'esagono in posizione
+    hexagon.vx = 0;
+    hexagon.vy = 0;
+    hexagon.onGround = true;
+
+        // Crea effetti di particelle celebrative
+    for (let i = 0; i < 50; i++) {
+        createParticles(
+            Math.random() * CONFIG.canvas.width,
+            Math.random() * CONFIG.canvas.height / 2
+        );
+    }
+    }
+    
+    // Mostra il messaggio di vittoria
+    showMessage(
+        'Livello Completato!',
+        `Ottimo lavoro! Punteggio: ${gameState.score}\nBonus tempo: ${timeBonus}`,
+        () => {
+            if (gameState.currentLevel < Object.keys(LEVELS).length) {
+                startLevel(gameState.currentLevel + 1);
+            } else {
+                showMessage('Gioco Completato!', 'Hai completato tutti i livelli!', backToMenu);
+            }
+        }
+    );
+    
+    playSound('levelComplete');
+    generateLevelSelector();
+}
+
+        function gameOver() {
+            stopGameTimer();
+            
+            showMessage(
+                'Game Over!',
+                'L\'esagono è caduto! Riprova con più attenzione.',
+                () => startLevel(gameState.currentLevel)
+            );
+            
+            playSound('gameOver');
+        }
+
+        function pauseGame() {
+            gameState.paused = !gameState.paused;
+            
+            if (gameState.paused) {
+                stopGameTimer();
+                showMessage('Gioco in Pausa', 'Clicca Continua per riprendere', () => {
+                    gameState.paused = false;
+                    startGameTimer();
+                });
+            }
+        }
+
+        // === SISTEMA AUDIO ===
+        function playSound(type) {
+            if (!CONFIG.sounds.enabled) return;
+            
+            // Simulazione suoni con oscillatori web audio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            let frequency, duration;
+            
+            switch (type) {
+                case 'blockRemove':
+                    frequency = 800;
+                    duration = 0.1;
+                    break;
+                case 'hint':
+                    frequency = 1000;
+                    duration = 0.2;
+                    break;
+                case 'levelComplete':
+                    frequency = 600;
+                    duration = 0.5;
+                    break;
+                case 'gameOver':
+                    frequency = 200;
+                    duration = 1;
+                    break;
+                case 'start':
+                    frequency = 440;
+                    duration = 0.3;
+                    break;
+                case 'menu':
+                    frequency = 300;
+                    duration = 0.15;
+                    break;
+                case 'error':
+                    frequency = 150;
+                    duration = 0.2;
+                    break;
+                default:
+                    frequency = 440;
+                    duration = 0.1;
+            }
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // === GESTIONE TIMER ===
+        function startGameTimer() {
+            gameState.gameTimer = setInterval(() => {
+                if (!gameState.paused) {
+                    gameState.gameTime++;
+                    updateUI();
+                }
+            }, 1000);
+        }
+
+        function stopGameTimer() {
+            if (gameState.gameTimer) {
+                clearInterval(gameState.gameTimer);
+                gameState.gameTimer = null;
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // === AGGIORNAMENTO UI ===
+        function updateUI() {
+            document.getElementById('currentLevel').textContent = gameState.currentLevel;
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('blocksRemoved').textContent = gameState.blocksRemoved;
+            document.getElementById('timer').textContent = formatTime(gameState.gameTime);
+            document.getElementById('hintCounter').textContent = gameState.hints;
+            
+            // Disabilita pulsante suggerimento se non ci sono più hint
+            const hintButton = document.getElementById('hintButton');
+            hintButton.disabled = gameState.hints <= 0;
+        }
+
+        // === MESSAGGI DI GIOCO ===
+        function showMessage(title, text, callback = null) {
+            const messageEl = document.getElementById('gameMessage');
+            const titleEl = document.getElementById('messageTitle');
+            const textEl = document.getElementById('messageText');
+            
+            titleEl.textContent = title;
+            textEl.textContent = text;
+            messageEl.style.display = 'block';
+            
+            // Salva callback per il pulsante
+            messageEl.callback = callback;
+        }
+
+// SEZIONE MODIFICATA
+function hideMessage() {
+    const messageEl = document.getElementById('gameMessage');
+    messageEl.style.display = 'none';
+    
+    // Riprendi il gioco solo se non è stato completato il livello
+    if (!gameState.levelCompleted) {
+        gameState.paused = false;
+        startGameTimer();
+    }
+    
+    // Esegui callback se presente
+    if (messageEl.callback) {
+        messageEl.callback();
+        messageEl.callback = null;
+    }
+}
+
+        // === IMPOSTAZIONI ===
+        function toggleSettings() {
+            const settings = document.createElement('div');
+            settings.className = 'game-message';
+            settings.style.display = 'block';
+            settings.innerHTML = `
+                <h2 class="message-title">Impostazioni</h2>
+                <div style="text-align: left; margin: 20px 0;">
+                    <label style="display: block; margin: 10px 0; cursor: pointer;">
+                        <input type="checkbox" ${CONFIG.sounds.enabled ? 'checked' : ''} onchange="toggleSound(this)">
+                        <span style="margin-left: 10px;">Effetti Sonori</span>
+                    </label>
+                    <label style="display: block; margin: 10px 0; cursor: pointer;">
+                        <input type="checkbox" ${CONFIG.animations.enabled ? 'checked' : ''} onchange="toggleAnimations(this)">
+                        <span style="margin-left: 10px;">Animazioni</span>
+                    </label>
+                </div>
+                <button class="menu-button" onclick="closeSettings()">Chiudi</button>
+            `;
+            
+            document.body.appendChild(settings);
+            window.currentSettings = settings;
+        }
+
+        function toggleSound(checkbox) {
+            CONFIG.sounds.enabled = checkbox.checked;
+            saveGameProgress();
+        }
+
+        function toggleAnimations(checkbox) {
+            CONFIG.animations.enabled = checkbox.checked;
+            saveGameProgress();
+        }
+
+        function closeSettings() {
+            if (window.currentSettings) {
+                document.body.removeChild(window.currentSettings);
+                window.currentSettings = null;
+            }
+        }
+
+        // === SALVATAGGIO E CARICAMENTO ===
+        function saveGameProgress() {
+            const saveData = {
+                maxLevel: gameState.maxLevel,
+                sounds: CONFIG.sounds.enabled,
+                animations: CONFIG.animations.enabled
+            };
+            
+            // Simulazione localStorage con variabile globale
+            window.hexaFallSave = saveData;
+            console.log('Progresso salvato:', saveData);
+        }
+
+        function loadGameProgress() {
+            const saveData = window.hexaFallSave;
+            if (saveData) {
+                gameState.maxLevel = saveData.maxLevel || 1;
+                CONFIG.sounds.enabled = saveData.sounds !== false;
+                CONFIG.animations.enabled = saveData.animations !== false;
+                console.log('Progresso caricato:', saveData);
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Sei sicuro di voler resettare tutto il progresso?')) {
+                gameState.maxLevel = 1;
+                gameState.score = 0;
+                window.hexaFallSave = null;
+                generateLevelSelector();
+                playSound('menu');
+            }
+        }
+
+        // === CONTROLLI TASTIERA ===
+        document.addEventListener('keydown', function(event) {
+            switch (event.key) {
+                case ' ':
+                    event.preventDefault();
+                    pauseGame();
+                    break;
+                case 'h':
+                case 'H':
+                    showHint();
+                    break;
+                case 'Escape':
+                    backToMenu();
+                    break;
+                case 'r':
+                case 'R':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        startLevel(gameState.currentLevel);
+                    }
+                    break;
+            }
+        });
+
+        // === UTILITÀ DEBUG ===
+        function debugInfo() {
+            console.log('=== HEXA FALL DEBUG INFO ===');
+            console.log('Stato gioco:', gameState);
+            console.log('Esagono:', hexagon);
+            console.log('Blocchi:', blocks);
+            console.log('Particelle:', particles.length);
+            console.log('Configurazione:', CONFIG);
+        }
+
+        // Esponi funzioni globali per debug
+        window.hexaFallDebug = {
+            state: gameState,
+            hexagon: hexagon,
+            blocks: blocks,
+            config: CONFIG,
+            debugInfo: debugInfo
+        };
+
+        window.addEventListener('resize', function() {
+    if (gameState.gameStarted) {
+        resizeCanvas();
+        // Forza un ridisegno immediato
+        render();
+    }
+});
+
+        console.log('🎮 Hexa Fall v1.0 - Caricato con successo!');
+        console.log('💡 Usa hexaFallDebug per informazioni di debug');
+    </script>
+</body>
+</html>

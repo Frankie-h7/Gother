@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexa Fall</title>
+    <style>
+        /* CSS Reset e variabili globali */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-yellow: #d4af37;
+            --accent-yellow-light: #f0d66e;
+            --text-white: #ffffff;
+            --text-gray: #cccccc;
+            --shadow-glow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container principale */
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Menu principale */
+        .main-menu {
+            text-align: center;
+            background: rgba(45, 45, 45, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-glow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .game-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .menu-options {
+            display: grid;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .menu-button {
+            background: linear-gradient(45deg, var(--accent-yellow), var(--accent-yellow-light));
+            color: var(--primary-dark);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transform: translateY(0);
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+
+        .level-selector {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .level-button {
+            aspect-ratio: 1;
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 15px;
+            color: var(--text-white);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-button:hover {
+            background: var(--accent-yellow);
+            color: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .level-button.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #444;
+            border-color: #666;
+        }
+
+        /* Area di gioco */
+        .game-area {
+            display: none;
+            text-align: center;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .info-item {
+            background: var(--secondary-dark);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid var(--accent-yellow);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .info-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .control-button {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-yellow);
+            color: var(--text-white);
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-button:hover {
+            background: var(--accent-yellow);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Pulsante suggerimento con lampadina */
+        .hint-button {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1a1a1a;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hint-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .hint-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .lightbulb-icon {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .hint-counter {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Canvas di gioco */
+        .game-canvas {
+            background: radial-gradient(circle at center, rgba(45, 45, 45, 0.8), rgba(26, 26, 26, 0.9));
+            border-radius: 20px;
+            border: 2px solid var(--accent-yellow);
+            box-shadow: var(--shadow-glow);
+            margin: 20px auto;
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* Messaggi di gioco */
+        .game-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(45, 45, 45, 0.95);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: var(--shadow-glow);
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .message-title {
+            font-size: 2rem;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+        }
+
+        .message-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: var(--text-gray);
+        }
+
+        /* Effetti di particelle */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-fall 2s ease-out forwards;
+        }
+
+        @keyframes particle-fall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100px) scale(0);
+            }
+        }
+
+        /* Animazioni */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .game-info {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .game-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .control-button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .main-menu {
+                padding: 20px;
+            }
+
+            .game-title {
+                font-size: 2rem;
+            }
+
+            .info-item {
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Menu Principale -->
+        <div id="mainMenu" class="main-menu">
+            <h1 class="game-title">HEXA FALL</h1>
+            <div class="menu-options">
+                <button class="menu-button" onclick="showLevelSelector()">Inizia Partita</button>
+                <button class="menu-button" onclick="toggleSettings()">Impostazioni</button>
+                <button class="menu-button" onclick="resetGame()">Reset Progresso</button>
+            </div>
+            
+            <div id="levelSelector" class="level-selector">
+                <!-- I livelli verranno generati dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Area di Gioco -->
+        <div id="gameArea" class="game-area">
+            <div class="game-header">
+                <div class="game-info">
+                    <div class="info-item">
+                        <span class="info-label">Livello</span>
+                        <span id="currentLevel" class="info-value">1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Punteggio</span>
+                        <span id="score" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Blocchi Rimossi</span>
+                        <span id="blocksRemoved" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tempo</span>
+                        <span id="timer" class="info-value">00:00</span>
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <button id="hintButton" class="hint-button" onclick="showHint()" title="Suggerimento">
+                        <span class="lightbulb-icon">💡</span>
+                        <span id="hintCounter" class="hint-counter">3</span>
+                    </button>
+                    <button class="control-button" onclick="pauseGame()">⏸️ Pausa</button>
+                    <button class="control-button" onclick="backToMenu()">🏠 Menu</button>
+                </div>
+            </div>
+            
+            <canvas id="gameCanvas" class="game-canvas" width="800" height="600"></canvas>
+        </div>
+
+        <!-- Messaggio di Gioco -->
+        <div id="gameMessage" class="game-message">
+            <h2 id="messageTitle" class="message-title">Livello Completato!</h2>
+            <p id="messageText" class="message-text">Congratulazioni! Hai completato il livello.</p>
+            <button class="menu-button" onclick="hideMessage()">Continua</button>
+        </div>
+    </div>
+
+    <script>
+        // === CONFIGURAZIONE GLOBALE ===
+        const CONFIG = {
+            canvas: {
+                width: 800,
+                height: 600
+            },
+            physics: {
+                gravity: 0.8,
+                friction: 0.98,
+                bounce: 0.3
+            },
+            hexagon: {
+                size: 30,
+                color: '#d4af37',
+                strokeColor: '#f0d66e'
+            },
+            block: {
+                width: 60,
+                height: 20,
+                color: '#666666',
+                highlightColor: '#888888',
+                removeColor: '#ff4444'
+            },
+            sounds: {
+                enabled: true
+            },
+            animations: {
+                enabled: true
+            }
+        };
+
+        // === STATO GLOBALE DEL GIOCO ===
+        let gameState = {
+            currentLevel: 1,
+            maxLevel: 1,
+            score: 0,
+            blocksRemoved: 0,
+            hints: 3,
+            gameTime: 0,
+            gameTimer: null,
+            paused: false,
+            gameStarted: false
+        };
+
+        // === VARIABILI CANVAS E RENDERING ===
+        let canvas, ctx;
+        let animationFrame;
+
+        // === OGGETTI DI GIOCO ===
+        let hexagon = {
+            x: 400,
+            y: 300,
+            vx: 0,
+            vy: 0,
+            size: 30,
+            angle: 0,
+            onGround: false
+        };
+
+        let blocks = [];
+        let particles = [];
+        let highlightedBlock = null;
+        let hintBlock = null;
+
+        // === LIVELLI DI GIOCO ===
+        const LEVELS = {
+            1: {
+                blocks: [
+                    {x: 300, y: 400, width: 200, height: 20},
+                    {x: 320, y: 380, width: 160, height: 20},
+                    {x: 340, y: 360, width: 120, height: 20}
+                ],
+                hexagonStart: {x: 400, y: 320},
+                objective: "Rimuovi i blocchi mantenendo l'esagono in equilibrio!"
+            },
+            2: {
+                blocks: [
+                    {x: 250, y: 450, width: 100, height: 20},
+                    {x: 450, y: 450, width: 100, height: 20},
+                    {x: 300, y: 400, width: 200, height: 20},
+                    {x: 350, y: 350, width: 100, height: 20}
+                ],
+                hexagonStart: {x: 400, y: 310},
+                objective: "Livello più complesso - fai attenzione all'equilibrio!"
+            },
+            3: {
+                blocks: [
+                    {x: 200, y: 500, width: 80, height: 20},
+                    {x: 320, y: 500, width: 80, height: 20},
+                    {x: 440, y: 500, width: 80, height: 20},
+                    {x: 260, y: 450, width: 120, height: 20},
+                    {x: 420, y: 450, width: 120, height: 20},
+                    {x: 350, y: 400, width: 100, height: 20},
+                    {x: 375, y: 350, width: 50, height: 20}
+                ],
+                hexagonStart: {x: 400, y: 310},
+                objective: "Torre instabile - ogni mossa è cruciale!"
+            }
+        };
+
+        // === INIZIALIZZAZIONE ===
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Adatta canvas alle dimensioni dello schermo
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Event listeners
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            
+            // Genera selettore livelli
+            generateLevelSelector();
+            
+            // Carica progresso salvato
+            loadGameProgress();
+            
+            console.log('Hexa Fall inizializzato correttamente!');
+        });
+
+        // === GESTIONE CANVAS ===
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(800, container.clientWidth - 40);
+            const maxHeight = Math.min(600, window.innerHeight - 200);
+            
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+            
+            CONFIG.canvas.width = maxWidth;
+            CONFIG.canvas.height = maxHeight;
+        }
+
+        // === MENU E NAVIGAZIONE ===
+        function showLevelSelector() {
+            const selector = document.getElementById('levelSelector');
+            selector.style.display = selector.style.display === 'grid' ? 'none' : 'grid';
+        }
+
+        function generateLevelSelector() {
+            const selector = document.getElementById('levelSelector');
+            selector.innerHTML = '';
+            
+            for (let i = 1; i <= Object.keys(LEVELS).length; i++) {
+                const button = document.createElement('button');
+                button.className = `level-button ${i > gameState.maxLevel ? 'locked' : ''}`;
+                button.textContent = i;
+                button.onclick = () => i <= gameState.maxLevel ? startLevel(i) : playSound('error');
+                selector.appendChild(button);
+            }
+        }
+
+        function startLevel(level) {
+            gameState.currentLevel = level;
+            gameState.blocksRemoved = 0;
+            gameState.gameTime = 0;
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            
+            initializeLevel(level);
+            startGameTimer();
+            gameLoop();
+            
+            updateUI();
+            playSound('start');
+        }
+
+        function backToMenu() {
+            stopGameTimer();
+            cancelAnimationFrame(animationFrame);
+            
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+            
+            playSound('menu');
+        }
+
+        // === INIZIALIZZAZIONE LIVELLO ===
+        function initializeLevel(level) {
+            const levelData = LEVELS[level];
+            if (!levelData) return;
+            
+            // Reset esagono
+            hexagon.x = levelData.hexagonStart.x;
+            hexagon.y = levelData.hexagonStart.y;
+            hexagon.vx = 0;
+            hexagon.vy = 0;
+            hexagon.angle = 0;
+            hexagon.onGround = false;
+            
+            // Crea blocchi
+            blocks = levelData.blocks.map((blockData, index) => ({
+                ...blockData,
+                id: index,
+                removed: false,
+                color: CONFIG.block.color,
+                highlighted: false
+            }));
+            
+            // Reset variabili
+            particles = [];
+            highlightedBlock = null;
+            hintBlock = null;
+            gameState.hints = 3;
+            
+            console.log(`Livello ${level} inizializzato con ${blocks.length} blocchi`);
+        }
+
+        // === GAME LOOP PRINCIPALE ===
+        function gameLoop() {
+            if (!gameState.paused) {
+                update();
+                render();
+            }
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            updatePhysics();
+            updateParticles();
+            checkGameState();
+        }
+
+        // === FISICA ===
+        function updatePhysics() {
+            // Applica gravità all'esagono
+            if (!hexagon.onGround) {
+                hexagon.vy += CONFIG.physics.gravity;
+            }
+            
+            // Aggiorna posizione
+            hexagon.x += hexagon.vx;
+            hexagon.y += hexagon.vy;
+            
+            // Applica attrito
+            hexagon.vx *= CONFIG.physics.friction;
+            hexagon.vy *= CONFIG.physics.friction;
+            
+            // Controlla collisioni con i blocchi
+            checkBlockCollisions();
+            
+            // Controlla limiti del canvas
+            checkBoundaries();
+            
+            // Aggiorna rotazione basata sulla velocità
+            hexagon.angle += hexagon.vx * 0.02;
+        }
+
+        function checkBlockCollisions() {
+            hexagon.onGround = false;
+            
+            for (let block of blocks) {
+                if (block.removed) continue;
+                
+                if (isHexagonOnBlock(hexagon, block)) {
+                    // Esagono sopra il blocco
+                    hexagon.y = block.y - hexagon.size;
+                    hexagon.vy = 0;
+                    hexagon.onGround = true;
+                    
+                    // Aggiungi leggero tremolio se instabile
+                    if (Math.abs(hexagon.x - (block.x + block.width/2)) > block.width/3) {
+                        addShakeEffect();
+                    }
+                    break;
+                }
+            }
+        }
+
+        function isHexagonOnBlock(hex, block) {
+            return hex.x + hex.size > block.x && 
+                   hex.x - hex.size < block.x + block.width &&
+                   hex.y + hex.size > block.y && 
+                   hex.y + hex.size < block.y + block.height + 10 &&
+                   hex.vy >= 0;
+        }
+
+        function checkBoundaries() {
+            // Rimbalzo sui lati
+            if (hexagon.x - hexagon.size < 0 || hexagon.x + hexagon.size > CONFIG.canvas.width) {
+                hexagon.vx *= -CONFIG.physics.bounce;
+                hexagon.x = Math.max(hexagon.size, Math.min(CONFIG.canvas.width - hexagon.size, hexagon.x));
+            }
+            
+            // Controllo caduta dal fondo
+            if (hexagon.y > CONFIG.canvas.height + 100) {
+                gameOver();
+            }
+        }
+
+        // === GESTIONE EVENTI ===
+        function handleCanvasClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // Scala coordinate se canvas è ridimensionato
+            const scaleX = CONFIG.canvas.width / rect.width;
+            const scaleY = CONFIG.canvas.height / rect.height;
+            
+            const clickX = x * scaleX;
+            const clickY = y * scaleY;
+            
+            // Trova blocco cliccato
+            for (let block of blocks) {
+                if (block.removed) continue;
+                
+                if (clickX >= block.x && clickX <= block.x + block.width &&
+                    clickY >= block.y && clickY <= block.y + block.height) {
+                    removeBlock(block);
+                    break;
+                }
+            }
+        }
+
+        function handleMouseMove(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const scaleX = CONFIG.canvas.width / rect.width;
+            const scaleY = CONFIG.canvas.height / rect.height;
+            
+            const mouseX = x * scaleX;
+            const mouseY = y * scaleY;
+            
+            // Evidenzia blocco sotto il mouse
+            highlightedBlock = null;
+            for (let block of blocks) {
+                if (block.removed) continue;
+                
+                if (mouseX >= block.x && mouseX <= block.x + block.width &&
+                    mouseY >= block.y && mouseY <= block.y + block.height) {
+                    highlightedBlock = block;
+                    break;
+                }
+            }
+        }
+
+        // === GESTIONE BLOCCHI ===
+        function removeBlock(block) {
+            if (block.removed) return;
+            
+            block.removed = true;
+            gameState.blocksRemoved++;
+            gameState.score += 100;
+            
+            // Effetti visivi
+            createParticles(block.x + block.width/2, block.y + block.height/2);
+            addShakeEffect();
+            
+            // Suono
+            playSound('blockRemove');
+            
+            // Aggiorna UI
+            updateUI();
+            
+            // Controlla se livello completato
+            if (blocks.every(b => b.removed)) {
+                levelCompleted();
+            }
+            
+            console.log(`Blocco rimosso. Punteggio: ${gameState.score}`);
+        }
+
+        // === SISTEMA SUGGERIMENTI ===
+        function showHint() {
+            if (gameState.hints <= 0) {
+                playSound('error');
+                return;
+            }
+            
+            gameState.hints--;
+            
+            // Trova il blocco più sicuro da rimuovere
+            hintBlock = findSafestBlock();
+            
+            if (hintBlock) {
+                // Effetto visivo lampeggiante
+                hintBlock.hintEffect = true;
+                setTimeout(() => {
+                    if (hintBlock) hintBlock.hintEffect = false;
+                }, 3000);
+                
+                playSound('hint');
+            }
+            
+            updateUI();
+        }
+
+        function findSafestBlock() {
+            // Algoritmo semplificato: trova blocchi che non supportano direttamente l'esagono
+            const supportingBlocks = blocks.filter(block => 
+                !block.removed && isHexagonOnBlock(hexagon, block)
+            );
+            
+            const safeBlocks = blocks.filter(block => 
+                !block.removed && !supportingBlocks.includes(block)
+            );
+            
+            return safeBlocks.length > 0 ? safeBlocks[Math.floor(Math.random() * safeBlocks.length)] : null;
+        }
+
+        // === EFFETTI VISIVI ===
+        function createParticles(x, y) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    decay: 0.02,
+                    size: Math.random() * 4 + 2,
+                    color: CONFIG.hexagon.color
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.5; // Gravità
+                particle.life -= particle.decay;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function addShakeEffect() {
+            if (CONFIG.animations.enabled) {
+                canvas.classList.add('shake');
+                setTimeout(() => canvas.classList.remove('shake'), 500);
+            }
+        }
+
+        // === RENDERING ===
+        function render() {
+            // Clear canvas
+            ctx.clearRect(0, 0, CONFIG.canvas.width, CONFIG.canvas.height);
+            
+            // Render blocchi
+            renderBlocks();
+            
+            // Render esagono
+            renderHexagon();
+            
+            // Render particelle
+            renderParticles();
+            
+            // Render effetti
+            renderEffects();
+        }
+
+        function renderBlocks() {
+            blocks.forEach(block => {
+                if (block.removed) return;
+                
+                ctx.save();
+                
+                // Colore blocco
+                let color = CONFIG.block.color;
+                if (block === highlightedBlock) {
+                    color = CONFIG.block.highlightColor;
+                } else if (block === hintBlock && block.hintEffect) {
+                    color = CONFIG.hexagon.color;
+                    ctx.shadowColor = CONFIG.hexagon.color;
+                    ctx.shadowBlur = 20;
+                }
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+                
+                // Bordo
+                ctx.strokeStyle = CONFIG.hexagon.strokeColor;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x,

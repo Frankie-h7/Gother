@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scala 40 - Gioco di Carte</title>
+    <style>
+        :root {
+            --dark-bg: #1a1a1a;
+            --darker-bg: #121212;
+            --accent: #d4a017; /* Giallo ocra */
+            --accent-light: #edb83d;
+            --text: #f5f5f5;
+            --card-width: 70px; /* era 100px */
+            --card-height: 105px; /* era 150px */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+
+                /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        header {
+            background-color: var(--darker-bg);
+            color: var(--accent);
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        header h1 {
+            font-size: 2rem; /* era 2.5rem */
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px; /* era 20px */
+            transition: all 0.5s ease;
+        }
+        
+        /* Menu principale */
+        .main-menu {
+            background-color: var(--darker-bg);
+            border-radius: 15px;
+            padding: 15px; /* era 30px */
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            text-align: center;
+            margin-top: 20px; /* era 50px */
+        }
+        
+        .main-menu h2 {
+            color: var(--accent);
+            margin-bottom: 30px;
+            font-size: 1.5rem; /* era 2rem */
+        }
+        
+        .menu-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn {
+            background-color: var(--accent);
+            color: var(--darker-bg);
+            border: none;
+            padding: 8px 12px; /* era 12px 20px */
+            border-radius: 8px;
+            font-size: 0.9rem; /* era 1.1rem */
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            background-color: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Personalizzazione */
+        .customization {
+            display: none;
+            background-color: var(--darker-bg);
+            border-radius: 15px;
+            padding: 15px; /* era 30px */
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+        
+        .customization h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent-light);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            background-color: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 5px;
+            color: var(--text);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        /* Tavolo da gioco */
+        .game-table {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            position: relative;
+
+            /* Aggiungi questa regola per il tavolo da gioco: */
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .opponent-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px; /* era 20px */
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .player-name {
+            margin-right: 10px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .player-score {
+            font-weight: bold;
+        }
+        
+        .opponent-cards {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .card-back {
+            width: var(--card-width);
+            height: var(--card-height);
+            background-color: var(--accent);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.1) 10px,
+                rgba(0,0,0,0.1) 20px
+            );
+            position: relative;
+        }
+        
+        .card-back::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background-color: var(--darker-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .center-area {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px; /* era 20px */
+            margin: 10px 0; /* era 20px */
+            background-color: rgba(32, 32, 32, 0.7);
+            border-radius: 15px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            min-height: 180px; /* era 250px */
+        }
+        
+        .deck-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .deck {
+            width: var(--card-width);
+            height: var(--card-height);
+            background-color: var(--accent);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+            position: relative;
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.1) 10px,
+                rgba(0,0,0,0.1) 20px
+            );
+        }
+        
+        .deck:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+        }
+        
+        .deck-label {
+            font-size: 0.9rem;
+            color: var(--accent-light);
+        }
+        
+        .discard-pile {
+            width: var(--card-width);
+            height: var(--card-height);
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .discard-label {
+            font-size: 0.9rem;
+            color: var(--accent-light);
+        }
+        
+        .combination-area {
+            flex: 1;
+            padding: 0 10px; /* era 0 20px */
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: 180px; /* era 250px */
+        }
+        
+        .combination-area h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .combinations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .combination {
+            display: flex;
+            gap: 5px;
+            background-color: rgba(20, 20, 20, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .player-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px; /* era 20px */
+        }
+        
+        .player-cards {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+            min-height: var(--card-height);
+        }
+        
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .card.selected {
+            transform: translateY(-15px);
+            box-shadow: 0 5px 15px rgba(212, 160, 23, 0.7);
+        }
+        
+        .card-value {
+            font-size: 1.2rem; /* era 1.5rem */
+            font-weight: bold;
+        }
+        
+        .card-suit {
+            font-size: 1rem; /* era 1.2rem */
+        }
+        
+        .red {
+            color: #d32f2f;
+        }
+        
+        .black {
+            color: #212121;
+        }
+        
+        .card-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        
+        .card-bottom {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .player-controls {
+            display: flex;
+            gap: 8px; /* era 15px */
+            margin-top: 10px; /* era 20px */
+        }
+        
+        /* Chat area */
+        .chat-area {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 250px; /* era 300px */
+            background-color: var(--darker-bg);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            height: 300px; /* era 400px */
+            transition: all 0.3s ease;
+            transform: translateX(320px);
+            z-index: 100;
+        }
+        
+        .chat-area.visible {
+            transform: translateX(0);
+        }
+        
+        .chat-header {
+            background-color: var(--accent);
+            color: var(--darker-bg);
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-toggle {
+            position: absolute;
+            left: -40px;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent);
+            border: none;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--darker-bg);
+            font-size: 1.2rem;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .message {
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        
+        .message.system {
+            background-color: #333;
+            align-self: center;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .message.player {
+            background-color: var(--accent);
+            color: #121212;
+            align-self: flex-end;
+        }
+        
+        .message.opponent {
+            background-color: #333;
+            align-self: flex-start;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #333;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: var(--text);
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        
+        .chat-input input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .chat-input button {
+            background-color: var(--accent);
+            border: none;
+            border-radius: 5px;
+            color: var(--darker-bg);
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        
+        /* Modali */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal {
+            background-color: var(--darker-bg);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        
+        .modal h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        
+        .modal p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        /* Animazioni */
+        @keyframes dealCard {
+            0% {
+                transform: translateY(-300px) rotate(180deg);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotate(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes selectCard {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+        
+        @keyframes cardPlaced {
+            0% {
+                transform: scale(1.2);
+                box-shadow: 0 0 20px var(--accent);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: none;
+            }
+        }
+        
+        /* Regole */
+        .rules {
+            display: none;
+            background-color: var(--darker-bg);
+            border-radius: 15px;
+            padding: 15px; /* era 30px */
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            margin-bottom: 20px; /* era 50px */
+        }
+        
+        .rules h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .rules-content {
+            max-height: 300px; /* era 500px */
+            overflow-y: auto;
+            padding-right: 15px;
+            line-height: 1.4; /* diminuito */
+            font-size: 0.9rem; /* aggiunto */
+        }
+        
+        .rules h3 {
+            color: var(--accent-light);
+            margin: 15px 0 10px;
+        }
+        
+        .rules ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .rules li {
+            margin-bottom: 8px;
+        }
+        
+        /* Responsività */
+        @media (max-width: 768px) {
+            :root {
+                --card-width: 70px;
+                --card-height: 105px;
+            }
+            
+            .center-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .deck-area {
+                flex-direction: row;
+                gap: 20px;
+            }
+            
+            .player-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .chat-area {
+                width: 100%;
+                height: 300px;
+                bottom: 0;
+                right: 0;
+                transform: translateY(310px);
+            }
+            
+            .chat-area.visible {
+                transform: translateY(0);
+            }
+            
+            .chat-toggle {
+                top: -40px;
+                left: 10px;
+                border-radius: 10px 10px 0 0;
+            }
+        }
+
+        /* SCROLBAR */
+        /* Stile della scrollbar per WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--darker-bg);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-light);
+}
+
+/* Stile della scrollbar per Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--darker-bg);
+}
+
+/* Stile specifico per l'area delle combinazioni */
+.combination-area {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) rgba(32, 32, 32, 0.7);
+}
+
+.combination-area::-webkit-scrollbar-track {
+    background: rgba(32, 32, 32, 0.7);
+}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Scala 40</h1>
+        <p>Il classico gioco di carte italiano</p>
+    </header>
+    
+    <div class="container">
+        <!-- Menu principale -->
+        <div class="main-menu">
+            <h2>Benvenuto a Scala 40</h2>
+            <div class="menu-options">
+                <button id="playAiBtn" class="btn">Gioca contro l'IA</button>
+                <button id="playMultiBtn" class="btn">Gioca Multiplayer</button>
+                <button id="rulesBtn" class="btn">Regole del gioco</button>
+                <button id="customizeBtn" class="btn">Personalizza</button>
+            </div>
+        </div>
+        
+        <!-- Personalizzazione -->
+        <div class="customization">
+            <h2>Personalizza il gioco</h2>
+            <div class="form-group">
+                <label for="playerName">Il tuo nome</label>
+                <input type="text" id="playerName" class="form-control" placeholder="Inserisci il tuo nome" value="Giocatore">
+            </div>
+            <div class="form-group">
+                <label for="deckStyle">Stile del mazzo</label>
+                <select id="deckStyle" class="form-control">
+                    <option value="classic">Classico</option>
+                    <option value="minimal">Minimalista</option>
+                    <option value="vintage">Vintage</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="difficultyLevel">Livello di difficoltà (vs IA)</label>
+                <select id="difficultyLevel" class="form-control">
+                    <option value="easy">Facile</option>
+                    <option value="medium">Medio</option>
+                    <option value="hard">Difficile</option>
+                </select>
+            </div>
+            <div class="buttons">
+                <button id="backFromCustomizeBtn" class="btn">Indietro</button>
+                <button id="saveCustomizeBtn" class="btn">Salva</button>
+            </div>
+        </div>
+        
+        <!-- Regole del gioco -->
+        <div class="rules">
+            <h2>Regole della Scala 40</h2>
+            <div class="rules-content">
+                <h3>Introduzione</h3>
+                <p>La Scala 40 è un popolare gioco di carte italiano che si gioca con due mazzi standard di carte francesi, compresi i jolly. L'obiettivo è scartare tutte le carte formando combinazioni valide.</p>
+                
+                <h3>Preparazione</h3>
+                <p>Il gioco utilizza due mazzi di carte francesi (104 carte) più 4 jolly, per un totale di 108 carte. A ogni giocatore vengono distribuite 13 carte all'inizio.</p>
+                
+                <h3>Combinazioni Valide</h3>
+                <ul>
+                    <li><strong>Tris o Poker:</strong> Tre o quattro carte dello stesso valore ma di semi diversi (es. 5 di cuori, 5 di quadri, 5 di fiori).</li>
+                    <li><strong>Scala:</strong> Almeno tre carte consecutive dello stesso seme (es. 7, 8, 9 di cuori).</li>
+                </ul>
+                
+                <h3>Valore delle Carte</h3>
+                <ul>
+                    <li>Assi: 11 punti</li>
+                    <li>Figure (J, Q, K): 10 punti ciascuna</li>
+                    <li>Carte numeriche: valore nominale (es. il 7 vale 7 punti)</li>
+                    <li>Jolly: 25 punti</li>
+                </ul>
+                
+                <h3>Come Giocare</h3>
+                <ol>
+                    <li>All'inizio del turno, il giocatore pesca una carta dal mazzo o prende la carta in cima al mazzo degli scarti.</li>
+                    <li>Il giocatore può "aprire" (calare per la prima volta) se ha combinazioni valide che sommano almeno 40 punti.</li>
+                    <li>Dopo aver aperto, nei turni successivi può aggiungere carte alle combinazioni già sul tavolo o creare nuove combinazioni.</li>
+                    <li>Alla fine del turno, il giocatore deve scartare una carta.</li>
+                    <li>Vince chi si libera per primo di tutte le carte in mano.</li>
+                </ol>
+                
+                <h3>Regole sui Jolly</h3>
+                <p>Il jolly può sostituire qualsiasi carta in una combinazione. In una scala può sostituire solo una carta specifica e non può essere spostato. In un tris/poker sostituisce uno specifico valore.</p>
+                
+                <h3>Punteggio</h3>
+                <p>Alla fine della partita, il vincitore riceve punti pari alla somma dei valori delle carte rimaste in mano agli avversari.</p>
+            </div>
+            <div class="buttons">
+                <button id="backFromRulesBtn" class="btn">Torna al Menu</button>
+            </div>
+        </div>
+        
+        <!-- Tavolo da gioco -->
+        <div class="game-table">
+            <div class="opponent-area">
+                <div class="player-info">
+                    <span class="player-name" id="opponentName">Avversario</span>
+                    <span>- Punti: <span class="player-score" id="opponentScore">0</span></span>
+                </div>
+                <div class="opponent-cards" id="opponentCards">
+                    <!-- Le carte dell'avversario verranno inserite qui dal JavaScript -->
+                </div>
+            </div>
+            
+            <div class="center-area">
+                <div class="deck-area">
+                    <div class="deck" id="deckPile"></div>
+                    <div class="deck-label">Mazzo</div>
+                </div>
+                
+                <div class="combination-area">
+                    <h3>Combinazioni sul tavolo</h3>
+                    <div class="combinations-list" id="combinationsContainer">
+                        <!-- Le combinazioni verranno inserite qui dal JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="deck-area">
+                    <div class="discard-pile" id="discardPile">
+                        <!-- La carta in cima agli scarti verrà inserita qui dal JavaScript -->
+                    </div>
+                    <div class="discard-label">Scarti</div>
+                </div>
+            </div>
+            
+            <div class="player-area">
+                <div class="player-info">
+                    <span class="player-name" id="playerNameDisplay">Giocatore</span>
+                    <span>- Punti: <span class="player-score" id="playerScore">0</span></span>
+                </div>
+                <div class="player-cards" id="playerCards">
+                    <!-- Le carte del giocatore verranno inserite qui dal JavaScript -->
+                </div>
+                <div class="player-controls">
+                    <button id="drawCardBtn" class="btn">Pesca carta</button>
+                    <button id="drawDiscardBtn" class="btn">Prendi dagli scarti</button>
+                    <button id="createCombinationBtn" class="btn" disabled>Crea combinazione</button>
+                    <button id="discardBtn" class="btn" disabled>Scarta</button>
+                    <button id="endTurnBtn" class="btn" disabled>Fine turno</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat area -->
+    <div class="chat-area" id="chatArea">
+        <button class="chat-toggle" id="chatToggle">💬</button>
+        <div class="chat-header">
+            <h3>Chat</h3>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message system">Benvenuto nella chat di gioco!</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInputField" placeholder="Scrivi un messaggio...">
+            <button id="sendChatBtn">Invia</button>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <h2 id="modalTitle">Titolo</h2>
+            <p id="modalContent">Contenuto del modal...</p>
+            <button id="modalBtn" class="btn">OK</button>
+        </div>
+    </div>
+    
+    <script>
+        // Configurazione del gioco
+        const gameConfig = {
+            deckStyle: 'classic',
+            difficulty: 'medium',
+            playerName: 'Giocatore',
+            opponentName: 'IA',
+            opponentIsAI: true,
+            points: {
+                player: 0,
+                opponent: 0
+            }
+        };
+        
+        // Gestione delle carte
+        class Card {
+            constructor(value, suit, isJoker = false) {
+                this.value = value; // A, 2, 3, ..., J, Q, K
+                this.suit = suit; // ♥, ♦, ♣, ♠
+                this.isJoker = isJoker;
+                this.selected = false;
+                this.id = Math.random().toString(36).substring(2, 9);
+            }
+            
+            // Ottiene il valore in punti della carta
+            getPoints() {
+                if (this.isJoker) return 25;
+                if (this.value === 'A') return 11;
+                if (['J', 'Q', 'K'].includes(this.value)) return 10;
+                return parseInt(this.value) || 0;
+            }
+            
+            // Ottiene il valore numerico della carta (per ordinamento)
+            getNumericValue() {
+                if (this.isJoker) return 15;
+                if (this.value === 'A') return 1;
+                if (this.value === 'J') return 11;
+                if (this.value === 'Q') return 12;
+                if (this.value === 'K') return 13;
+                return parseInt(this.value) || 0;
+            }
+            
+            // Converte la carta in HTML
+            toHTML() {
+                if (this.isJoker) {
+                    return `
+                        <div class="card" data-id="${this.id}" onclick="toggleCardSelection(this)">
+                            <div class="card-top">
+                                <span class="card-value black">🃏</span>
+                            </div>
+                            <div class="card-center black">JOLLY</div>
+                            <div class="card-bottom">
+                                <span class="card-value black">🃏</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                const isRed = this.suit === '♥' || this.suit === '♦';
+                const colorClass = isRed ? 'red' : 'black';
+                
+                return `
+                    <div class="card" data-id="${this.id}" onclick="toggleCardSelection(this)">
+                        <div class="card-top">
+                            <span class="card-value ${colorClass}">${this.value}</span>
+                            <span class="card-suit ${colorClass}">${this.suit}</span>
+                        </div>
+                        <div class="card-center ${colorClass}">${this.suit}</div>
+                        <div class="card-bottom">
+                            <span class="card-value ${colorClass}">${this.value}</span>
+                            <span class="card-suit ${colorClass}">${this.suit}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        class Deck {
+            constructor() {
+                this.cards = [];
+                this.init();
+            }
+            
+            init() {
+                const suits = ['♥', '♦', '♣', '♠'];
+                const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+                
+                // Aggiungi due mazzi standard
+                for (let d = 0; d < 2; d++) {
+                    for (let suit of suits) {
+                        for (let value of values) {
+                            this.cards.push(new Card(value, suit));
+                        }
+                    }
+                }
+                
+                // Aggiungi 4 jolly
+                for (let i = 0; i < 4; i++) {
+                    this.cards.push(new Card('Jolly', '', true));
+                }
+                
+                this.shuffle();
+            }
+            
+            shuffle() {
+                for (let i = this.cards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+                }
+            }
+            
+            dealCard() {
+                if (this.cards.length === 0) return null;
+                return this.cards.pop();
+            }
+        }
+        
+        class Combination {
+            constructor(cards, type) {
+                this.cards = cards;
+                this.type = type; // 'run' (scala) o 'set' (tris/poker)
+                this.id = Math.random().toString(36).substring(2, 9);
+            }
+            
+            isValid() {
+                if (this.cards.length < 3) return false;
+                
+                if (this.type === 'set') {
+                    // Controlla se è un set (tris/poker)
+                    const nonJokerCards = this.cards.filter(card => !card.isJoker);
+                    if (nonJokerCards.length === 0) return false;
+                    
+                    const firstValue = nonJokerCards[0].value;
+                    // Tutti i non-jolly devono avere lo stesso valore
+                    return nonJokerCards.every(card => card.value === firstValue);
+                } else if (this.type === 'run') {
+                    // Controlla se è una scala
+                    if (this.cards.length < 3) return false;
+                    
+                    // Nella scala, tutte le carte devono avere lo stesso seme (tranne i jolly)
+                    const nonJokerCards = this.cards.filter(card => !card.isJoker);
+                    if (nonJokerCards.length === 0) return false;
+                    
+                    const suit = nonJokerCards[0].suit;
+                    if (!nonJokerCards.every(card => card.suit === suit)) return false;
+                    
+                    // Ordina le carte per valore numerico
+                    const sortedCards = [...this.cards].sort((a, b) => 
+                        a.getNumericValue() - b.getNumericValue()
+                    );
+                    
+                    // Controlla che i valori siano consecutivi
+                    let lastValue = null;
+                    let jokerUsed = 0;
+                    
+                    for (let i = 0; i < sortedCards.length; i++) {
+                        const card = sortedCards[i];
+                        
+                        if (card.isJoker) {
+                            jokerUsed++;
+                            continue;
+                        }
+                        
+                        const currentValue = card.getNumericValue();
+                        
+                        if (lastValue !== null) {
+                            const diff = currentValue - lastValue;
+                            if (diff > 1) {
+                                // Usa i jolly per riempire gli spazi
+                                if (jokerUsed >= diff - 1) {
+                                    jokerUsed -= (diff - 1);
+                                } else {
+                                    return false;
+                                }
+                            } else if (diff === 0) {
+                                // Non sono permesse carte duplicate nella scala
+                                return false;
+                            }
+                        }
+                        
+                        lastValue = currentValue;
+                    }
+                    
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            getPoints() {
+                return this.cards.reduce((sum, card) => sum + card.getPoints(), 0);
+            }
+            
+            toHTML() {
+                let html = `<div class="combination" data-id="${this.id}" data-type="${this.type}">`;
+                for (let card of this.cards) {
+                    html += card.toHTML();
+                }
+                html += '</div>';
+                return html;
+            }
+        }
+        
+        class Player {
+            constructor(name, isAI = false) {
+                this.name = name;
+                this.isAI = isAI;
+                this.hand = [];
+                this.score = 0;
+                this.hasOpened = false;
+            }
+            
+            addCard(card) {
+                this.hand.push(card);
+                this.sortHand();
+            }
+            
+            removeCard(cardId) {
+                const index = this.hand.findIndex(card => card.id === cardId);
+                if (index !== -1) {
+                    return this.hand.splice(index, 1)[0];
+                }
+                return null;
+            }
+            
+            sortHand() {
+                // Ordina prima per seme poi per valore
+                this.hand.sort((a, b) => {
+                    if (a.isJoker && !b.isJoker) return 1;
+                    if (!a.isJoker && b.isJoker) return -1;
+                    if (a.suit !== b.suit) return a.suit.localeCompare(b.suit);
+                    return a.getNumericValue() - b.getNumericValue();
+                });
+            }
+            
+            canOpen() {
+                // Analizza le possibili combinazioni per verificare se si possono ottenere 40+ punti
+                const possibleCombinations = this.findPossibleCombinations();
+                const totalPoints = possibleCombinations.reduce((sum, comb) => sum + comb.getPoints(), 0);
+                return totalPoints >= 40;
+            }
+            
+            findPossibleCombinations() {
+                const combinations = [];
+                
+                // Trova tutti i potenziali set (tris/poker)
+                const valueGroups = {};
+                for (let card of this.hand) {
+                    if (card.isJoker) continue;
+                    if (!valueGroups[card.value]) {
+                        valueGroups[card.value] = [];
+                    }
+                    valueGroups[card.value].push(card);
+                }
+                
+                // Aggiungi i jolly ai gruppi che potrebbero formare set validi
+                const jokers = this.hand.filter(card => card.isJoker);
+                
+                for (let value in valueGroups) {
+                    if (valueGroups[value].length >= 2) {
+                        // Questo gruppo può potenzialmente formare un set
+                        let usableJokers = Math.min(jokers.length, 2); // Usiamo al massimo 2 jolly
+                        let set = [...valueGroups[value]];
+                        
+                        // Aggiungi jolly se necessario per formare un set
+                        for (let i = 0; i < usableJokers && set.length < 5; i++) {
+                            set.push(jokers[i]);
+                        }
+                        
+                        if (set.length >= 3) {
+                            combinations.push(new Combination(set, 'set'));
+                        }
+                    }
+                }
+                
+                // Trova tutte le potenziali run (scale)
+                const suitGroups = {};
+                for (let card of this.hand) {
+                    if (card.isJoker) continue;
+                    if (!suitGroups[card.suit]) {
+                        suitGroups[card.suit] = [];
+                    }
+                    suitGroups[card.suit].push(card);
+                }
+                
+                for (let suit in suitGroups) {
+                    if (suitGroups[suit].length >= 2) { // Serve almeno 2 carte + eventualmente jolly
+                        const suitCards = [...suitGroups[suit]].sort((a, b) => 
+                            a.getNumericValue() - b.getNumericValue()
+                        );
+                        
+                        // Prova a costruire scale a partire da ogni carta
+                        for (let startIdx = 0; startIdx < suitCards.length; startIdx++) {
+                            let currentRun = [suitCards[startIdx]];
+                            let usedJokers = [];
+                            
+                            // Aggiungi le carte successive
+                            for (let nextIdx = startIdx + 1; nextIdx < suitCards.length; nextIdx++) {
+                                const lastCard = currentRun[currentRun.length - 1];
+                                const nextCard = suitCards[nextIdx];
+                                const diff = nextCard.getNumericValue() - lastCard.getNumericValue();
+                                
+                                if (diff === 1) {
+                                    // Carta successiva, aggiungi direttamente
+                                    currentRun.push(nextCard);
+                                } else if (diff > 1 && jokers.length > usedJokers.length) {
+                                    // C'è un gap che può essere colmato da jolly
+                                    for (let j = 1; j < diff && jokers.length > usedJokers.length; j++) {
+                                        usedJokers.push(jokers[usedJokers.length]);
+                                    }
+                                    currentRun.push(nextCard);
+                                } else if (diff === 0) {
+                                    // Skip duplicati
+                                    continue;
+                                } else {
+                                    // Gap troppo grande o no jolly disponibili
+                                    break;
+                                }
+                            }
+                            
+                            // Aggiungi i jolly usati alla combinazione
+                            currentRun = [...currentRun, ...usedJokers];
+                            
+                            if (currentRun.length >= 3) {
+                                combinations.push(new Combination(currentRun, 'run'));
+                            }
+                        }
+                    }
+                }
+                
+                return combinations;
+            }
+            
+            makeAIMove() {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        // Aggiungere qui la logica dell'IA
+                        // Per ora implementiamo una logica semplice
+                        
+                        // AI cerca di creare combinazioni se possibile
+                        const combinations = this.findPossibleCombinations();
+                        
+                        if (combinations.length > 0 && (this.hasOpened || combinations[0].getPoints() >= 40)) {
+                            // AI sceglie di giocare la combinazione migliore
+                            game.addCombination(combinations[0]);
+                            
+                            // Se è la prima mossa, segna come aperto
+                            if (!this.hasOpened) {
+                                this.hasOpened = true;
+                                addChatMessage('system', `${this.name} ha aperto con ${combinations[0].getPoints()} punti!`);
+                            }
+                            
+                            // Scarta una carta casuale
+                            if (this.hand.length > 0) {
+                                // Scarta la carta con il valore più alto
+                                this.hand.sort((a, b) => b.getPoints() - a.getPoints());
+                                const discardCard = this.removeCard(this.hand[0].id);
+                                game.discard(discardCard);
+                            }
+                            
+                            resolve();
+                        } else {
+                            // AI pesca una carta
+                            const fromDiscard = Math.random() > 0.7 && game.discardPile.length > 0;
+                            
+                            if (fromDiscard) {
+                                const card = game.drawFromDiscard();
+                                this.addCard(card);
+                                addChatMessage('opponent', `${this.name} ha pescato dagli scarti.`);
+                            } else {
+                                const card = game.drawFromDeck();
+                                this.addCard(card);
+                                addChatMessage('opponent', `${this.name} ha pescato dal mazzo.`);
+                            }
+                            
+                            // Scarta una carta
+                            setTimeout(() => {
+                                // Scarta la carta meno utile (per ora scegliamo quella con il valore più alto)
+                                this.hand.sort((a, b) => b.getPoints() - a.getPoints());
+                                const discardCard = this.removeCard(this.hand[0].id);
+                                game.discard(discardCard);
+                                
+                                resolve();
+                            }, 1000);
+                        }
+                    }, 2000); // Aggiungi un ritardo per simulare la riflessione dell'IA
+                });
+            }
+        }
+        
+        // Classe principale del gioco
+        class Game {
+            constructor() {
+                this.deck = new Deck();
+                this.discardPile = [];
+                this.combinations = [];
+                this.player = new Player(gameConfig.playerName, false);
+                this.opponent = new Player(gameConfig.opponentName, gameConfig.opponentIsAI);
+                this.currentPlayer = null;
+                this.started = false;
+                this.selectedCards = [];
+                this.combinationType = null; // 'run' o 'set'
+            }
+            
+            start() {
+                this.deck = new Deck();
+                this.discardPile = [];
+                this.combinations = [];
+                this.player.hand = [];
+                this.opponent.hand = [];
+                this.player.hasOpened = false;
+                this.opponent.hasOpened = false;
+                this.selectedCards = [];
+                this.started = true;
+                
+                // Distribuisci 13 carte a ogni giocatore
+                for (let i = 0; i < 13; i++) {
+                    this.player.addCard(this.deck.dealCard());
+                    this.opponent.addCard(this.deck.dealCard());
+                }
+                
+                // Prima carta agli scarti
+                this.discard(this.deck.dealCard());
+                
+                // Rendi visibile il tavolo da gioco
+                document.querySelector('.game-table').style.display = 'flex';
+                
+                // Aggiorna l'interfaccia
+                this.updateUI();
+                
+                // Scegli chi inizia casualmente
+                this.currentPlayer = Math.random() > 0.5 ? this.player : this.opponent;
+                addChatMessage('system', `Inizia ${this.currentPlayer.name}`);
+                
+                if (this.currentPlayer === this.opponent && this.opponent.isAI) {
+                    this.performAITurn();
+                } else {
+                    this.enablePlayerControls();
+                }
+            }
+            
+            updateUI() {
+                // Aggiorna il nome del giocatore
+                document.getElementById('playerNameDisplay').textContent = this.player.name;
+                document.getElementById('opponentName').textContent = this.opponent.name;
+                
+                // Aggiorna i punteggi
+                document.getElementById('playerScore').textContent = this.player.score;
+                document.getElementById('opponentScore').textContent = this.opponent.score;
+                
+                // Aggiorna le carte del giocatore
+                const playerCardsContainer = document.getElementById('playerCards');
+                playerCardsContainer.innerHTML = '';
+                for (let card of this.player.hand) {
+                    playerCardsContainer.insertAdjacentHTML('beforeend', card.toHTML());
+                    
+                    // Applica l'animazione di distribuzione alle carte
+                    const cardElement = playerCardsContainer.lastElementChild;
+                    cardElement.style.animation = 'dealCard 0.3s ease-out forwards';
+                    
+                    // Rimuovi l'animazione dopo che è completata
+                    setTimeout(() => {
+                        cardElement.style.animation = '';
+                        
+                        // Aggiungi la classe 'selected' se la carta è selezionata
+                        if (card.selected) {
+                            cardElement.classList.add('selected');
+                        }
+                    }, 300);
+                }
+                
+                // Aggiorna le carte dell'avversario (mostra solo il retro)
+                const opponentCardsContainer = document.getElementById('opponentCards');
+                opponentCardsContainer.innerHTML = '';
+                for (let i = 0; i < this.opponent.hand.length; i++) {
+                    opponentCardsContainer.insertAdjacentHTML('beforeend', '<div class="card-back"></div>');
+                    
+                    // Applica l'animazione di distribuzione
+                    const cardBackElement = opponentCardsContainer.lastElementChild;
+                    cardBackElement.style.animation = 'dealCard 0.3s ease-out forwards';
+                    
+                    // Rimuovi l'animazione dopo che è completata
+                    setTimeout(() => {
+                        cardBackElement.style.animation = '';
+                    }, 300);
+                }
+                
+                // Aggiorna le combinazioni sul tavolo
+                const combinationsContainer = document.getElementById('combinationsContainer');
+                combinationsContainer.innerHTML = '';
+                for (let combination of this.combinations) {
+                    combinationsContainer.insertAdjacentHTML('beforeend', combination.toHTML());
+                }
+                
+                // Aggiorna la carta in cima al mazzo degli scarti
+                const discardPileElement = document.getElementById('discardPile');
+                discardPileElement.innerHTML = '';
+                if (this.discardPile.length > 0) {
+                    const topDiscard = this.discardPile[this.discardPile.length - 1];
+                    discardPileElement.insertAdjacentHTML('beforeend', topDiscard.toHTML());
+                    
+                    // Rimuovi l'onclick dalla carta scartata
+                    const cardElement = discardPileElement.querySelector('.card');
+                    cardElement.removeAttribute('onclick');
+                    cardElement.style.animation = 'cardPlaced 0.5s ease-out forwards';
+                }
+            }
+            
+            drawFromDeck() {
+                // Controlla se il mazzo è vuoto
+                if (this.deck.cards.length === 0) {
+                    // Tieni l'ultima carta degli scarti
+                    const lastDiscard = this.discardPile.pop();
+                    
+                    // Rimescola gli scarti e ricrea il mazzo
+                    this.deck.cards = [...this.discardPile];
+                    this.deck.shuffle();
+                    this.discardPile = lastDiscard ? [lastDiscard] : [];
+                    
+                    addChatMessage('system', 'Il mazzo è stato rimescolato.');
+                }
+                
+                return this.deck.dealCard();
+            }
+            
+            drawFromDiscard() {
+                if (this.discardPile.length === 0) return null;
+                return this.discardPile.pop();
+            }
+            
+            discard(card) {
+                if (!card) return;
+                this.discardPile.push(card);
+                this.updateUI();
+            }
+            
+            addCombination(combination) {
+                if (combination.isValid()) {
+                    this.combinations.push(combination);
+                    
+                    // Rimuovi le carte dalla mano del giocatore corrente
+                    for (let card of combination.cards) {
+                        this.currentPlayer.removeCard(card.id);
+                    }
+                    
+                    this.updateUI();
+                    return true;
+                }
+                return false;
+            }
+            
+            toggleCardSelection(cardElement) {
+                const cardId = cardElement.dataset.id;
+                const cardIndex = this.player.hand.findIndex(card => card.id === cardId);
+                
+                if (cardIndex !== -1) {
+                    const card = this.player.hand[cardIndex];
+                    card.selected = !card.selected;
+                    
+                    if (card.selected) {
+                        cardElement.classList.add('selected');
+                        this.selectedCards.push(card);
+                    } else {
+                        cardElement.classList.remove('selected');
+                        const selectedIndex = this.selectedCards.findIndex(c => c.id === cardId);
+                        if (selectedIndex !== -1) {
+                            this.selectedCards.splice(selectedIndex, 1);
+                        }
+                    }
+                    
+                    // Abilita il pulsante "Crea combinazione" se ci sono almeno 3 carte selezionate
+                    document.getElementById('createCombinationBtn').disabled = this.selectedCards.length < 3;
+                }
+            }
+            
+            createCombination() {
+                if (this.selectedCards.length < 3) {
+                    showModal('Errore', 'Seleziona almeno 3 carte per creare una combinazione.');
+                    return;
+                }
+                
+                // Determina automaticamente se è un set o una run
+                let isSet = true;
+                let isRun = true;
+                
+                // Controlla se è un set (stesso valore)
+                const nonJokerCards = this.selectedCards.filter(card => !card.isJoker);
+                if (nonJokerCards.length > 0) {
+                    const firstValue = nonJokerCards[0].value;
+                    isSet = nonJokerCards.every(card => card.value === firstValue);
+                }
+                
+                // Controlla se è una run (stesso seme, valori consecutivi)
+                if (nonJokerCards.length > 0) {
+                    const suit = nonJokerCards[0].suit;
+                    isRun = nonJokerCards.every(card => card.suit === suit);
+                    
+                    if (isRun) {
+                        // Ordina le carte per valore numerico
+                        const sortedCards = [...nonJokerCards].sort((a, b) => 
+                            a.getNumericValue() - b.getNumericValue()
+                        );
+                        
+                        // Controlla che i valori siano consecutivi
+                        const jokerCount = this.selectedCards.filter(card => card.isJoker).length;
+                        let requiredJokerCount = 0;
+                        
+                        for (let i = 1; i < sortedCards.length; i++) {
+                            const diff = sortedCards[i].getNumericValue() - sortedCards[i-1].getNumericValue();
+                            if (diff > 1) {
+                                requiredJokerCount += (diff - 1);
+                            } else if (diff === 0) {
+                                isRun = false;
+                                break;
+                            }
+                        }
+                        
+                        isRun = isRun && (requiredJokerCount <= jokerCount);
+                    }
+                }
+                
+                // Crea la combinazione appropriata
+                let combination;
+                
+                if (isSet && !isRun) {
+                    combination = new Combination([...this.selectedCards], 'set');
+                } else if (isRun && !isSet) {
+                    combination = new Combination([...this.selectedCards], 'run');
+                } else {
+                    // Chiedi all'utente se preferisce un set o una run
+                    this.combinationType = prompt('Vuoi creare un tris/poker (set) o una scala (run)? Scrivi "set" o "run"').toLowerCase();
+                    
+                    if (this.combinationType !== 'set' && this.combinationType !== 'run') {
+                        showModal('Errore', 'Scelta non valida. Seleziona "set" o "run".');
+                        return;
+                    }
+                    
+                    combination = new Combination([...this.selectedCards], this.combinationType);
+                }
+                
+                // Verifica se la combinazione è valida
+                if (!combination.isValid()) {
+                    showModal('Combinazione non valida', 'Le carte selezionate non formano una combinazione valida.');
+                    return;
+                }
+                
+                // Verifica se il giocatore ha già aperto o se può aprire
+                const points = combination.getPoints();
+                if (!this.player.hasOpened && points < 40) {
+                    showModal('Punti insufficienti', `Per aprire hai bisogno di almeno 40 punti. Questa combinazione vale ${points} punti.`);
+                    return;
+                }
+                
+                // Aggiungi la combinazione
+                this.addCombination(combination);
+                
+                // Segna che il giocatore ha aperto
+                if (!this.player.hasOpened) {
+                    this.player.hasOpened = true;
+                    addChatMessage('system', `${this.player.name} ha aperto con ${points} punti!`);
+                }
+                
+                // Deseleziona tutte le carte
+                this.selectedCards = [];
+                
+                // Aggiorna l'interfaccia
+                this.updateUI();
+                
+                // Abilita il pulsante per scartare
+                document.getElementById('discardBtn').disabled = false;
+                document.getElementById('createCombinationBtn').disabled = true;
+            }
+            
+            discardSelectedCard() {
+                if (this.selectedCards.length !== 1) {
+                    showModal('Errore', 'Seleziona esattamente una carta da scartare.');
+                    return;
+                }
+                
+                const cardToDiscard = this.player.removeCard(this.selectedCards[0].id);
+                this.discard(cardToDiscard);
+                this.selectedCards = [];
+                
+                // Controlla la vittoria
+                if (this.player.hand.length === 0) {
+                    this.endGame(this.player);
+                    return;
+                }
+                
+                // Passa il turno all'avversario
+                this.currentPlayer = this.opponent;
+                this.disablePlayerControls();
+                
+                addChatMessage('system', 'Turno dell\'avversario');
+                
+                if (this.opponent.isAI) {
+                    this.performAITurn();
+                }
+            }
+            
+            performAITurn() {
+                this.opponent.makeAIMove().then(() => {
+                    // Controlla la vittoria
+                    if (this.opponent.hand.length === 0) {
+                        this.endGame(this.opponent);
+                        return;
+                    }
+                    
+                    // Passa il turno al giocatore
+                    this.currentPlayer = this.player;
+                    this.enablePlayerControls();
+                    
+                    addChatMessage('system', 'È il tuo turno');
+                });
+            }
+            
+            endGame(winner) {
+                // Calcola i punti
+                let points = 0;
+                
+                if (winner === this.player) {
+                    // Il giocatore vince tutti i punti delle carte rimanenti dell'avversario
+                    points = this.opponent.hand.reduce((sum, card) => sum + card.getPoints(), 0);
+                    this.player.score += points;
+                    
+                    showModal('Hai vinto!', `Hai vinto la partita! Guadagni ${points} punti.`);
+                } else {
+                    // L'avversario vince tutti i punti delle carte rimanenti del giocatore
+                    points = this.player.hand.reduce((sum, card) => sum + card.getPoints(), 0);
+                    this.opponent.score += points;
+                    
+                    showModal('Hai perso!', `${this.opponent.name} ha vinto la partita! Il tuo avversario guadagna ${points} punti.`);
+                }
+                
+                // Aggiorna i punteggi
+                document.getElementById('playerScore').textContent = this.player.score;
+                document.getElementById('opponentScore').textContent = this.opponent.score;
+                
+                // Resetta il gioco
+                this.started = false;
+                
+                // Mostra il menu principale dopo un po'
+                setTimeout(() => {
+                    document.querySelector('.game-table').style.display = 'none';
+                    document.querySelector('.main-menu').style.display = 'block';
+                }, 5000);
+            }
+            
+            enablePlayerControls() {
+                document.getElementById('drawCardBtn').disabled = false;
+                document.getElementById('drawDiscardBtn').disabled = this.discardPile.length === 0;
+                document.getElementById('endTurnBtn').disabled = true;
+                document.getElementById('discardBtn').disabled = true;
+                document.getElementById('createCombinationBtn').disabled = this.selectedCards.length < 3;
+            }
+            
+            disablePlayerControls() {
+                document.getElementById('drawCardBtn').disabled = true;
+                document.getElementById('drawDiscardBtn').disabled = true;
+                document.getElementById('createCombinationBtn').disabled = true;
+                document.getElementById('discardBtn').disabled = true;
+                document.getElementById('endTurnBtn').disabled = true;
+            }
+        }
+        
+        // Istanza globale del gioco
+        let game = null;
+        
+        // Funzioni di utilità
+        function toggleCardSelection(cardElement) {
+            if (!game || game.currentPlayer !== game.player) return;
+            game.toggleCardSelection(cardElement);
+        }
+        
+        function addChatMessage(type, text) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.insertAdjacentHTML('beforeend', `<div class="message ${type}">${text}</div>`);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showModal(title, content, buttonText = 'OK') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').textContent = content;
+            document.getElementById('modalBtn').textContent = buttonText;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+        
+        // Gestori degli eventi
+        document.addEventListener('DOMContentLoaded', function() {
+            // Menu principale
+            document.getElementById('playAiBtn').addEventListener('click', function() {
+                gameConfig.opponentIsAI = true;
+                gameConfig.opponentName = 'IA';
+                
+                document.querySelector('.main-menu').style.display = 'none';
+                
+                game = new Game();
+                game.start();
+            });
+            
+            document.getElementById('playMultiBtn').addEventListener('click', function() {
+                gameConfig.opponentIsAI = false;
+                gameConfig.opponentName = prompt('Inserisci il nome del secondo giocatore', 'Giocatore 2');
+
+                // QUI IL CODICE SI E' SPEZZATO
+                // QUI IL CODICE SI E' SPEZZATO
+                
+                document.querySelector('.main-menu').style.display = 'none';
+                
+                game = new Game();
+                game.start();
+            });
+            
+            document.getElementById('rulesBtn').addEventListener('click', function() {
+                document.querySelector('.main-menu').style.display = 'none';
+                document.querySelector('.rules').style.display = 'block';
+            });
+            
+            document.getElementById('customizeBtn').addEventListener('click', function() {
+                document.querySelector('.main-menu').style.display = 'none';
+                document.querySelector('.customization').style.display = 'block';
+                
+                // Precompila i campi con i valori correnti
+                document.getElementById('playerName').value = gameConfig.playerName;
+                document.getElementById('deckStyle').value = gameConfig.deckStyle;
+                document.getElementById('difficultyLevel').value = gameConfig.difficulty;
+            });
+            
+            // Personalizzazione
+            document.getElementById('backFromCustomizeBtn').addEventListener('click', function() {
+                document.querySelector('.customization').style.display = 'none';
+                document.querySelector('.main-menu').style.display = 'block';
+            });
+            
+            document.getElementById('saveCustomizeBtn').addEventListener('click', function() {
+                gameConfig.playerName = document.getElementById('playerName').value || 'Giocatore';
+                gameConfig.deckStyle = document.getElementById('deckStyle').value;
+                gameConfig.difficulty = document.getElementById('difficultyLevel').value;
+                
+                showModal('Impostazioni salvate', 'Le tue preferenze sono state salvate con successo.');
+                
+                document.querySelector('.customization').style.display = 'none';
+                document.querySelector('.main-menu').style.display = 'block';
+            });
+            
+            // Regole del gioco
+            document.getElementById('backFromRulesBtn').addEventListener('click', function() {
+                document.querySelector('.rules').style.display = 'none';
+                document.querySelector('.main-menu').style.display = 'block';
+            });
+            
+            // Controlli di gioco
+            document.getElementById('drawCardBtn').addEventListener('click', function() {
+                if (!game || game.currentPlayer !== game.player) return;
+                
+                const card = game.drawFromDeck();
+                game.player.addCard(card);
+                game.updateUI();
+                
+                addChatMessage('player', 'Ho pescato dal mazzo.');
+                
+                // Abilita i controlli per scartare
+                document.getElementById('discardBtn').disabled = false;
+                document.getElementById('endTurnBtn').disabled = false;
+                document.getElementById('drawCardBtn').disabled = true;
+                document.getElementById('drawDiscardBtn').disabled = true;
+            });
+            
+            document.getElementById('drawDiscardBtn').addEventListener('click', function() {
+                if (!game || game.currentPlayer !== game.player || game.discardPile.length === 0) return;
+                
+                const card = game.drawFromDiscard();
+                game.player.addCard(card);
+                game.updateUI();
+                
+                addChatMessage('player', 'Ho preso dagli scarti.');
+                
+                // Abilita i controlli per scartare
+                document.getElementById('discardBtn').disabled = false;
+                document.getElementById('endTurnBtn').disabled = false;
+                document.getElementById('drawCardBtn').disabled = true;
+                document.getElementById('drawDiscardBtn').disabled = true;
+            });
+            
+            document.getElementById('createCombinationBtn').addEventListener('click', function() {
+                if (!game || game.currentPlayer !== game.player) return;
+                game.createCombination();
+            });
+            
+            document.getElementById('discardBtn').addEventListener('click', function() {
+                if (!game || game.currentPlayer !== game.player) return;
+                game.discardSelectedCard();
+            });
+            
+            document.getElementById('endTurnBtn').addEventListener('click', function() {
+                if (!game || game.currentPlayer !== game.player) return;
+                
+                // Passa il turno all'avversario
+                game.currentPlayer = game.opponent;
+                game.disablePlayerControls();
+                
+                addChatMessage('system', 'Turno dell\'avversario');
+                
+                if (game.opponent.isAI) {
+                    game.performAITurn();
+                }
+            });
+            
+            // Chat
+            document.getElementById('chatToggle').addEventListener('click', function() {
+                document.getElementById('chatArea').classList.toggle('visible');
+            });
+            
+            document.getElementById('sendChatBtn').addEventListener('click', function() {
+                const input = document.getElementById('chatInputField');
+                const message = input.value.trim();
+                
+                if (message) {
+                    addChatMessage('player', message);
+                    input.value = '';
+                    
+                    // Simula risposta dell'avversario se è IA
+                    if (game && game.opponent.isAI && Math.random() > 0.5) {
+                        setTimeout(() => {
+                            const responses = [
+                                'Interessante...',
+                                'Bella mossa!',
+                                'Stai attento!',
+                                'Haha, buon tentativo!',
+                                'Sto pensando alla mia prossima mossa...'
+                            ];
+                            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                            addChatMessage('opponent', randomResponse);
+                        }, 1000);
+                    }
+                }
+            });
+            
+            document.getElementById('chatInputField').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('sendChatBtn').click();
+                }
+            });
+            
+            // Modal
+            document.getElementById('modalBtn').addEventListener('click', function() {
+                document.getElementById('modalOverlay').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

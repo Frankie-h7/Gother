@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Penis</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #ffcce6;
+            overflow: hidden;
+
+                        /* Disabilita selezione testo */
+                 -webkit-user-select: none; /* Safari */
+                 -moz-user-select: none; /* Firefox */
+                 -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                 -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        .character-container {
+            position: relative;
+            width: 200px;
+            height: 400px;
+            cursor: pointer;
+        }
+        
+        .rocket {
+            position: absolute;
+            width: 120px;
+            height: 300px;
+            background-color: #ff6b6b;
+            border-radius: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .rocket-tip {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background-color: #ff8e8e;
+            border-radius: 60px 60px 0 0;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+        
+        .face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
+        
+        .eye {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            border-radius: 50%;
+            top: 15px;
+            z-index: 4;
+        }
+        
+        .eye-left {
+            left: 15px;
+        }
+        
+        .eye-right {
+            right: 15px;
+        }
+        
+        .pupil {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 7.5px;
+            left: 7.5px;
+        }
+        
+        .mouth {
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background-color: white;
+            border-radius: 0 0 30px 30px;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            overflow: hidden;
+        }
+        
+        .mouth.happy {
+            height: 30px;
+            border-radius: 0 0 30px 30px;
+        }
+        
+        .mouth.surprised {
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+        }
+        
+        .stream {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            width: 0;
+            height: 0;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+        
+        .stream.active {
+            opacity: 1;
+            width: 60px;
+            height: 180px;
+            background: radial-gradient(circle at center, 
+                                        rgba(255, 255, 255, 0.9) 10%, 
+                                        rgba(240, 240, 255, 0.7) 40%, 
+                                        rgba(255, 255, 255, 0.4) 70%, 
+                                        rgba(255, 255, 255, 0) 100%);
+            border-radius: 30px;
+            animation: smoke-animation 0.8s ease-out;
+        }
+        
+        @keyframes smoke-animation {
+            0% {
+                height: 0;
+                width: 30px;
+                opacity: 0.9;
+            }
+            50% {
+                width: 60px;
+                opacity: 0.7;
+            }
+            100% {
+                height: 200px;
+                width: 80px;
+                opacity: 0;
+            }
+        }
+        
+        .base {
+            position: absolute;
+            width: 140px;
+            height: 30px;
+            background-color: #797979;
+            border-radius: 5px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .fin {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background-color: #ff8e8e;
+            bottom: 50px;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .fin-left {
+            left: -20px;
+            z-index: 10;
+        }
+        
+        .fin-right {
+            right: -20px;
+            z-index: 10;
+        }
+
+        /* Scritta Grande Cazzo */
+        .title {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    font-size: 50px;
+    font-weight: bold;
+    color: #ff1493; /* Un rosa acceso che si distingue dallo sfondo */
+    text-shadow: 3px 3px 0 #333; /* Aggiunge un'ombra per maggiore leggibilità */
+    z-index: 10;
+    letter-spacing: 2px;
+    transform-origin: center;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.1);
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="title">Big Penis</div>
+    <div class="character-container" id="rocket">
+        <div class="rocket"></div>
+        <div class="rocket-tip"></div>
+        <div class="stream" id="stream"></div>
+        <div class="face">
+            <div class="eye eye-left">
+                <div class="pupil"></div>
+            </div>
+            <div class="eye eye-right">
+                <div class="pupil"></div>
+            </div>
+            <div class="mouth" id="mouth"></div>
+        </div>
+        <div class="fin fin-left"></div>
+        <div class="fin fin-right"></div>
+       <!-- <div class="base"></div> -->
+    </div>
+
+    <script>
+        const rocket = document.getElementById('rocket');
+        const stream = document.getElementById('stream');
+        const mouth = document.getElementById('mouth');
+        const eyes = document.querySelectorAll('.pupil');
+        
+        let faceState = 'normal';
+        
+        rocket.addEventListener('click', () => {
+            // Attiva l'animazione dello spruzzo
+            stream.classList.add('active');
+            
+            // Cambia l'espressione facciale
+            if (faceState === 'normal') {
+                mouth.classList.add('surprised');
+                eyes.forEach(eye => {
+                    eye.style.transform = 'scale(1.5)';
+                });
+                faceState = 'surprised';
+            } else if (faceState === 'surprised') {
+                mouth.classList.remove('surprised');
+                mouth.classList.add('happy');
+                eyes.forEach(eye => {
+                    eye.style.transform = 'scale(1)';
+                    eye.style.height = '10px';
+                });
+                faceState = 'happy';
+            } else {
+                mouth.classList.remove('happy');
+                eyes.forEach(eye => {
+                    eye.style.transform = 'scale(1)';
+                    eye.style.height = '15px';
+                });
+                faceState = 'normal';
+            }
+            
+            // Ripristina lo spruzzo dopo l'animazione
+            setTimeout(() => {
+                stream.classList.remove('active');
+            }, 800);
+        });
+    </script>
+</body>
+</html>

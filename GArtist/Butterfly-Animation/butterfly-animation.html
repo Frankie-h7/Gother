@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farfalla Animata CSS</title>
+    <style>
+        /* Reset base e impostazioni generali */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            position: relative;
+        }
+        
+        /* Sfondo cielo */
+        .sky {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB, #c9e6ff);
+            z-index: 1;
+        }
+        
+        /* Sole */
+        .sun {
+            position: absolute;
+            top: 50px;
+            right: 100px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #fff176 20%, #ffeb3b 40%, #fbc02d 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px 15px rgba(255, 235, 59, 0.4);
+            z-index: 2;
+            animation: sun-glow 8s infinite alternate;
+        }
+        
+        @keyframes sun-glow {
+            0% { box-shadow: 0 0 40px 15px rgba(255, 235, 59, 0.4); }
+            100% { box-shadow: 0 0 60px 25px rgba(255, 235, 59, 0.5); }
+        }
+        
+        /* Nuvole */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            z-index: 3;
+            opacity: 0.9;
+            filter: blur(3px);
+        }
+        
+        .cloud-1 {
+            top: 120px;
+            left: 20%;
+            width: 150px;
+            height: 60px;
+            animation: float-cloud-1 30s linear infinite;
+        }
+        
+        .cloud-1:before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 25px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        .cloud-1:after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 80px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        .cloud-2 {
+            top: 80px;
+            left: 60%;
+            width: 120px;
+            height: 50px;
+            animation: float-cloud-2 40s linear infinite;
+        }
+        
+        .cloud-2:before {
+            content: '';
+            position: absolute;
+            top: -25px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        .cloud-2:after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 60px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        @keyframes float-cloud-1 {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100vw); }
+        }
+        
+        @keyframes float-cloud-2 {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100vw); }
+        }
+        
+        /* Terreno/Prato */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 35%;
+            background: linear-gradient(to bottom, #4CAF50, #388E3C);
+            z-index: 4;
+        }
+        
+        /* Fiori di campo */
+        .flowers-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 120px;
+            z-index: 5;
+        }
+        
+        .flower {
+            position: absolute;
+            bottom: 0;
+            z-index: 5;
+        }
+        
+        .flower-stem {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 60px;
+            background: #388E3C;
+            z-index: 5;
+        }
+        
+        .flower-head {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            z-index: 6;
+        }
+        
+        .flower-petal {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            z-index: 6;
+        }
+        
+        /* Fiore 1 */
+        .flower-1 {
+            left: 15%;
+            bottom: 0;
+        }
+        
+        .flower-1 .flower-head {
+            transform: translateX(-50%) scale(1.2);
+        }
+        
+        .flower-1 .flower-petal:nth-child(1) {
+            top: -10px;
+            left: 3px;
+            background: #E91E63;
+        }
+        
+        .flower-1 .flower-petal:nth-child(2) {
+            top: -3px;
+            left: -10px;
+            background: #E91E63;
+        }
+        
+        .flower-1 .flower-petal:nth-child(3) {
+            top: -3px;
+            right: -10px;
+            background: #E91E63;
+        }
+        
+        .flower-1 .flower-petal:nth-child(4) {
+            top: 10px;
+            left: -5px;
+            background: #E91E63;
+        }
+        
+        .flower-1 .flower-petal:nth-child(5) {
+            top: 10px;
+            right: -5px;
+            background: #E91E63;
+        }
+        
+        .flower-1 .flower-center {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #FFC107;
+            z-index: 7;
+        }
+        
+        /* Fiore 2 */
+        .flower-2 {
+            left: 40%;
+            bottom: 0;
+        }
+        
+        .flower-2 .flower-head {
+            transform: translateX(-50%) scale(1.1);
+        }
+        
+        .flower-2 .flower-petal:nth-child(1) {
+            top: -10px;
+            left: 3px;
+            background: #9C27B0;
+        }
+        
+        .flower-2 .flower-petal:nth-child(2) {
+            top: -3px;
+            left: -10px;
+            background: #9C27B0;
+        }
+        
+        .flower-2 .flower-petal:nth-child(3) {
+            top: -3px;
+            right: -10px;
+            background: #9C27B0;
+        }
+        
+        .flower-2 .flower-petal:nth-child(4) {
+            top: 10px;
+            left: -5px;
+            background: #9C27B0;
+        }
+        
+        .flower-2 .flower-petal:nth-child(5) {
+            top: 10px;
+            right: -5px;
+            background: #9C27B0;
+        }
+        
+        .flower-2 .flower-center {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #FFC107;
+            z-index: 7;
+        }
+        
+        /* Fiore 3 */
+        .flower-3 {
+            left: 70%;
+            bottom: 0;
+        }
+        
+        .flower-3 .flower-head {
+            transform: translateX(-50%) scale(1.3);
+        }
+        
+        .flower-3 .flower-petal:nth-child(1) {
+            top: -10px;
+            left: 3px;
+            background: #2196F3;
+        }
+        
+        .flower-3 .flower-petal:nth-child(2) {
+            top: -3px;
+            left: -10px;
+            background: #2196F3;
+        }
+        
+        .flower-3 .flower-petal:nth-child(3) {
+            top: -3px;
+            right: -10px;
+            background: #2196F3;
+        }
+        
+        .flower-3 .flower-petal:nth-child(4) {
+            top: 10px;
+            left: -5px;
+            background: #2196F3;
+        }
+        
+        .flower-3 .flower-petal:nth-child(5) {
+            top: 10px;
+            right: -5px;
+            background: #2196F3;
+        }
+        
+        .flower-3 .flower-center {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #FFC107;
+            z-index: 7;
+        }
+        
+        /* Ciuffi d'erba */
+        .grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            z-index: 6;
+        }
+        
+        .grass-blade {
+            position: absolute;
+            bottom: 0;
+            width: 4px;
+            height: 30px;
+            background: #4CAF50;
+            transform-origin: bottom center;
+            border-radius: 5px 5px 0 0;
+            z-index: 6;
+        }
+        
+        /* Posizionamento dei ciuffi d'erba */
+        .grass-blade:nth-child(1) {
+            left: 5%;
+            height: 35px;
+            animation: sway-grass 3s ease-in-out infinite alternate;
+        }
+        
+        .grass-blade:nth-child(2) {
+            left: 7%;
+            height: 25px;
+            animation: sway-grass 2.5s ease-in-out infinite alternate-reverse;
+        }
+        
+        .grass-blade:nth-child(3) {
+            left: 10%;
+            height: 30px;
+            animation: sway-grass 4s ease-in-out infinite alternate;
+        }
+        
+        .grass-blade:nth-child(4) {
+            left: 25%;
+            height: 35px;
+            animation: sway-grass 3.2s ease-in-out infinite alternate-reverse;
+        }
+        
+        .grass-blade:nth-child(5) {
+            left: 28%;
+            height: 28px;
+            animation: sway-grass 3.7s ease-in-out infinite alternate;
+        }
+        
+        .grass-blade:nth-child(6) {
+            left: 32%;
+            height: 32px;
+            animation: sway-grass 2.8s ease-in-out infinite alternate-reverse;
+        }
+        
+        .grass-blade:nth-child(7) {
+            left: 55%;
+            height: 34px;
+            animation: sway-grass 3.5s ease-in-out infinite alternate;
+        }
+        
+        .grass-blade:nth-child(8) {
+            left: 58%;
+            height: 26px;
+            animation: sway-grass 2.7s ease-in-out infinite alternate-reverse;
+        }
+        
+        .grass-blade:nth-child(9) {
+            left: 62%;
+            height: 30px;
+            animation: sway-grass 3.8s ease-in-out infinite alternate;
+        }
+        
+        .grass-blade:nth-child(10) {
+            left: 85%;
+            height: 32px;
+            animation: sway-grass 3.3s ease-in-out infinite alternate-reverse;
+        }
+        
+        .grass-blade:nth-child(11) {
+            left: 88%;
+            height: 28px;
+            animation: sway-grass 2.9s ease-in-out infinite alternate;
+        }
+        
+        .grass-blade:nth-child(12) {
+            left: 92%;
+            height: 35px;
+            animation: sway-grass 3.6s ease-in-out infinite alternate-reverse;
+        }
+        
+        @keyframes sway-grass {
+            0% { transform: rotate(-5deg); }
+            100% { transform: rotate(5deg); }
+        }
+        
+        /* Farfalla */
+        .butterfly-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 80px;
+            z-index: 10;
+            transition: transform 0.5s ease-out;
+            animation: butterfly-float 15s ease-in-out infinite alternate, 
+                      butterfly-drift 30s ease-in-out infinite;
+            cursor: pointer;
+        }
+        
+        .butterfly-container:hover {
+            animation-play-state: paused;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        .butterfly-body {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 40px;
+            background: linear-gradient(to bottom, #444, #111);
+            border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+            z-index: 11;
+        }
+        
+        .butterfly-head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 12;
+        }
+        
+        .antenna {
+            position: absolute;
+            top: -8px;
+            width: 1px;
+            height: 12px;
+            background: #000;
+            z-index: 12;
+        }
+        
+        .antenna-left {
+            left: 2px;
+            transform: rotate(-30deg);
+        }
+        
+        .antenna-right {
+            right: 2px;
+            transform: rotate(30deg);
+        }
+        
+        .antenna::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -1px;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: #000;
+        }
+        
+        /* Ali della farfalla */
+        .wing {
+            position: absolute;
+            top: 50%;
+            transform-origin: center right;
+            width: 45px;
+            height: 60px;
+            z-index: 10;
+        }
+        
+        .wing-top-left {
+            right: 50%;
+            transform: translateY(-50%) scaleX(-1);
+            border-radius: 80% 50% 30% 50% / 70% 60% 40% 50%;
+            background: linear-gradient(135deg, #FF9800, #F44336, #9C27B0);
+            animation: wing-flap-left 1s ease-in-out infinite;
+        }
+        
+        .wing-bottom-left {
+            right: 50%;
+            top: calc(50% - 10px);
+            transform: translateY(0%) scaleX(-1) scaleY(-0.8);
+            border-radius: 80% 50% 30% 50% / 70% 60% 40% 50%;
+            background: linear-gradient(135deg, #9C27B0, #3F51B5, #2196F3);
+            animation: wing-flap-left 1s ease-in-out 0.1s infinite;
+        }
+        
+        .wing-top-right {
+            left: 50%;
+            transform: translateY(-50%);
+            border-radius: 50% 80% 50% 30% / 60% 70% 50% 40%;
+            background: linear-gradient(135deg, #FF9800, #F44336, #9C27B0);
+            animation: wing-flap-right 1s ease-in-out infinite;
+        }
+        
+        .wing-bottom-right {
+            left: 50%;
+            top: calc(50% - 10px);
+            transform: translateY(0%) scaleY(-0.8);
+            border-radius: 50% 80% 50% 30% / 60% 70% 50% 40%;
+            background: linear-gradient(135deg, #9C27B0, #3F51B5, #2196F3);
+            animation: wing-flap-right 1s ease-in-out 0.1s infinite;
+        }
+        
+        /* Dettagli delle ali */
+        .wing::before, .wing::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            z-index: 11;
+        }
+        
+        .wing-top-left::before, .wing-top-right::before {
+            top: 10px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+        }
+        
+        .wing-top-left::after, .wing-top-right::after {
+            top: 30px;
+            left: 25px;
+            width: 8px;
+            height: 8px;
+        }
+        
+        .wing-bottom-left::before, .wing-bottom-right::before {
+            top: 15px;
+            left: 20px;
+            width: 10px;
+            height: 10px;
+        }
+        
+        .wing-bottom-left::after, .wing-bottom-right::after {
+            top: 35px;
+            left: 15px;
+            width: 6px;
+            height: 6px;
+        }
+        
+        /* Pattern sulle ali - piccoli cerchi decorativi */
+        .wing-pattern {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 11;
+        }
+        
+        .wing-top-left .wing-pattern:nth-child(1),
+        .wing-top-right .wing-pattern:nth-child(1) {
+            top: 5px;
+            left: 5px;
+            width: 6px;
+            height: 6px;
+        }
+        
+        .wing-top-left .wing-pattern:nth-child(2),
+        .wing-top-right .wing-pattern:nth-child(2) {
+            top: 20px;
+            left: 10px;
+            width: 4px;
+            height: 4px;
+        }
+        
+        .wing-top-left .wing-pattern:nth-child(3),
+        .wing-top-right .wing-pattern:nth-child(3) {
+            top: 35px;
+            left: 8px;
+            width: 5px;
+            height: 5px;
+        }
+        
+        .wing-bottom-left .wing-pattern:nth-child(1),
+        .wing-bottom-right .wing-pattern:nth-child(1) {
+            top: 10px;
+            left: 5px;
+            width: 5px;
+            height: 5px;
+        }
+        
+        .wing-bottom-left .wing-pattern:nth-child(2),
+        .wing-bottom-right .wing-pattern:nth-child(2) {
+            top: 25px;
+            left: 8px;
+            width: 4px;
+            height: 4px;
+        }
+        
+        .wing-bottom-left .wing-pattern:nth-child(3),
+        .wing-bottom-right .wing-pattern:nth-child(3) {
+            top: 40px;
+            left: 12px;
+            width: 3px;
+            height: 3px;
+        }
+        
+        /* Animazioni delle ali */
+        @keyframes wing-flap-left {
+            0%, 100% { transform: translateY(-50%) scaleX(-1) rotate(-10deg); }
+            50% { transform: translateY(-50%) scaleX(-1) rotate(50deg); }
+        }
+        
+        @keyframes wing-flap-right {
+            0%, 100% { transform: translateY(-50%) rotate(10deg); }
+            50% { transform: translateY(-50%) rotate(-50deg); }
+        }
+        
+        /* Movimento generale della farfalla */
+        @keyframes butterfly-float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, calc(-50% - 20px)) rotate(-2deg); }
+            50% { transform: translate(-50%, -50%) rotate(0deg); }
+            75% { transform: translate(-50%, calc(-50% + 20px)) rotate(2deg); }
+            100% { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+        
+        @keyframes butterfly-drift {
+            0% { margin-left: -100px; margin-top: -50px; }
+            25% { margin-left: 50px; margin-top: -20px; }
+            50% { margin-left: 150px; margin-top: 30px; }
+            75% { margin-left: -50px; margin-top: 70px; }
+            100% { margin-left: -100px; margin-top: -50px; }
+        }
+        
+        /* Effetti di interazione */
+        .butterfly-container:hover .wing-top-left,
+        .butterfly-container:hover .wing-bottom-left {
+            animation-duration: 0.7s;
+        }
+        
+        .butterfly-container:hover .wing-top-right,
+        .butterfly-container:hover .wing-bottom-right {
+            animation-duration: 0.7s;
+        }
+        
+        /* Crediti */
+        .credits {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #fff;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sfondo cielo -->
+    <div class="sky"></div>
+    
+    <!-- Sole -->
+    <div class="sun"></div>
+    
+    <!-- Nuvole -->
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    
+    <!-- Terreno/Prato -->
+    <div class="ground"></div>
+    
+    <!-- Fiori -->
+    <div class="flowers-container">
+        <div class="flower flower-1">
+            <div class="flower-stem"></div>
+            <div class="flower-head">
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-center"></div>
+            </div>
+        </div>
+        
+        <div class="flower flower-2">
+            <div class="flower-stem"></div>
+            <div class="flower-head">
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-center"></div>
+            </div>
+        </div>
+        
+        <div class="flower flower-3">
+            <div class="flower-stem"></div>
+            <div class="flower-head">
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-petal"></div>
+                <div class="flower-center"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ciuffi d'erba -->
+    <div class="grass">
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+        <div class="grass-blade"></div>
+    </div>
+    
+    <!-- Farfalla -->
+    <div class="butterfly-container">
+        <div class="butterfly-body">
+            <div class="butterfly-head">
+                <div class="antenna antenna-left"></div>
+                <div class="antenna antenna-right"></div>
+            </div>
+        </div>
+        
+        <div class="wing wing-top-left">
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+        </div>
+        
+        <div class="wing wing-bottom-left">
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+        </div>
+        
+        <div class="wing wing-top-right">
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+        </div>
+        
+        <div class="wing wing-bottom-right">
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+            <div class="wing-pattern"></div>
+        </div>
+    </div>
+    
+    <!-- Crediti -->
+    <div class="credits">Farfalla CSS • Passa il mouse sulla farfalla</div>
+</body>
+</html>

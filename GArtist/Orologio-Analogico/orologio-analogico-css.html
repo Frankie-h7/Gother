@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orologio Analogico CSS</title>
+    <style>
+        /* Stili generali e reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            overflow: hidden;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        /* Contenitore dell'orologio con effetto 3D */
+        .clock-container {
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            max-width: 400px;
+            max-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+        
+        /* Cornice esterna dell'orologio con bordo legnoso arrotondato */
+        /* Cornice esterna dell'orologio */
+        .clock-frame {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+                        /* Stile Bordo Orologio */ /*
+                        border: 15px solid;
+                        border-color: #8B4513;
+                        border-image: linear-gradient(145deg, #A0522D, #8B4513, #CD853F, #A0522D) 1;
+                        border-radius: 50%; */
+                        /* Rimuovi il precedente bordo se presente */
+            box-shadow: 
+                0 0 15px rgba(0, 0, 0, 0.7),
+                inset 0 0 8px rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            z-index: 1;
+        }
+
+        /* Aggiungi un elemento prima della cornice per creare il bordo legnoso circolare */
+.clock-container::before {
+    content: '';
+    position: absolute;
+    width: 115%;
+    height: 115%;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+                #A0522D 0%, 
+                #8B4513 40%, 
+                #CD853F 70%, 
+                #A0522D 100%);
+    z-index: 0;
+}
+        
+        /* Quadrante dell'orologio */
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #f0f0f0, #dadada);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.2),
+                0 0 10px rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+        
+        /* Effetto vetro riflettente */
+        .clock-face::before {
+            content: '';
+            position: absolute;
+            width: 94%;
+            height: 94%;
+            top: 3%;
+            left: 3%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+            filter: blur(2px);
+            z-index: 3;
+            pointer-events: none;
+        }
+        
+        /* Centro dell'orologio */
+        .clock-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Numeri sul quadrante */
+        .number {
+            position: absolute;
+            font-size: 25px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+        }
+        
+        /* Posizionamento dei numeri */
+        .number:nth-child(1) { transform: rotate(30deg) translate(140px) rotate(-30deg); }
+        .number:nth-child(2) { transform: rotate(60deg) translate(140px) rotate(-60deg); }
+        .number:nth-child(3) { transform: rotate(90deg) translate(140px) rotate(-90deg); }
+        .number:nth-child(4) { transform: rotate(120deg) translate(140px) rotate(-120deg); }
+        .number:nth-child(5) { transform: rotate(150deg) translate(140px) rotate(-150deg); }
+        .number:nth-child(6) { transform: rotate(180deg) translate(140px) rotate(-180deg); }
+        .number:nth-child(7) { transform: rotate(210deg) translate(140px) rotate(-210deg); }
+        .number:nth-child(8) { transform: rotate(240deg) translate(140px) rotate(-240deg); }
+        .number:nth-child(9) { transform: rotate(270deg) translate(140px) rotate(-270deg); }
+        .number:nth-child(10) { transform: rotate(300deg) translate(140px) rotate(-300deg); }
+        .number:nth-child(11) { transform: rotate(330deg) translate(140px) rotate(-330deg); }
+        .number:nth-child(12) { transform: rotate(0deg) translate(140px) rotate(0deg); }
+        
+        /* Tacche orarie */
+        .tick {
+            position: absolute;
+            width: 4px;
+            height: 10px;
+            background: #333;
+            left: 50%;
+            margin-left: -1px;
+            transform-origin: 1px 40px;
+            margin-bottom: 65px;
+        }
+        
+        /* Le lancette dell'orologio */
+        .hand {
+            position: absolute;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            z-index: 5;
+        }
+        
+        /* Lancetta delle ore */
+        .hour-hand {
+            width: 8px;
+            height: 80px;
+            background: #333;
+            bottom: 50%;
+            left: calc(50% - 4px);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            /* Animazione rotazione della lancetta delle ore */
+            animation: rotate-hour 43200s linear infinite; /* 12 ore in secondi */
+        }
+        
+        /* Lancetta dei minuti */
+        .minute-hand {
+            width: 6px;
+            height: 120px;
+            background: #555;
+            bottom: 50%;
+            left: calc(50% - 3px);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            /* Animazione rotazione della lancetta dei minuti */
+            animation: rotate-minute 3600s linear infinite; /* 60 minuti in secondi */
+        }
+        
+        /* Lancetta dei secondi */
+        .second-hand {
+            width: 2px;
+            height: 140px;
+            background: #f00;
+            bottom: 50%;
+            left: calc(50% - 1px);
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+            /* Animazione rotazione della lancetta dei secondi */
+            animation: rotate-second 60s linear infinite; /* 60 secondi */
+        }
+        
+        /* Effetto luce dinamico */
+        .light-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+            z-index: 4;
+            pointer-events: none;
+            animation: light-movement 60s linear infinite;
+        }
+        
+        /* Animazione delle lancette */
+        @keyframes rotate-hour {
+            from { transform: rotate(0); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-minute {
+            from { transform: rotate(0); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-second {
+            from { transform: rotate(0); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Animazione effetto luce */
+        @keyframes light-movement {
+            0% { opacity: 0.7; }
+            25% { opacity: 0.9; }
+            50% { opacity: 0.7; }
+            75% { opacity: 0.8; }
+            100% { opacity: 0.7; }
+        }
+        
+        /* Media query per rendere l'orologio responsive */
+        @media (max-width: 600px) {
+            .clock-container {
+                width: 85vmin;
+                height: 85vmin;
+            }
+            
+            .number {
+                font-size: 20px;
+            }
+        }
+        
+        /* JavaScript per impostare l'ora corrente */
+        script {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="clock-frame"></div>
+        <div class="clock-face">
+            <!-- Numeri sul quadrante -->
+            <div class="number">1</div>
+            <div class="number">2</div>
+            <div class="number">3</div>
+            <div class="number">4</div>
+            <div class="number">5</div>
+            <div class="number">6</div>
+            <div class="number">7</div>
+            <div class="number">8</div>
+            <div class="number">9</div>
+            <div class="number">10</div>
+            <div class="number">11</div>
+            <div class="number">12</div>
+            
+            <!-- Tacche orarie (60 tacchette) -->
+            <div id="ticks-container"></div>
+            
+            <!-- Lancette dell'orologio -->
+            <div class="hand hour-hand" id="hour-hand"></div>
+            <div class="hand minute-hand" id="minute-hand"></div>
+            <div class="hand second-hand" id="second-hand"></div>
+            
+            <!-- Centro dell'orologio -->
+            <div class="clock-center"></div>
+            
+            <!-- Effetto luce dinamico -->
+            <div class="light-effect"></div>
+        </div>
+    </div>
+
+    <script>
+        // Funzione per creare le tacche orarie
+        function createTicks() {
+            const ticksContainer = document.createElement('div');
+            ticksContainer.className = 'ticks-container';
+            
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement('div');
+                tick.className = 'tick';
+                
+                // Stile diverso per le tacche principali (ore)
+                if (i % 5 === 0) {
+                    tick.style.height = '15px';
+                    tick.style.width = '4px';
+                    tick.style.background = '#222';
+                }
+                
+                // Calcolo la rotazione per posizionare le tacche
+                const degrees = i * 6; // 360 / 60 = 6 gradi per tacca
+                tick.style.transform = `rotate(${degrees}deg) translateY(-150px)`;
+                
+                document.querySelector('.clock-face').appendChild(tick);
+            }
+        }
+        
+        // Funzione per impostare l'ora corrente
+        function setInitialTime() {
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // Calcolo degli angoli iniziali
+            const secondAngle = (seconds / 60) * 360;
+            const minuteAngle = ((minutes + seconds / 60) / 60) * 360;
+            const hourAngle = ((hours + minutes / 60 + seconds / 3600) / 12) * 360;
+            
+            // Imposto le animazioni con il tempo corrente
+            const hourHand = document.getElementById('hour-hand');
+            const minuteHand = document.getElementById('minute-hand');
+            const secondHand = document.getElementById('second-hand');
+            
+            hourHand.style.animation = 'none';
+            minuteHand.style.animation = 'none';
+            secondHand.style.animation = 'none';
+            
+            // Forzo il reflow
+            void hourHand.offsetWidth;
+            void minuteHand.offsetWidth;
+            void secondHand.offsetWidth;
+            
+            // Imposto le trasformazioni iniziali
+            hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+            secondHand.style.transform = `rotate(${secondAngle}deg)`;
+            
+            // Riattivo le animazioni dal punto di partenza corretto
+            hourHand.style.animation = `rotate-hour 43200s linear infinite`;
+            hourHand.style.animationDelay = `-${(hours * 3600 + minutes * 60 + seconds)}s`;
+            
+            minuteHand.style.animation = `rotate-minute 3600s linear infinite`;
+            minuteHand.style.animationDelay = `-${(minutes * 60 + seconds)}s`;
+            
+            secondHand.style.animation = `rotate-second 60s linear infinite`;
+            secondHand.style.animationDelay = `-${seconds}s`;
+        }
+        
+        // Eseguo le funzioni quando il documento è caricato
+        document.addEventListener('DOMContentLoaded', function() {
+            createTicks();
+            setInitialTime();
+        });
+    </script>
+</body>
+</html>

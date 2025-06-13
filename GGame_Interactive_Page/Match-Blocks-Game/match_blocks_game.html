@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Blocks Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            color: #ecf0f1;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(243, 156, 18, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        /* Menu principale */
+        .menu-screen {
+            background: rgba(52, 73, 94, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(243, 156, 18, 0.3);
+        }
+
+        .menu-button {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+        }
+
+        .menu-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Selezione livello */
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .level-button {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+            color: #ecf0f1;
+            border: 2px solid #f39c12;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .level-button:hover {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            transform: scale(1.05);
+        }
+
+        .level-button.locked {
+            background: #7f8c8d;
+            color: #95a5a6;
+            border-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        /* Impostazioni */
+        .settings {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #34495e;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle.active {
+            background: #f39c12;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle.active::after {
+            transform: translateX(30px);
+        }
+
+        /* Schermata di gioco */
+        .game-screen {
+            display: none;
+        }
+
+        .game-ui {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat-item {
+            background: rgba(52, 73, 94, 0.8);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid #f39c12;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #bdc3c7;
+        }
+
+        /* Pulsante suggerimento */
+        .hint-button {
+            background: linear-gradient(45deg, #f1c40f, #f39c12);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .hint-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(241, 196, 15, 0.6);
+        }
+
+        .hint-button::before {
+            content: '💡';
+            font-size: 2rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .hint-counter {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Griglia di gioco */
+        .game-board {
+            background: rgba(52, 73, 94, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(243, 156, 18, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .grid.size-6 { grid-template-columns: repeat(6, 1fr); }
+        .grid.size-8 { grid-template-columns: repeat(8, 1fr); }
+        .grid.size-10 { grid-template-columns: repeat(10, 1fr); }
+
+        .block {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .block:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .block.selected {
+            border-color: #f39c12;
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+        }
+
+        .block.hint {
+            animation: pulse 1s infinite;
+            border-color: #e74c3c;
+        }
+
+        .block.color-0 { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        .block.color-1 { background: linear-gradient(45deg, #3498db, #2980b9); }
+        .block.color-2 { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+        .block.color-3 { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .block.color-4 { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+        .block.color-5 { background: linear-gradient(45deg, #1abc9c, #16a085); }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes sparkle {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+        }
+
+        .removing {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        .sparkle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f39c12;
+            font-size: 1.5rem;
+            animation: sparkle 0.8s ease-out forwards;
+            pointer-events: none;
+        }
+
+        /* Controlli di gioco */
+        .game-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-button {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+            color: #ecf0f1;
+            border: 2px solid #f39c12;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            transform: translateY(-2px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #f39c12;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h2 {
+            color: #f39c12;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #ecf0f1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+
+            .menu-screen {
+                padding: 20px;
+            }
+
+            .block {
+                width: 40px;
+                height: 40px;
+            }
+
+            .game-ui {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            .hint-button {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .block {
+                width: 35px;
+                height: 35px;
+            }
+
+            .level-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .game-screen.active {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">Match Blocks</h1>
+            <p class="subtitle">Collega i blocchi e raggiungi il punteggio più alto!</p>
+        </div>
+
+        <!-- Schermata Menu -->
+        <div id="menuScreen" class="menu-screen">
+            <h2 style="color: #f39c12; margin-bottom: 30px;">Seleziona Livello</h2>
+            
+            <div class="level-selector" id="levelSelector">
+                <!-- I livelli verranno generati dinamicamente -->
+            </div>
+
+            <h3 style="color: #bdc3c7; margin: 30px 0 20px;">Impostazioni</h3>
+            
+            <div class="settings">
+                <div class="setting-item">
+                    <span>Suoni:</span>
+                    <div class="toggle active" id="soundToggle"></div>
+                </div>
+                <div class="setting-item">
+                    <span>Animazioni:</span>
+                    <div class="toggle active" id="animationToggle"></div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button class="menu-button" onclick="showInstructions()">📖 Istruzioni</button>
+                <button class="menu-button" onclick="resetProgress()">🔄 Reset Progresso</button>
+            </div>
+        </div>
+
+        <!-- Schermata di Gioco -->
+        <div id="gameScreen" class="game-screen">
+            <div class="game-ui">
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="scoreValue">0</div>
+                        <div class="stat-label">Punteggio</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="levelValue">1</div>
+                        <div class="stat-label">Livello</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="movesValue">30</div>
+                        <div class="stat-label">Mosse</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="targetValue">100</div>
+                        <div class="stat-label">Obiettivo</div>
+                    </div>
+                </div>
+
+                <button class="hint-button" id="hintButton" onclick="showHint()">
+                    <div class="hint-counter" id="hintCounter">3</div>
+                </button>
+            </div>
+
+            <div class="game-board">
+                <div class="grid" id="gameGrid">
+                    <!-- I blocchi verranno generati dinamicamente -->
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button class="control-button" onclick="pauseGame()">⏸️ Pausa</button>
+                <button class="control-button" onclick="backToMenu()">🏠 Menu</button>
+                <button class="control-button" onclick="restartLevel()">🔄 Riavvia</button>
+            </div>
+        </div>
+
+        <!-- Modal per messaggi -->
+        <div id="gameModal" class="modal">
+            <div class="modal-content">
+                <h2 id="modalTitle">Titolo</h2>
+                <p id="modalMessage">Messaggio</p>
+                <button class="menu-button" id="modalButton" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurazione del gioco
+        const GAME_CONFIG = {
+            colors: 6,
+            minMatch: 3,
+            levels: [
+                { size: 6, moves: 30, target: 100, colors: 4 },
+                { size: 6, moves: 25, target: 150, colors: 5 },
+                { size: 8, moves: 35, target: 200, colors: 5 },
+                { size: 8, moves: 30, target: 250, colors: 6 },
+                { size: 8, moves: 25, target: 300, colors: 6 },
+                { size: 10, moves: 40, target: 400, colors: 6 },
+                { size: 10, moves: 35, target: 500, colors: 6 },
+                { size: 10, moves: 30, target: 600, colors: 6 }
+            ]
+        };
+
+        // Stato del gioco
+        let gameState = {
+            currentLevel: 1,
+            unlockedLevels: 1,
+            score: 0,
+            moves: 0,
+            maxMoves: 0,
+            target: 0,
+            grid: [],
+            gridSize: 6,
+            colors: 4,
+            selectedBlock: null,
+            hints: 3,
+            soundEnabled: true,
+            animationsEnabled: true,
+            gameActive: false
+        };
+
+        // Inizializzazione del gioco
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGameData();
+            initializeMenu();
+            setupEventListeners();
+        });
+
+        // Configurazione degli event listeners
+        function setupEventListeners() {
+            // Toggle impostazioni
+            document.getElementById('soundToggle').addEventListener('click', function() {
+                gameState.soundEnabled = !gameState.soundEnabled;
+                this.classList.toggle('active');
+                saveGameData();
+            });
+
+            document.getElementById('animationToggle').addEventListener('click', function() {
+                gameState.animationsEnabled = !gameState.animationsEnabled;
+                this.classList.toggle('active');
+                saveGameData();
+            });
+        }
+
+        // Inizializzazione del menu
+        function initializeMenu() {
+            const levelSelector = document.getElementById('levelSelector');
+            levelSelector.innerHTML = '';
+
+            for (let i = 1; i <= GAME_CONFIG.levels.length; i++) {
+                const button = document.createElement('button');
+                button.className = `level-button ${i > gameState.unlockedLevels ? 'locked' : ''}`;
+                button.textContent = i;
+                button.onclick = () => i <= gameState.unlockedLevels ? startLevel(i) : null;
+                levelSelector.appendChild(button);
+            }
+
+            // Aggiorna toggle impostazioni
+            document.getElementById('soundToggle').classList.toggle('active', gameState.soundEnabled);
+            document.getElementById('animationToggle').classList.toggle('active', gameState.animationsEnabled);
+        }
+
+        // Avvio del livello
+        function startLevel(level) {
+            gameState.currentLevel = level;
+            const levelConfig = GAME_CONFIG.levels[level - 1];
+            
+            gameState.score = 0;
+            gameState.moves = 0;
+            gameState.maxMoves = levelConfig.moves;
+            gameState.target = levelConfig.target;
+            gameState.gridSize = levelConfig.size;
+            gameState.colors = levelConfig.colors;
+            gameState.hints = 3;
+            gameState.gameActive = true;
+
+            // Nascondi menu e mostra gioco
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('gameScreen').classList.remove('hidden');
+
+            // Inizializza UI
+            updateUI();
+            
+            // Genera griglia con un piccolo delay per assicurare il rendering
+            setTimeout(() => {
+                generateGrid();
+            }, 100);
+            
+            playSound('levelStart');
+        }
+
+        // Generazione della griglia
+        function generateGrid() {
+            const grid = document.getElementById('gameGrid');
+            if (!grid) {
+                console.error('Elemento gameGrid non trovato!');
+                return;
+            }
+            
+            grid.innerHTML = '';
+            grid.className = `grid size-${gameState.gridSize}`;
+
+            gameState.grid = [];
+
+            console.log(`Generando griglia ${gameState.gridSize}x${gameState.gridSize} con ${gameState.colors} colori`);
+
+            for (let row = 0; row < gameState.gridSize; row++) {
+                gameState.grid[row] = [];
+                for (let col = 0; col < gameState.gridSize; col++) {
+                    const color = Math.floor(Math.random() * gameState.colors);
+                    gameState.grid[row][col] = color;
+
+                    const block = document.createElement('div');
+                    block.className = `block color-${color}`;
+                    block.dataset.row = row;
+                    block.dataset.col = col;
+                    block.addEventListener('click', () => selectBlock(row, col));
+                    
+                    grid.appendChild(block);
+                }
+            }
+
+            // Rimuovi match iniziali casuali
+            removeInitialMatches();
+            
+            console.log('Griglia generata con successo!');
+        }
+
+        // Rimozione match iniziali
+        function removeInitialMatches() {
+            let hasMatches = true;
+            let attempts = 0;
+            const maxAttempts = 50;
+
+            while (hasMatches && attempts < maxAttempts) {
+                hasMatches = false;
+                attempts++;
+
+                for (let row = 0; row < gameState.gridSize; row++) {
+                    for (let col = 0; col < gameState.gridSize; col++) {
+                        if (checkMatches(row, col).length >= GAME_CONFIG.minMatch) {
+                            gameState.grid[row][col] = Math.floor(Math.random() * gameState.colors);
+                            hasMatches = true;
+                        }
+                    }
+                }
+            }
+
+            updateGridDisplay();
+        }
+
+        // Selezione del blocco
+        function selectBlock(row, col) {
+            if (!gameState.gameActive) return;
+
+            const clickedBlock = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            
+            if (gameState.selectedBlock) {
+                const prevRow = parseInt(gameState.selectedBlock.dataset.row);
+                const prevCol = parseInt(gameState.selectedBlock.dataset.col);
+
+                // Deseleziona il blocco precedente
+                gameState.selectedBlock.classList.remove('selected');
+
+                if (prevRow === row && prevCol === col) {
+                    // Clic sullo stesso blocco - deseleziona
+                    gameState.selectedBlock = null;
+                    return;
+                }
+
+                // Controlla se i blocchi sono adiacenti
+                if (areAdjacent(prevRow, prevCol, row, col)) {
+                    // Scambia i blocchi
+                    swapBlocks(prevRow, prevCol, row, col);
+                    gameState.selectedBlock = null;
+                } else {
+                    // Seleziona il nuovo blocco
+                    gameState.selectedBlock = clickedBlock;
+                    clickedBlock.classList.add('selected');
+                }
+            } else {
+                // Prima selezione
+                gameState.selectedBlock = clickedBlock;
+                clickedBlock.classList.add('selected');
+            }
+
+            playSound('select');
+        }
+
+        // Controllo adiacenza
+        function areAdjacent(row1, col1, row2, col2) {
+            const rowDiff = Math.abs(row1 - row2);
+            const colDiff = Math.abs(col1 - col2);
+            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+        }
+
+        // Scambio dei blocchi
+        function swapBlocks(row1, col1, row2, col2) {
+            // Scambia i valori nella griglia
+            const temp = gameState.grid[row1][col1];
+            gameState.grid[row1][col1] = gameState.grid[row2][col2];
+            gameState.grid[row2][col2] = temp;
+
+            // Aggiorna display
+            updateGridDisplay();
+
+            // Controlla i match dopo lo scambio
+            const matches1 = checkMatches(row1, col1);
+            const matches2 = checkMatches(row2, col2);
+            const allMatches = [...matches1, ...matches2];
+
+            if (allMatches.length > 0) {
+                // Mossa valida
+                gameState.moves++;
+                updateUI();
+                
+                setTimeout(async () => {
+                    await processMatches();
+                }, 300);
+                
+                playSound('match');
+            } else {
+                // Mossa non valida - annulla lo scambio
+                setTimeout(() => {
+                    const tempUndo = gameState.grid[row1][col1];
+                    gameState.grid[row1][col1] = gameState.grid[row2][col2];
+                    gameState.grid[row2][col2] = tempUndo;
+                    updateGridDisplay();
+                }, 200);
+                
+                playSound('invalid');
+            }
+        }
+
+        // Controllo dei match
+        function checkMatches(row, col) {
+            const color = gameState.grid[row][col];
+            const matches = [{row, col}];
+
+            // Controllo orizzontale (sinistra)
+            for (let c = col - 1; c >= 0 && gameState.grid[row][c] === color; c--) {
+                matches.unshift({row, col: c});
+            }
+
+            // Controllo orizzontale (destra)
+            for (let c = col + 1; c < gameState.gridSize && gameState.grid[row][c] === color; c++) {
+                matches.push({row, col: c});
+            }
+
+            // Se match orizzontale sufficiente, ritorna
+            if (matches.length >= GAME_CONFIG.minMatch) {
+                return matches;
+            }
+
+            // Reset per controllo verticale
+            matches.length = 1;
+            matches[0] = {row, col};
+
+            // Controllo verticale (su)
+            for (let r = row - 1; r >= 0 && gameState.grid[r][col] === color; r--) {
+                matches.unshift({row: r, col});
+            }
+
+            // Controllo verticale (giù)
+            for (let r = row + 1; r < gameState.gridSize && gameState.grid[r][col] === color; r++) {
+                matches.push({row: r, col});
+            }
+
+            return matches.length >= GAME_CONFIG.minMatch ? matches : [];
+        }
+
+        // Elaborazione dei match
+        async function processMatches() {
+            let totalMatches = [];
+            let hasNewMatches = true;
+
+            while (hasNewMatches) {
+                hasNewMatches = false;
+                let currentMatches = [];
+
+                // Trova tutti i match attuali
+                for (let row = 0; row < gameState.gridSize; row++) {
+                    for (let col = 0; col < gameState.gridSize; col++) {
+                        const matches = checkMatches(row, col);
+                        if (matches.length >= GAME_CONFIG.minMatch) {
+                            currentMatches.push(...matches);
+                            hasNewMatches = true;
+                        }
+                    }
+                }
+
+                if (currentMatches.length > 0) {
+                    // Rimuovi duplicati
+                    const uniqueMatches = currentMatches.filter((match, index, array) => 
+                        array.findIndex(m => m.row === match.row && m.col === match.col) === index
+                    );
+
+                    totalMatches.push(...uniqueMatches);
+                    
+                    // Anima rimozione
+                    animateMatches(uniqueMatches);
+                    
+                    // Rimuovi i blocchi matchati
+                    uniqueMatches.forEach(match => {
+                        gameState.grid[match.row][match.col] = -1; // Marcatore per blocco vuoto
+                    });
+
+                    // Calcola punteggio
+                    const matchScore = uniqueMatches.length * 10 * gameState.currentLevel;
+                    gameState.score += matchScore;
+
+                    // Fai cadere i blocchi
+                    await dropBlocks();
+                    
+                    // Riempi gli spazi vuoti
+                    fillEmptySpaces();
+                    
+                    updateGridDisplay();
+                    updateUI();
+                }
+            }
+
+            // Controlla vittoria/sconfitta
+            checkGameEnd();
+        }
+
+        // Animazione dei match
+        function animateMatches(matches) {
+            if (!gameState.animationsEnabled) return;
+
+            matches.forEach((match, index) => {
+                setTimeout(() => {
+                    const block = document.querySelector(`[data-row="${match.row}"][data-col="${match.col}"]`);
+                    if (block) {
+                        block.classList.add('removing');
+                        
+                        // Aggiungi effetto scintilla
+                        const sparkle = document.createElement('div');
+                        sparkle.className = 'sparkle';
+                        sparkle.textContent = '✨';
+                        block.appendChild(sparkle);
+
+                        setTimeout(() => sparkle.remove(), 800);
+                    }
+                }, index * 100);
+            });
+        }
+
+        // Caduta dei blocchi
+        async function dropBlocks() {
+            for (let col = 0; col < gameState.gridSize; col++) {
+                let writePos = gameState.gridSize - 1;
+                
+                for (let row = gameState.gridSize - 1; row >= 0; row--) {
+                    if (gameState.grid[row][col] !== -1) {
+                        if (row !== writePos) {
+                            gameState.grid[writePos][col] = gameState.grid[row][col];
+                            gameState.grid[row][col] = -1;
+                        }
+                        writePos--;
+                    }
+                }
+            }
+        }
+
+        // Riempimento spazi vuoti
+        function fillEmptySpaces() {
+            for (let row = 0; row < gameState.gridSize; row++) {
+                for (let col = 0; col < gameState.gridSize; col++) {
+                    if (gameState.grid[row][col] === -1) {
+                        gameState.grid[row][col] = Math.floor(Math.random() * gameState.colors);
+                    }
+                }
+            }
+        }
+
+        // Aggiornamento display griglia
+        function updateGridDisplay() {
+            const blocks = document.querySelectorAll('.block');
+            blocks.forEach(block => {
+                const row = parseInt(block.dataset.row);
+                const col = parseInt(block.dataset.col);
+                const color = gameState.grid[row][col];
+                
+                if (color !== -1) {
+                    block.className = `block color-${color}`;
+                }
+            });
+        }
+
+        // Aggiornamento UI
+        function updateUI() {
+            document.getElementById('scoreValue').textContent = gameState.score;
+            document.getElementById('levelValue').textContent = gameState.currentLevel;
+            document.getElementById('movesValue').textContent = gameState.maxMoves - gameState.moves;
+            document.getElementById('targetValue').textContent = gameState.target;
+            document.getElementById('hintCounter').textContent = gameState.hints;
+        }
+
+        // Sistema di suggerimenti
+        function showHint() {
+            if (gameState.hints <= 0 || !gameState.gameActive) return;
+
+            gameState.hints--;
+            updateUI();
+
+            // Rimuovi suggerimenti precedenti
+            document.querySelectorAll('.block.hint').forEach(block => {
+                block.classList.remove('hint');
+            });
+
+            // Trova una mossa possibile
+            const possibleMove = findPossibleMove();
+            
+            if (possibleMove) {
+                const {row1, col1, row2, col2} = possibleMove;
+                const block1 = document.querySelector(`[data-row="${row1}"][data-col="${col1}"]`);
+                const block2 = document.querySelector(`[data-row="${row2}"][data-col="${col2}"]`);
+                
+                if (block1 && block2) {
+                    block1.classList.add('hint');
+                    block2.classList.add('hint');
+                    
+                    setTimeout(() => {
+                        block1.classList.remove('hint');
+                        block2.classList.remove('hint');
+                    }, 3000);
+                }
+                
+                playSound('hint');
+            }
+        }
+
+        // Ricerca mossa possibile
+        function findPossibleMove() {
+            for (let row = 0; row < gameState.gridSize; row++) {
+                for (let col = 0; col < gameState.gridSize; col++) {
+                    // Controlla tutte le direzioni adiacenti
+                    const directions = [
+                        {dr: 0, dc: 1}, {dr: 0, dc: -1},
+                        {dr: 1, dc: 0}, {dr: -1, dc: 0}
+                    ];
+
+                    for (const dir of directions) {
+                        const newRow = row + dir.dr;
+                        const newCol = col + dir.dc;
+
+                        if (newRow >= 0 && newRow < gameState.gridSize && 
+                            newCol >= 0 && newCol < gameState.gridSize) {
+                            
+                            // Simula lo scambio
+                            const temp = gameState.grid[row][col];
+                            gameState.grid[row][col] = gameState.grid[newRow][newCol];
+                            gameState.grid[newRow][newCol] = temp;
+
+                            // Controlla se crea match
+                            const matches1 = checkMatches(row, col);
+                            const matches2 = checkMatches(newRow, newCol);
+
+                            // Annulla lo scambio
+                            gameState.grid[newRow][newCol] = gameState.grid[row][col];
+                            gameState.grid[row][col] = temp;
+
+                            if (matches1.length >= GAME_CONFIG.minMatch || matches2.length >= GAME_CONFIG.minMatch) {
+                                return {row1: row, col1: col, row2: newRow, col2: newCol};
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Controllo fine gioco
+        function checkGameEnd() {
+            if (gameState.score >= gameState.target) {
+                // Vittoria
+                gameState.gameActive = false;
+                
+                if (gameState.currentLevel === gameState.unlockedLevels && gameState.currentLevel < GAME_CONFIG.levels.length) {
+                    gameState.unlockedLevels++;
+                    saveGameData();
+                }
+                
+                setTimeout(() => {
+                    showModal('🎉 Livello Completato!', 
+                             `Congratulazioni! Hai completato il livello ${gameState.currentLevel} con ${gameState.score} punti!`, 
+                             'Continua', () => {
+                                 closeModal();
+                                 if (gameState.currentLevel < GAME_CONFIG.levels.length) {
+                                     startLevel(gameState.currentLevel + 1);
+                                 } else {
+                                     backToMenu();
+                                 }
+                             });
+                }, 1000);
+                
+                playSound('victory');
+                
+            } else if (gameState.moves >= gameState.maxMoves) {
+                // Sconfitta
+                gameState.gameActive = false;
+                
+                setTimeout(() => {
+                    showModal('😔 Mosse Esaurite', 
+                             `Hai esaurito le mosse! Hai ottenuto ${gameState.score} punti su ${gameState.target} necessari.`, 
+                             'Riprova', () => {
+                                 closeModal();
+                                 restartLevel();
+                             });
+                }, 500);
+                
+                playSound('gameOver');
+            }
+        }
+
+        // Controlli di gioco
+        function pauseGame() {
+            gameState.gameActive = !gameState.gameActive;
+            const button = event.target;
+            button.textContent = gameState.gameActive ? '⏸️ Pausa' : '▶️ Riprendi';
+        }
+
+        function backToMenu() {
+            gameState.gameActive = false;
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'block';
+        }
+
+        function restartLevel() {
+            startLevel(gameState.currentLevel);
+        }
+
+        // Sistema modale
+        function showModal(title, message, buttonText, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalButton').textContent = buttonText;
+            document.getElementById('modalButton').onclick = callback || closeModal;
+            document.getElementById('gameModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').style.display = 'none';
+        }
+
+        // Istruzioni del gioco
+        function showInstructions() {
+            showModal('📖 Come Giocare', 
+                     '1. Clicca su un blocco per selezionarlo\n2. Clicca su un blocco adiacente per scambiarlo\n3. Crea linee di 3+ blocchi dello stesso colore\n4. Raggiungi il punteggio obiettivo entro le mosse disponibili\n5. Usa il pulsante lampadina per suggerimenti (limitati)', 
+                     'Inizia a Giocare!');
+        }
+
+        // Reset progresso
+        function resetProgress() {
+            if (confirm('Sei sicuro di voler resettare tutto il progresso? Questa azione non può essere annullata.')) {
+                gameState.unlockedLevels = 1;
+                gameState.currentLevel = 1;
+                saveGameData();
+                initializeMenu();
+            }
+        }
+
+        // Sistema audio
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+
+            // Crea un contesto audio per generare suoni procedurali
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            let frequency, duration, type_wave = 'sine';
+            
+            switch(type) {
+                case 'select':
+                    frequency = 800;
+                    duration = 0.1;
+                    break;
+                case 'match':
+                    frequency = 1200;
+                    duration = 0.3;
+                    type_wave = 'square';
+                    break;
+                case 'invalid':
+                    frequency = 200;
+                    duration = 0.2;
+                    type_wave = 'sawtooth';
+                    break;
+                case 'hint':
+                    frequency = 1000;
+                    duration = 0.2;
+                    break;
+                case 'victory':
+                    // Suono di vittoria più complesso
+                    playVictorySound(audioContext);
+                    return;
+                case 'gameOver':
+                    frequency = 150;
+                    duration = 0.5;
+                    type_wave = 'sawtooth';
+                    break;
+                case 'levelStart':
+                    frequency = 600;
+                    duration = 0.3;
+                    break;
+                default:
+                    return;
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = type_wave;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Suono vittoria complesso
+        function playVictorySound(audioContext) {
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            
+            notes.forEach((freq, index) => {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                    oscillator.type = 'triangle';
+                    
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }, index * 200);
+            });
+        }
+
+        // Salvataggio/Caricamento dati
+        function saveGameData() {
+            const saveData = {
+                unlockedLevels: gameState.unlockedLevels,
+                soundEnabled: gameState.soundEnabled,
+                animationsEnabled: gameState.animationsEnabled
+            };
+            // Simulazione del salvataggio (senza localStorage)
+            window.gameData = saveData;
+        }
+
+        function loadGameData() {
+            // Simulazione del caricamento (senza localStorage)
+            if (window.gameData) {
+                const saveData = window.gameData;
+                gameState.unlockedLevels = saveData.unlockedLevels || 1;
+                gameState.soundEnabled = saveData.soundEnabled !== false;
+                gameState.animationsEnabled = saveData.animationsEnabled !== false;
+            }
+        }
+
+        // Gestione eventi keyboard per accessibilità
+        document.addEventListener('keydown', function(event) {
+            if (!gameState.gameActive) return;
+
+            switch(event.key) {
+                case 'h':
+                case 'H':
+                    event.preventDefault();
+                    showHint();
+                    break;
+                case 'p':
+                case 'P':
+                    event.preventDefault();
+                    pauseGame();
+                    break;
+                case 'r':
+                case 'R':
+                    event.preventDefault();
+                    restartLevel();
+                    break;
+                case 'Escape':
+                    event.preventDefault();
+                    backToMenu();
+                    break;
+            }
+        });
+
+        // Gestione touch per dispositivi mobili
+        let touchStartX, touchStartY;
+
+        document.addEventListener('touchstart', function(event) {
+            if (event.target.classList.contains('block')) {
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+            }
+        });
+
+        document.addEventListener('touchend', function(event) {
+            if (!touchStartX || !touchStartY) return;
+            
+            const touchEndX = event.changedTouches[0].clientX;
+            const touchEndY = event.changedTouches[0].clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            const minSwipeDistance = 50;
+            
+            if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+                // Gestione swipe per selezione rapida
+                const startBlock = document.elementFromPoint(touchStartX, touchStartY);
+                if (startBlock && startBlock.classList.contains('block')) {
+                    const row = parseInt(startBlock.dataset.row);
+                    const col = parseInt(startBlock.dataset.col);
+                    
+                    let targetRow = row;
+                    let targetCol = col;
+                    
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        // Swipe orizzontale
+                        targetCol += deltaX > 0 ? 1 : -1;
+                    } else {
+                        // Swipe verticale
+                        targetRow += deltaY > 0 ? 1 : -1;
+                    }
+                    
+                    if (targetRow >= 0 && targetRow < gameState.gridSize && 
+                        targetCol >= 0 && targetCol < gameState.gridSize) {
+                        
+                        if (gameState.selectedBlock) {
+                            gameState.selectedBlock.classList.remove('selected');
+                        }
+                        
+                        selectBlock(row, col);
+                        setTimeout(() => selectBlock(targetRow, targetCol), 100);
+                    }
+                }
+            }
+            
+            touchStartX = null;
+            touchStartY = null;
+        });
+
+        // Prevenzione del comportamento di default per touch
+        document.addEventListener('touchmove', function(event) {
+            if (event.target.closest('.game-board')) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        // Inizializzazione automatica per demo
+        setTimeout(() => {
+            console.log('🎮 Match Blocks Game inizializzato!');
+            console.log('Comandi tastiera disponibili:');
+            console.log('H - Suggerimento | P - Pausa | R - Riavvia | ESC - Menu');
+        }, 1000);
+    </script>
+</body>
+</html>

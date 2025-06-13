@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Professionale</title>
+    <style>
+        /* CSS Reset e variabili globali */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #1a1a1a;
+            --secondary-bg: #2d2d2d;
+            --accent-color: #d4af37;
+            --text-light: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #444444;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg), #0f0f0f);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Container principale */
+        .game-container {
+            display: grid;
+            grid-template-areas: 
+                "header header"
+                "board sidebar"
+                "controls controls";
+            grid-template-columns: 1fr 300px;
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Header del gioco */
+        .game-header {
+            grid-area: header;
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent-color);
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .current-player {
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        /* Tabellone di gioco */
+        .board-container {
+            grid-area: board;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            grid-template-rows: repeat(11, 1fr);
+            width: min(80vh, 80vw);
+            height: min(80vh, 80vw);
+            background: var(--secondary-bg);
+            border: 3px solid var(--accent-color);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Caselle del tabellone */
+        .cell {
+            border: 1px solid var(--border-color);
+            background: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            font-size: 0.7rem;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cell:hover {
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Tipi di caselle */
+        .corner {
+            font-size: 0.6rem;
+            font-weight: bold;
+        }
+
+        .property {
+            background: linear-gradient(to bottom, var(--accent-color) 0%, var(--accent-color) 20%, var(--primary-bg) 20%);
+        }
+
+        .railroad {
+            background: var(--secondary-bg);
+            color: var(--accent-color);
+        }
+
+        .utility {
+            background: #333;
+            color: var(--warning-color);
+        }
+
+        .tax {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .chance, .community-chest {
+            background: var(--warning-color);
+            color: var(--primary-bg);
+        }
+
+        /* Giocatori sulla casella */
+        .players {
+            position: absolute;
+            bottom: 2px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .player-token {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid white;
+            animation: pulse 2s infinite;
+        }
+
+        .player-1 { background: #ff4444; }
+        .player-2 { background: #4444ff; }
+        .player-3 { background: #44ff44; }
+        .player-4 { background: #ffff44; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Proprietà con case/alberghi */
+        .houses {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: flex;
+            gap: 1px;
+        }
+
+        .house {
+            width: 4px;
+            height: 4px;
+            background: var(--success-color);
+            border-radius: 1px;
+        }
+
+        .hotel {
+            width: 6px;
+            height: 6px;
+            background: var(--danger-color);
+            border-radius: 1px;
+        }
+
+        /* Sidebar del gioco */
+        .game-sidebar {
+            grid-area: sidebar;
+            background: var(--secondary-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid var(--accent-color);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--primary-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sidebar-title {
+            color: var(--accent-color);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* Informazioni giocatore */
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: var(--secondary-bg);
+            border-radius: 5px;
+        }
+
+        .player-name {
+            font-weight: bold;
+        }
+
+        .player-money {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* Controlli del gioco */
+        .game-controls {
+            grid-area: controls;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background: var(--secondary-bg);
+            border-radius: 10px;
+            border: 2px solid var(--accent-color);
+            flex-wrap: wrap;
+        }
+
+        /* Dadi */
+        .dice-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .dice {
+            width: 60px;
+            height: 60px;
+            background: white;
+            color: black;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .dice.rolling {
+            animation: roll 1s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        /* Pulsanti */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .btn-primary:hover {
+            background: #b8941f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-bg);
+            color: var(--text-light);
+            border: 2px solid var(--accent-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal e popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--secondary-bg);
+            border: 3px solid var(--accent-color);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-areas: 
+                    "header"
+                    "board"
+                    "sidebar"
+                    "controls";
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+            }
+
+            .board {
+                width: 95vw;
+                height: 95vw;
+            }
+
+            .cell {
+                font-size: 0.5rem;
+            }
+
+            .game-title {
+                font-size: 1.8rem;
+            }
+
+            .game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Animazioni aggiuntive */
+        .cell-highlight {
+            animation: highlight 1s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0%, 100% { background: var(--primary-bg); }
+            50% { background: var(--accent-color); }
+        }
+
+        .money-change {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            font-weight: bold;
+            animation: moneyFloat 2s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes moneyFloat {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+
+        .property-owned {
+            border: 2px solid var(--success-color);
+        }
+
+        .property-mortgaged {
+            opacity: 0.6;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--primary-bg),
+                var(--primary-bg) 10px,
+                var(--danger-color) 10px,
+                var(--danger-color) 20px
+            );
+        }
+    </style>
+</head>
+<body>
+    <!-- Container principale del gioco -->
+    <div class="game-container">
+        <!-- Header del gioco -->
+        <div class="game-header">
+            <h1 class="game-title">MONOPOLY</h1>
+            <div class="current-player" id="currentPlayer">Turno: Giocatore 1</div>
+        </div>
+
+        <!-- Tabellone di gioco -->
+        <div class="board-container">
+            <div class="board" id="gameBoard"></div>
+        </div>
+
+        <!-- Sidebar informazioni -->
+        <div class="game-sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Informazioni Giocatori</div>
+                <div id="playersInfo"></div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Proprietà Attuali</div>
+                <div id="currentProperties"></div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Cronometro</div>
+                <div id="gameTimer">00:00</div>
+            </div>
+        </div>
+
+        <!-- Controlli del gioco -->
+        <div class="game-controls">
+            <div class="dice-container">
+                <div class="dice" id="dice1">1</div>
+                <div class="dice" id="dice2">1</div>
+            </div>
+            <button class="btn btn-primary" id="rollDiceBtn">Lancia Dadi</button>
+            <!-- Per completare l'implementazione, aggiungi questi pulsanti alla sezione game-controls nell'HTML: -->
+            <button class="btn btn-secondary" id="newGameBtn">Nuova Partita</button>
+            <button class="btn btn-secondary" id="addAIBtn">Aggiungi AI</button>
+            <!-- Resto dei Pulsanti -->
+            <button class="btn btn-secondary" id="buyPropertyBtn" disabled>Acquista Proprietà</button>
+            <button class="btn btn-secondary" id="buildHouseBtn" disabled>Costruisci Casa</button>
+            <button class="btn btn-secondary" id="mortgageBtn" disabled>Ipoteca</button>
+            <button class="btn btn-secondary" id="endTurnBtn" disabled>Fine Turno</button>
+        </div>
+    </div>
+
+    <!-- Modal per conferme e informazioni -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle"></div>
+            <div id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="modalConfirm">Conferma</button>
+                <button class="btn btn-secondary" id="modalCancel">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Classe principale del gioco Monopoly
+        class MonopolyGame {
+            constructor() {
+                        // Inizializzazione delle proprietà del gioco
+        this.players = [];
+        // ... resto del codice di inizializzazione ...
+                // Posiziona i giocatori sulla casella di partenza
+                this.updatePlayerPositions();
+            }
+
+            // Aggiornamento posizioni giocatori sul tabellone
+            updatePlayerPositions() {
+                // Rimuovi tutti i token esistenti
+                document.querySelectorAll('.player-token').forEach(token => token.remove());
+                
+                // Aggiungi i token dei giocatori alle caselle correnti
+                this.players.forEach(player => {
+                    const cell = this.getCellByIndex(player.position);
+                    if (cell) {
+                        const playersDiv = cell.querySelector('.players');
+                        const token = document.createElement('div');
+                        token.className = `player-token player-${player.id}`;
+                        playersDiv.appendChild(token);
+                    }
+                });
+            }
+
+            // Ottieni casella per indice
+            getCellByIndex(index) {
+                return document.querySelector(`[data-cell-index="${index}"]`);
+            }
+
+            // Binding degli eventi
+            bindEvents() {
+                document.getElementById('rollDiceBtn').addEventListener('click', () => this.rollDice());
+                document.getElementById('buyPropertyBtn').addEventListener('click', () => this.buyProperty());
+                document.getElementById('buildHouseBtn').addEventListener('click', () => this.buildHouse());
+                document.getElementById('mortgageBtn').addEventListener('click', () => this.mortgageProperty());
+                document.getElementById('endTurnBtn').addEventListener('click', () => this.endTurn());
+                
+                // Eventi modal
+                document.getElementById('modalConfirm').addEventListener('click', () => this.handleModalConfirm());
+                document.getElementById('modalCancel').addEventListener('click', () => this.hideModal());
+            }
+
+            // Lancio dei dadi
+            rollDice() {
+                if (this.diceRolled) return;
+                
+                const dice1 = document.getElementById('dice1');
+                const dice2 = document.getElementById('dice2');
+                const rollBtn = document.getElementById('rollDiceBtn');
+                
+                // Animazione lancio
+                dice1.classList.add('rolling');
+                dice2.classList.add('rolling');
+                rollBtn.disabled = true;
+                
+                // Suono del lancio (simulato con console.log)
+                console.log('🎲 Suono: Lancio dadi');
+                
+                setTimeout(() => {
+                    const value1 = Math.floor(Math.random() * 6) + 1;
+                    const value2 = Math.floor(Math.random() * 6) + 1;
+                    
+                    dice1.textContent = value1;
+                    dice2.textContent = value2;
+                    dice1.classList.remove('rolling');
+                    dice2.classList.remove('rolling');
+                    
+                    const total = value1 + value2;
+                    const currentPlayer = this.players[this.currentPlayerIndex];
+                    
+                    // Controlla se il giocatore è in prigione
+                    if (currentPlayer.inJail) {
+                        this.handleJailRoll(value1, value2);
+                    } else {
+                        this.movePlayer(total);
+                    }
+                    
+                    this.diceRolled = true;
+                    document.getElementById('endTurnBtn').disabled = false;
+                }, 1000);
+            }
+
+            // Gestione lancio in prigione
+            handleJailRoll(dice1, dice2) {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                
+                if (dice1 === dice2) {
+                    // Doppio - esce di prigione
+                    currentPlayer.inJail = false;
+                    currentPlayer.jailTurns = 0;
+                    this.movePlayer(dice1 + dice2);
+                    this.showMessage('Hai fatto doppio! Esci di prigione e muovi.');
+                } else {
+                    currentPlayer.jailTurns++;
+                    if (currentPlayer.jailTurns >= 3) {
+                        // Deve pagare per uscire
+                        if (currentPlayer.money >= 50) {
+                            currentPlayer.money -= 50;
+                            currentPlayer.inJail = false;
+                            currentPlayer.jailTurns = 0;
+                            this.movePlayer(dice1 + dice2);
+                            this.showMessage('Hai pagato €50 per uscire di prigione.');
+                        } else {
+                            this.showMessage('Non hai abbastanza soldi per uscire di prigione!');
+                        }
+                    } else {
+                        this.showMessage(`Rimani in prigione. Turni rimanenti: ${3 - currentPlayer.jailTurns}`);
+                    }
+                }
+            }
+
+            // Movimento del giocatore
+            movePlayer(spaces) {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const oldPosition = currentPlayer.position;
+                
+                // Calcola nuova posizione
+                currentPlayer.position = (currentPlayer.position + spaces) % this.boardCells.length;
+                
+                // Controlla se ha passato il VIA
+                if (currentPlayer.position < oldPosition || (oldPosition + spaces >= this.boardCells.length)) {
+                    currentPlayer.money += 200;
+                    this.showMoneyChange(currentPlayer, 200);
+                    console.log('💰 Suono: Passaggio dal VIA');
+                }
+                
+                // Anima il movimento
+                this.animateMovement(oldPosition, currentPlayer.position);
+                
+                // Gestisci l'azione della casella
+                setTimeout(() => {
+                    this.handleCellAction(currentPlayer.position);
+                }, 1000);
+            }
+
+            // Animazione movimento
+            animateMovement(from, to) {
+                const steps = [];
+                let current = from;
+                
+                // Calcola il percorso
+                while (current !== to) {
+                    current = (current + 1) % this.boardCells.length;
+                    steps.push(current);
+                }
+                
+                // Anima passo dopo passo
+                let stepIndex = 0;
+                const animateStep = () => {
+                    if (stepIndex < steps.length) {
+                        // Evidenzia la casella corrente
+                        const cell = this.getCellByIndex(steps[stepIndex]);
+                        if (cell) {
+                            cell.classList.add('cell-highlight');
+                            setTimeout(() => cell.classList.remove('cell-highlight'), 500);
+                        }
+                        
+                        stepIndex++;
+                        setTimeout(animateStep, 200);
+                    } else {
+                        // Aggiorna posizioni finali
+                        this.updatePlayerPositions();
+                        this.updateUI();
+                    }
+                };
+                
+                setTimeout(animateStep, 100);
+            }
+
+            // Gestione azioni caselle
+            handleCellAction(cellIndex) {
+                const cell = this.boardCells[cellIndex];
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                
+                switch (cell.type) {
+                    case 'property':
+                        this.handlePropertyLanding(cellIndex);
+                        break;
+                    case 'railroad':
+                        this.handleRailroadLanding(cellIndex);
+                        break;
+                    case 'utility':
+                        this.handleUtilityLanding(cellIndex);
+                        break;
+                    case 'tax':
+                        this.handleTaxLanding(cellIndex);
+                        break;
+                    case 'chance':
+                        this.drawChanceCard();
+                        break;
+                    case 'community-chest':
+                        this.drawCommunityChestCard();
+                        break;
+                    case 'corner':
+                        this.handleCornerLanding(cellIndex);
+                        break;
+                }
+            }
+
+            // Gestione proprietà
+            handlePropertyLanding(cellIndex) {
+                const property = this.boardCells[cellIndex];
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const owner = this.getPropertyOwner(cellIndex);
+                
+                if (!owner) {
+                    // Proprietà disponibile per l'acquisto
+                    document.getElementById('buyPropertyBtn').disabled = false;
+                    this.showMessage(`${property.name} è disponibile per €${property.price}. Vuoi acquistarla?`);
+                } else if (owner.id !== currentPlayer.id) {
+                    // Paga l'affitto
+                    const rent = this.calculateRent(cellIndex, owner);
+                    if (currentPlayer.money >= rent) {
+                        currentPlayer.money -= rent;
+                        owner.money += rent;
+                        this.showMoneyChange(currentPlayer, -rent);
+                        this.showMoneyChange(owner, rent);
+                        this.showMessage(`Hai pagato €${rent} di affitto a ${owner.name}.`);
+                        console.log('💸 Suono: Pagamento affitto');
+                    } else {
+                        this.handleBankruptcy(currentPlayer);
+                    }
+                }
+            }
+
+            // Gestione stazioni
+            handleRailroadLanding(cellIndex) {
+                const railroad = this.boardCells[cellIndex];
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const owner = this.getPropertyOwner(cellIndex);
+                
+                if (!owner) {
+                    document.getElementById('buyPropertyBtn').disabled = false;
+                    this.showMessage(`${railroad.name} è disponibile per €${railroad.price}.`);
+                } else if (owner.id !== currentPlayer.id) {
+                    const rent = railroad.rent[owner.railroadsOwned - 1] || railroad.rent[0];
+                    if (currentPlayer.money >= rent) {
+                        currentPlayer.money -= rent;
+                        owner.money += rent;
+                        this.showMoneyChange(currentPlayer, -rent);
+                        this.showMoneyChange(owner, rent);
+                        this.showMessage(`Hai pagato €${rent} per la stazione.`);
+                    } else {
+                        this.handleBankruptcy(currentPlayer);
+                    }
+                }
+            }
+
+            // Gestione servizi pubblici
+            handleUtilityLanding(cellIndex) {
+                const utility = this.boardCells[cellIndex];
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const owner = this.getPropertyOwner(cellIndex);
+                
+                if (!owner) {
+                    document.getElementById('buyPropertyBtn').disabled = false;
+                    this.showMessage(`${utility.name} è disponibile per €${utility.price}.`);
+                } else if (owner.id !== currentPlayer.id) {
+                    // L'affitto dipende dal lancio dei dadi
+                    const dice1 = parseInt(document.getElementById('dice1').textContent);
+                    const dice2 = parseInt(document.getElementById('dice2').textContent);
+                    const diceTotal = dice1 + dice2;
+                    const multiplier = owner.utilitiesOwned === 1 ? 4 : 10;
+                    const rent = diceTotal * multiplier;
+                    
+                    if (currentPlayer.money >= rent) {
+                        currentPlayer.money -= rent;
+                        owner.money += rent;
+                        this.showMoneyChange(currentPlayer, -rent);
+                        this.showMoneyChange(owner, rent);
+                        this.showMessage(`Hai pagato €${rent} (${diceTotal} × ${multiplier}).`);
+                    } else {
+                        this.handleBankruptcy(currentPlayer);
+                    }
+                }
+            }
+
+            // Gestione tasse
+            handleTaxLanding(cellIndex) {
+                const tax = this.boardCells[cellIndex];
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                
+                if (currentPlayer.money >= tax.price) {
+                    currentPlayer.money -= tax.price;
+                    this.showMoneyChange(currentPlayer, -tax.price);
+                    this.showMessage(`Hai pagato €${tax.price} di ${tax.name}.`);
+                } else {
+                    this.handleBankruptcy(currentPlayer);
+                }
+            }
+
+            // Gestione angoli
+            handleCornerLanding(cellIndex) {
+                const corner = this.boardCells[cellIndex];
+                
+                switch (corner.name) {
+                    case 'Vai in Prigione':
+                        this.sendToJail();
+                        break;
+                    case 'Posteggio Gratuito':
+                        this.showMessage('Riposo nel posteggio gratuito!');
+                        break;
+                    case 'VIA':
+                        // Già gestito nel movimento
+                        break;
+                    case 'Prigione':
+                        this.showMessage('Sei solo in visita alla prigione.');
+                        break;
+                }
+            }
+
+            // Manda in prigione
+            sendToJail() {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                currentPlayer.position = 10; // Posizione prigione
+                currentPlayer.inJail = true;
+                currentPlayer.jailTurns = 0;
+                this.updatePlayerPositions();
+                this.showMessage('Vai direttamente in prigione!');
+            }
+
+            // Estrai carta Imprevisti
+            drawChanceCard() {
+                const card = this.chanceCards[Math.floor(Math.random() * this.chanceCards.length)];
+                this.executeCardAction(card);
+            }
+
+            // Estrai carta Probabilità
+            drawCommunityChestCard() {
+                const card = this.communityChestCards[Math.floor(Math.random() * this.communityChestCards.length)];
+                this.executeCardAction(card);
+            }
+
+            // Esegui azione carta
+            executeCardAction(card) {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                
+                this.showMessage(`Carta: ${card.text}`);
+                
+                switch (card.action) {
+                    case 'moveToStart':
+                        currentPlayer.position = 0;
+                        currentPlayer.money += 200;
+                        this.showMoneyChange(currentPlayer, 200);
+                        break;
+                    case 'goToJail':
+                        this.sendToJail();
+                        break;
+                    case 'receiveMoney':
+                        currentPlayer.money += card.amount;
+                        this.showMoneyChange(currentPlayer, card.amount);
+                        break;
+                    case 'payMoney':
+                        if (currentPlayer.money >= card.amount) {
+                            currentPlayer.money -= card.amount;
+                            this.showMoneyChange(currentPlayer, -card.amount);
+                        } else {
+                            this.handleBankruptcy(currentPlayer);
+                        }
+                        break;
+                    case 'moveToNearestRailroad':
+                        this.moveToNearestRailroad();
+                        break;
+                    case 'moveBack':
+                        currentPlayer.position = Math.max(0, currentPlayer.position - card.spaces);
+                        break;
+                }
+                
+                this.updatePlayerPositions();
+                this.updateUI();
+            }
+
+            // Muovi alla stazione più vicina
+            // Correggi la funzione moveToNearestRailroad: "moveToNearestRailroad() {"
+            moveToNearestRailroad() {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const railroads = [5, 15, 25, 35]; // Indici delle stazioni
+                let nearest = railroads[0];
+                let minDistance = Math.abs(currentPlayer.position - nearest);
+                
+                railroads.forEach(railroad => {
+                    const distance = Math.abs(currentPlayer.position - railroad);
+                    if (distance < minDistance) {  // Corretto
+                        minDistance = distance;
+                        nearest = railroad;
+                    }
+                });
+                
+                currentPlayer.position = nearest;
+            }
+
+            // Acquisto proprietà
+            buyProperty() {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const cellIndex = currentPlayer.position;
+                const property = this.boardCells[cellIndex];
+                
+                if (currentPlayer.money >= property.price) {
+                    currentPlayer.money -= property.price;
+                    currentPlayer.properties.push(cellIndex);
+                    
+                    // Aggiorna contatori per stazioni e servizi
+                    if (property.type === 'railroad') {
+                        currentPlayer.railroadsOwned++;
+                    } else if (property.type === 'utility') {
+                        currentPlayer.utilitiesOwned++;
+                    }
+                    
+                    this.showMoneyChange(currentPlayer, -property.price);
+                    this.markPropertyAsOwned(cellIndex, currentPlayer);
+                    this.showMessage(`Hai acquistato ${property.name} per €${property.price}!`);
+                    console.log('🏠 Suono: Acquisto proprietà');
+                    
+                    document.getElementById('buyPropertyBtn').disabled = true;
+                    
+                    // Abilita costruzione se ha il monopolio
+                    if (this.hasMonopoly(currentPlayer, property.color)) {
+                        document.getElementById('buildHouseBtn').disabled = false;
+                    }
+                } else {
+                    this.showMessage('Non hai abbastanza soldi per acquistare questa proprietà!');
+                }
+                
+                this.updateUI();
+            }
+
+            // Controlla monopolio
+            hasMonopoly(player, color) {
+                if (!color) return false;
+                
+                const colorProperties = this.boardCells.filter(cell => cell.color === color);
+                const ownedProperties = colorProperties.filter(prop => 
+                    player.properties.includes(this.boardCells.indexOf(prop))
+                );
+                
+                return ownedProperties.length === colorProperties.length;
+            }
+
+            // Costruisci casa
+            buildHouse() {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                const cellIndex = currentPlayer.position;
+                const property = this.boardCells[cellIndex];
+                
+                if (!this.hasMonopoly(currentPlayer, property.color)) {
+                    this.showMessage('Devi avere il monopolio per costruire!');
+                    return;
+                }
+                
+                const houseCost = this.getHouseCost(property.color);
+                const cell = this.getCellByIndex(cellIndex);
+                const housesDiv = cell.querySelector('.houses');
+                const currentHouses = housesDiv.children.length;
+                
+                if (currentHouses >= 5) {
+                    this.showMessage('Hai già un albergo su questa proprietà!');
+                    return;
+                }
+                
+                if (currentPlayer.money >= houseCost) {
+                    currentPlayer.money -= houseCost;
+                    this.showMoneyChange(currentPlayer, -houseCost);
+                    
+                    if (currentHouses === 4) {
+                        // Costruisci albergo
+                        housesDiv.innerHTML = '';
+                        const hotel = document.createElement('div');
+                        hotel.className = 'hotel';
+                        housesDiv.appendChild(hotel);
+                        this.showMessage(`Hai costruito un albergo su ${property.name}!`);
+                    } else {
+                        // Costruisci casa
+                        const house = document.createElement('div');
+                        house.className = 'house';
+                        housesDiv.appendChild(house);
+                        this.showMessage(`Hai costruito una casa su ${property.name}!`);
+                    }
+                    
+                    console.log('🏗️ Suono: Costruzione');
+                } else {
+                    this.showMessage('Non hai abbastanza soldi per costruire!');
+                }
+                
+                this.updateUI();
+            }
+
+            // Costo casa per colore
+            getHouseCost(color) {
+                const costs = {
+                    'brown': 50, 'lightblue': 50, 'pink': 100, 'orange': 100,
+                    'red': 150, 'yellow': 150, 'green': 200, 'blue': 200
+                };
+                return costs[color] || 50;
+            }
+
+            // Calcola affitto
+            calculateRent(cellIndex, owner) {
+                const property = this.boardCells[cellIndex];
+                const cell = this.getCellByIndex(cellIndex);
+                const housesDiv = cell.querySelector('.houses');
+                const buildings = housesDiv.children.length;
+                
+                if (property.type === 'property') {
+                    let rentIndex = buildings;
+                    
+                    // Se ha il monopolio ma nessuna casa, raddoppia l'affitto base
+                    if (buildings === 0 && this.hasMonopoly(owner, property.color)) {
+                        return property.rent[0] * 2;
+                    }
+                    
+                    return property.rent[rentIndex] || property.rent[0];
+                }
+                
+                return property.rent ? property.rent[0] : 0;
+            }
+
+            // Ottieni proprietario
+            getPropertyOwner(cellIndex) {
+                return this.players.find(player => 
+                    player.properties.includes(cellIndex)
+                );
+            }
+
+            // Marca proprietà come posseduta
+            markPropertyAsOwned(cellIndex, owner) {
+                const cell = this.getCellByIndex(cellIndex);
+                cell.classList.add('property-owned');
+                cell.style.borderBottom = `4px solid var(--player-${owner.id}-color, var(--success-color))`;
+            }
+
+            // Ipoteca proprietà
+            mortgageProperty() {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                
+                if (currentPlayer.properties.length === 0) {
+                    this.showMessage('Non hai proprietà da ipotecare!');
+                    return;
+                }
+                
+                // Per semplicità, ipoteca l'ultima proprietà acquistata
+                const propertyIndex = currentPlayer.properties[currentPlayer.properties.length - 1];
+                const property = this.boardCells[propertyIndex];
+                const mortgageValue = Math.floor(property.price / 2);
+                
+                currentPlayer.money += mortgageValue;
+                this.showMoneyChange(currentPlayer, mortgageValue);
+                
+                const cell = this.getCellByIndex(propertyIndex);
+                cell.classList.add('property-mortgaged');
+                
+                this.showMessage(`Hai ipotecato ${property.name} per €${mortgageValue}.`);
+                this.updateUI();
+            }
+
+            // Gestione fallimento
+            handleBankruptcy(player) {
+                this.showMessage(`${player.name} è in bancarotta!`);
+                
+                // Rimuovi il giocatore dal gioco
+                const playerIndex = this.players.indexOf(player);
+                this.players.splice(playerIndex, 1);
+                
+                // Aggiusta l'indice del giocatore corrente
+                if (this.currentPlayerIndex >= playerIndex) {
+                    this.currentPlayerIndex--;
+                }
+                
+                // Controlla se il gioco è finito
+                if (this.players.length === 1) {
+                    this.endGame();
+                } else {
+                    this.updateUI();
+                }
+            }
+
+            // Fine turno
+            endTurn() {
+                if (!this.canEndTurn && !this.diceRolled) return;
+                
+                // Passa al giocatore successivo
+                this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                
+                // Reset controlli turno
+                this.diceRolled = false;
+                this.canEndTurn = false;
+                
+                // Disabilita pulsanti
+                document.getElementById('rollDiceBtn').disabled = false;
+                document.getElementById('buyPropertyBtn').disabled = true;
+                document.getElementById('buildHouseBtn').disabled = true;
+                document.getElementById('endTurnBtn').disabled = true;
+                
+                this.updateUI();
+            }
+
+            // Aggiornamento UI
+            updateUI() {
+                // Aggiorna giocatore corrente
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                document.getElementById('currentPlayer').textContent = `Turno: ${currentPlayer.name}`;
+                
+                // Aggiorna informazioni giocatori
+                const playersInfo = document.getElementById('playersInfo');
+                playersInfo.innerHTML = '';
+                
+                this.players.forEach(player => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'player-info';
+                    if (player.id === currentPlayer.id) {
+                        playerDiv.style.border = '2px solid var(--accent-color)';
+                    }
+                    
+                    playerDiv.innerHTML = `
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-money">€${player.money}</div>
+                    `;
+                    
+                    playersInfo.appendChild(playerDiv);
+                });
+                
+                // Aggiorna proprietà correnti
+                const currentProperties = document.getElementById('currentProperties');
+                currentProperties.innerHTML = '';
+                
+                if (currentPlayer.properties.length > 0) {
+                    currentPlayer.properties.forEach(propIndex => {
+                        const property = this.boardCells[propIndex];
+                        const propDiv = document.createElement('div');
+                        propDiv.style.padding = '5px';
+                        propDiv.style.marginBottom = '5px';
+                        propDiv.style.background = 'var(--secondary-bg)';
+                        propDiv.style.borderRadius = '4px';
+                        propDiv.style.fontSize = '0.9rem';
+                        propDiv.textContent = property.name;
+                        currentProperties.appendChild(propDiv);
+                    });
+                } else {
+                    currentProperties.textContent = 'Nessuna proprietà';
+                }
+            }
+
+            // Mostra messaggio
+            showMessage(message) {
+                const modal = document.getElementById('gameModal');
+                const title = document.getElementById('modalTitle');
+                const messageDiv = document.getElementById('modalMessage');
+                
+                title.textContent = 'Informazione';
+                messageDiv.textContent = message;
+                modal.style.display = 'block';
+                
+                // Nascondi automaticamente dopo 3 secondi per messaggi informativi
+                setTimeout(() => {
+                    if (modal.style.display === 'block') {
+                        this.hideModal();
+                    }
+                }, 3000);
+            }
+
+            // Nascondi modal
+            hideModal() {
+                document.getElementById('gameModal').style.display = 'none';
+            }
+
+            // Gestione conferma modal
+            handleModalConfirm() {
+                this.hideModal();
+            }
+
+            // Mostra cambio denaro animato
+            showMoneyChange(player, amount) {
+                const playersInfo = document.getElementById('playersInfo');
+                const playerInfos = playersInfo.querySelectorAll('.player-info');
+                const playerInfo = playerInfos[player.id - 1];
+                
+                if (playerInfo) {
+                    const changeDiv = document.createElement('div');
+                    changeDiv.className = 'money-change';
+                    changeDiv.textContent = amount > 0 ? `+€${amount}` : `-€${Math.abs(amount)}`;
+                    changeDiv.style.color = amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
+                    
+                    playerInfo.style.position = 'relative';
+                    playerInfo.appendChild(changeDiv);
+                    
+                    setTimeout(() => changeDiv.remove(), 2000);
+                }
+            }
+
+            // Timer del gioco
+            startTimer() {
+                this.timerInterval = setInterval(() => {
+                    this.gameTimer++;
+                    const minutes = Math.floor(this.gameTimer / 60);
+                    const seconds = this.gameTimer % 60;
+                    document.getElementById('gameTimer').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            // Fine del gioco
+            endGame() {
+                clearInterval(this.timerInterval);
+                const winner = this.players[0];
+                this.showMessage(`🎉 ${winner.name} ha vinto la partita con €${winner.money}!`);
+                console.log('🏆 Suono: Vittoria');
+            }
+        }
+
+        // Inizializzazione del gioco quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', () => {
+            window.monopolyGame = new MonopolyGame();
+        });
+
+        // Gestione responsive per dispositivi mobili
+        window.addEventListener('resize', () => {
+            // Adatta le dimensioni del tabellone
+            const board = document.querySelector('.board');
+            const container = document.querySelector('.board-container');
+            
+            if (window.innerWidth <= 768) {
+                board.style.width = '95vw';
+                board.style.height = '95vw';
+            } else {
+                board.style.width = 'min(80vh, 80vw)';
+                board.style.height = 'min(80vh, 80vw)';
+            }
+        });
+
+        // Funzioni di utilità per il suono (placeholder per implementazione futura)
+        function playSound(soundName) {
+            console.log(`🔊 Riproduzione suono: ${soundName}`);
+            // Qui si potrebbero implementare i suoni reali con Web Audio API
+        }
+
+        // Gestione salvataggio partita (localStorage non disponibile in Claude.ai)
+        function saveGame() {
+            console.log('💾 Salvataggio partita (funzionalità simulata)');
+            // In un ambiente reale, qui si salverebbe lo stato del gioco
+        }
+
+        function loadGame() {
+            console.log('📁 Caricamento partita (funzionalità simulata)');
+            // In un ambiente reale, qui si caricherebbe lo stato del gioco
+        }
+    
+ 
+
+        // SECONDO CODICE JAVASCRIPT
+        // SECONDO CODICE JAVASCRIPT
+
+ // Inizializzazione delle proprietà del gioco
+                this.players = [];
+                this.currentPlayerIndex = 0;
+                this.gameStarted = false;
+                this.gameTimer = 0;
+                this.timerInterval = null;
+                this.diceRolled = false;
+                this.canEndTurn = false;
+
+                // Definizione delle caselle del tabellone
+                this.boardCells = [
+                    // Angolo inferiore destro - VIA
+                    { name: "VIA", type: "corner", price: 0, color: null, position: { row: 10, col: 10 } },
+                    
+                    // Lato inferiore (da destra a sinistra)
+                    { name: "Vicolo Corto", type: "property", price: 60, color: "brown", rent: [2, 10, 30, 90, 160, 250], position: { row: 10, col: 9 } },
+                    { name: "Imprevisti", type: "chance", price: 0, color: null, position: { row: 10, col: 8 } },
+                    { name: "Vicolo Stretto", type: "property", price: 60, color: "brown", rent: [4, 20, 60, 180, 320, 450], position: { row: 10, col: 7 } },
+                    { name: "Tassa Patrimoniale", type: "tax", price: 200, color: null, position: { row: 10, col: 6 } },
+                    { name: "Stazione Sud", type: "railroad", price: 200, color: null, rent: [25, 50, 100, 200], position: { row: 10, col: 5 } },
+                    { name: "Bastioni Gran Sasso", type: "property", price: 100, color: "lightblue", rent: [6, 30, 90, 270, 400, 550], position: { row: 10, col: 4 } },
+                    { name: "Probabilità", type: "community-chest", price: 0, color: null, position: { row: 10, col: 3 } },
+                    { name: "Viale Monterosa", type: "property", price: 100, color: "lightblue", rent: [6, 30, 90, 270, 400, 550], position: { row: 10, col: 2 } },
+                    { name: "Viale Vesuvio", type: "property", price: 120, color: "lightblue", rent: [8, 40, 100, 300, 450, 600], position: { row: 10, col: 1 } },
+                    
+                    // Angolo inferiore sinistro - PRIGIONE
+                    { name: "Prigione", type: "corner", price: 0, color: null, position: { row: 10, col: 0 } },
+                    
+                    // Lato sinistro (dal basso verso l'alto)
+                    { name: "Via Accademia", type: "property", price: 140, color: "pink", rent: [10, 50, 150, 450, 625, 750], position: { row: 9, col: 0 } },
+                    { name: "Società Elettrica", type: "utility", price: 150, color: null, position: { row: 8, col: 0 } },
+                    { name: "Corso Ateneo", type: "property", price: 140, color: "pink", rent: [10, 50, 150, 450, 625, 750], position: { row: 7, col: 0 } },
+                    { name: "Piazza Università", type: "property", price: 160, color: "pink", rent: [12, 60, 180, 500, 700, 900], position: { row: 6, col: 0 } },
+                    { name: "Stazione Ovest", type: "railroad", price: 200, color: null, rent: [25, 50, 100, 200], position: { row: 5, col: 0 } },
+                    { name: "Via Verdi", type: "property", price: 180, color: "orange", rent: [14, 70, 200, 550, 750, 950], position: { row: 4, col: 0 } },
+                    { name: "Probabilità", type: "community-chest", price: 0, color: null, position: { row: 3, col: 0 } },
+                    { name: "Corso Raffaello", type: "property", price: 180, color: "orange", rent: [14, 70, 200, 550, 750, 950], position: { row: 2, col: 0 } },
+                    { name: "Piazza Dante", type: "property", price: 200, color: "orange", rent: [16, 80, 220, 600, 800, 1000], position: { row: 1, col: 0 } },
+                    
+                    // Angolo superiore sinistro - POSTEGGIO GRATUITO
+                    { name: "Posteggio Gratuito", type: "corner", price: 0, color: null, position: { row: 0, col: 0 } },
+                    
+                    // Lato superiore (da sinistra a destra)
+                    { name: "Via Marco Polo", type: "property", price: 220, color: "red", rent: [18, 90, 250, 700, 875, 1050], position: { row: 0, col: 1 } },
+                    { name: "Imprevisti", type: "chance", price: 0, color: null, position: { row: 0, col: 2 } },
+                    { name: "Corso Magellano", type: "property", price: 220, color: "red", rent: [18, 90, 250, 700, 875, 1050], position: { row: 0, col: 3 } },
+                    { name: "Largo Colombo", type: "property", price: 240, color: "red", rent: [20, 100, 300, 750, 925, 1100], position: { row: 0, col: 4 } },
+                    { name: "Stazione Nord", type: "railroad", price: 200, color: null, rent: [25, 50, 100, 200], position: { row: 0, col: 5 } },
+                    { name: "Viale Costantino", type: "property", price: 260, color: "yellow", rent: [22, 110, 330, 800, 975, 1150], position: { row: 0, col: 6 } },
+                    { name: "Viale Traiano", type: "property", price: 260, color: "yellow", rent: [22, 110, 330, 800, 975, 1150], position: { row: 0, col: 7 } },
+                    { name: "Società Acqua Potabile", type: "utility", price: 150, color: null, position: { row: 0, col: 8 } },
+                    { name: "Piazza Giulio Cesare", type: "property", price: 280, color: "yellow", rent: [24, 120, 360, 850, 1025, 1200], position: { row: 0, col: 9 } },
+                    
+                    // Angolo superiore destro - VAI IN PRIGIONE
+                    { name: "Vai in Prigione", type: "corner", price: 0, color: null, position: { row: 0, col: 10 } },
+                    
+                    // Lato destro (dall'alto verso il basso)
+                    { name: "Via Roma", type: "property", price: 300, color: "green", rent: [26, 130, 390, 900, 1100, 1275], position: { row: 1, col: 10 } },
+                    { name: "Corso Impero", type: "property", price: 300, color: "green", rent: [26, 130, 390, 900, 1100, 1275], position: { row: 2, col: 10 } },
+                    { name: "Probabilità", type: "community-chest", price: 0, color: null, position: { row: 3, col: 10 } },
+                    { name: "Largo Augusto", type: "property", price: 320, color: "green", rent: [28, 150, 450, 1000, 1200, 1400], position: { row: 4, col: 10 } },
+                    { name: "Stazione Est", type: "railroad", price: 200, color: null, rent: [25, 50, 100, 200], position: { row: 5, col: 10 } },
+                    { name: "Imprevisti", type: "chance", price: 0, color: null, position: { row: 6, col: 10 } },
+                    { name: "Viale dei Giardini", type: "property", price: 350, color: "blue", rent: [35, 175, 500, 1100, 1300, 1500], position: { row: 7, col: 10 } },
+                    { name: "Tassa di Lusso", type: "tax", price: 100, color: null, position: { row: 8, col: 10 } },
+                    { name: "Parco della Vittoria", type: "property", price: 400, color: "blue", rent: [50, 200, 600, 1400, 1700, 2000], position: { row: 9, col: 10 } }
+                ];
+
+                // Carte Imprevisti e Probabilità
+                this.chanceCards = [
+                    { text: "Vai al VIA e ritira €200", action: "moveToStart" },
+                    { text: "Vai in Prigione", action: "goToJail" },
+                    { text: "Ricevi €150 per i tuoi servizi", action: "receiveMoney", amount: 150 },
+                    { text: "Paga €50 di multa", action: "payMoney", amount: 50 },
+                    { text: "Vai alla Stazione più vicina", action: "moveToNearestRailroad" },
+                    { text: "Arretra di 3 caselle", action: "moveBack", spaces: 3 }
+                ];
+
+                this.communityChestCards = [
+                    { text: "Hai vinto il secondo premio di bellezza. Ritira €10", action: "receiveMoney", amount: 10 },
+                    { text: "Rimborso tasse. Ritira €20", action: "receiveMoney", amount: 20 },
+                    { text: "Vai al VIA e ritira €200", action: "moveToStart" },
+                    { text: "Vai in Prigione", action: "goToJail" },
+                    { text: "Paga €100 per spese mediche", action: "payMoney", amount: 100 },
+                    { text: "Ricevi €25 di eredità", action: "receiveMoney", amount: 25 }
+                ];
+
+                this.initializeGame();
+            
+
+            // Inizializzazione del gioco
+            initializeGame() {
+                this.createBoard();
+                this.createPlayers(2); // Inizia con 2 giocatori (può essere modificato)
+                this.updateUI();
+                this.startTimer();
+                this.bindEvents();
+            }
+
+            // Creazione del tabellone
+            createBoard() {
+                const board = document.getElementById('gameBoard');
+                
+                // Crea tutte le caselle del tabellone
+                for (let i = 0; i < 11; i++) {
+                    for (let j = 0; j < 11; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.id = `cell-${i}-${j}`;
+                        
+                        // Trova la casella corrispondente nelle definizioni
+                        const boardCell = this.boardCells.find(c => 
+                            c.position.row === i && c.position.col === j
+                        );
+                    
+                        if (boardCell) {
+                            // Configura la casella con le informazioni
+                            cell.setAttribute('data-cell-index', this.boardCells.indexOf(boardCell));
+                            cell.className += ` ${boardCell.type}`;
+                            if (boardCell.color) {
+                                cell.style.borderTop = `8px solid ${this.getColorCode(boardCell.color)}`;
+                            }
+                            
+                            // Contenuto della casella
+                            const nameDiv = document.createElement('div');
+                            nameDiv.textContent = boardCell.name;
+                            nameDiv.style.fontWeight = 'bold';
+                            nameDiv.style.fontSize = '0.6rem';
+                            cell.appendChild(nameDiv);
+                            
+                            if (boardCell.price > 0) {
+                                const priceDiv = document.createElement('div');
+                                priceDiv.textContent = `€${boardCell.price}`;
+                                priceDiv.style.color = 'var(--accent-color)';
+                                priceDiv.style.fontSize = '0.5rem';
+                                cell.appendChild(priceDiv);
+                            }
+                            
+                            // Container per i giocatori
+                            const playersDiv = document.createElement('div');
+                            playersDiv.className = 'players';
+                            cell.appendChild(playersDiv);
+                            
+                            // Container per case/alberghi
+                            const housesDiv = document.createElement('div');
+                            housesDiv.className = 'houses';
+                            cell.appendChild(housesDiv);
+                        } else {
+                            // Casella vuota (centro del tabellone)
+                            cell.style.background = 'var(--secondary-bg)';
+                        }
+                        
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            // Conversione colori
+            getColorCode(color) {
+                const colors = {
+                    'brown': '#8B4513',
+                    'lightblue': '#87CEEB',
+                    'pink': '#FF69B4',
+                    'orange': '#FFA500',
+                    'red': '#FF0000',
+                    'yellow': '#FFFF00',
+                    'green': '#008000',
+                    'blue': '#0000FF'
+                };
+                return colors[color] || '#000000';
+            }
+
+            // Creazione giocatori
+            createPlayers(count) {
+                const playerNames = ['Giocatore 1', 'Giocatore 2', 'Giocatore 3', 'Giocatore 4'];
+                
+                for (let i = 0; i < count; i++) {
+                    this.players.push({
+                        id: i + 1,
+                        name: playerNames[i],
+                        money: 1500,
+                        position: 0,
+                        properties: [],
+                        inJail: false,
+                        jailTurns: 0,
+                        railroadsOwned: 0,
+                        utilitiesOwned: 0
+                    });
+                }
+                
+                // QUI IL CODICE SI E' SPEZZATO
+                // QUI IL CODICE SI E' SPEZZATO
+
+                                        // Aggiungi il segnalino del giocatore alla casella di partenza
+                        const startCell = this.getCellByIndex(0);
+                        if (startCell) {
+                            const playersDiv = startCell.querySelector('.players');
+                            const token = document.createElement('div');
+                            token.className = `player-token player-${i + 1}`;
+                            playersDiv.appendChild(token);
+                        }
+                    } // Chiude il for
+
+                // Imposta il primo giocatore come corrente
+                this.currentPlayerIndex = 0;
+                this.gameStarted = true;
+            } // Chiude la funzione createPlayers
+
+            // Funzione per iniziare una nuova partita
+            startNewGame(playerCount) {
+                // Resetta lo stato del gioco
+                this.players = [];
+                this.currentPlayerIndex = 0;
+                this.gameStarted = false;
+                this.gameTimer = 0;
+                this.diceRolled = false;
+                this.canEndTurn = false;
+
+                // Ricrea i giocatori
+                this.createPlayers(playerCount);
+
+                // Resetta il tabellone
+                document.querySelectorAll('.property-owned, .property-mortgaged').forEach(el => {
+                    el.classList.remove('property-owned', 'property-mortgaged');
+                    el.style.borderBottom = '';
+                });
+
+                // Rimuovi tutte le case/alberghi
+                document.querySelectorAll('.houses').forEach(div => {
+                    div.innerHTML = '';
+                });
+
+                // Aggiorna l'UI
+                this.updateUI();
+
+                // Avvia il timer
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.startTimer();
+
+                // Disabilita i pulsanti
+                document.getElementById('buyPropertyBtn').disabled = true;
+                document.getElementById('buildHouseBtn').disabled = true;
+                document.getElementById('mortgageBtn').disabled = true;
+                document.getElementById('endTurnBtn').disabled = true;
+                document.getElementById('rollDiceBtn').disabled = false;
+
+                this.showMessage(`Nuova partita iniziata con ${playerCount} giocatori!`);
+            }
+
+            // Funzione per aggiungere un giocatore AI
+            addAIPlayer() {
+                if (this.players.length >= 4) {
+                    this.showMessage('Numero massimo di giocatori raggiunto!');
+                    return;
+                }
+
+                const aiNames = ['AI Rosso', 'AI Blu', 'AI Verde', 'AI Giallo'];
+                const newPlayer = {
+                    id: this.players.length + 1,
+                    name: aiNames[this.players.length],
+                    money: 1500,
+                    position: 0,
+                    properties: [],
+                    inJail: false,
+                    jailTurns: 0,
+                    railroadsOwned: 0,
+                    utilitiesOwned: 0,
+                    isAI: true
+                };
+
+                this.players.push(newPlayer);
+
+                // Aggiungi il segnalino alla casella di partenza
+                const startCell = this.getCellByIndex(0);
+                if (startCell) {
+                    const playersDiv = startCell.querySelector('.players');
+                    const token = document.createElement('div');
+                    token.className = `player-token player-${newPlayer.id}`;
+                    playersDiv.appendChild(token);
+                }
+
+                this.updateUI();
+                this.showMessage(`${newPlayer.name} si è unito alla partita!`);
+            }
+
+            // Logica per il turno dell'AI
+            playAITurn() {
+                const currentPlayer = this.players[this.currentPlayerIndex];
+                if (!currentPlayer.isAI) return;
+
+                // Simula un ritardo per il turno dell'AI
+                setTimeout(() => {
+                    // Lancia i dadi automaticamente
+                    this.rollDice();
+
+                    // Dopo il movimento, gestisci le decisioni dell'AI
+                    setTimeout(() => {
+                        const currentCell = this.boardCells[currentPlayer.position];
+                        
+                        // Decisione di acquisto proprietà
+                        if (currentCell.type === 'property' || currentCell.type === 'railroad' || currentCell.type === 'utility') {
+                            if (!this.getPropertyOwner(currentPlayer.position) && currentPlayer.money > currentCell.price) {
+                                // Acquista proprietà se ha abbastanza soldi
+                                this.buyProperty();
+                            }
+                        }
+
+                        // Fine turno dopo un breve ritardo
+                        setTimeout(() => {
+                            this.endTurn();
+                        }, 1000);
+                    }, 1500);
+                }, 1000);
+            }
+
+            // Aggiungi questa funzione alla sezione bindEvents
+            bindEvents() {
+                // ... (codice esistente)
+
+                // Pulsanti aggiuntivi
+                document.getElementById('newGameBtn').addEventListener('click', () => {
+                    const playerCount = parseInt(prompt('Quanti giocatori? (2-4)', 2));
+                    if (playerCount >= 2 && playerCount <= 4) {
+                        this.startNewGame(playerCount);
+                    }
+                });
+
+                document.getElementById('addAIBtn').addEventListener('click', () => this.addAIPlayer());
+            }
+
+            // Aggiungi questi pulsanti al game-controls nel HTML
+            /*
+            <button class="btn btn-secondary" id="newGameBtn">Nuova Partita</button>
+            <button class="btn btn-secondary" id="addAIBtn">Aggiungi AI</button>
+            */
+
+            // Modifica la funzione endTurn per gestire l'AI
+            endTurn() {
+                if (!this.canEndTurn && !this.diceRolled) return;
+                
+                // Passa al giocatore successivo
+                this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                
+                // Reset controlli turno
+                this.diceRolled = false;
+                this.canEndTurn = false;
+                
+                // Disabilita pulsanti
+                document.getElementById('rollDiceBtn').disabled = false;
+                document.getElementById('buyPropertyBtn').disabled = true;
+                document.getElementById('buildHouseBtn').disabled = true;
+                document.getElementById('endTurnBtn').disabled = true;
+                
+                this.updateUI();
+
+                // Se è il turno dell'AI, gioca automaticamente
+                if (this.players[this.currentPlayerIndex].isAI) {
+                    this.playAITurn();
+                }
+            }
+
+            // Aggiungi questa funzione per mostrare il menu iniziale
+            showStartMenu() {
+                const modal = document.getElementById('gameModal');
+                const title = document.getElementById('modalTitle');
+                const message = document.getElementById('modalMessage');
+                const confirmBtn = document.getElementById('modalConfirm');
+                const cancelBtn = document.getElementById('modalCancel');
+
+                title.textContent = 'Benvenuto in Monopoly';
+                message.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <h3>Scegli il numero di giocatori:</h3>
+                        <select id="playerCountSelect" style="padding: 8px; border-radius: 5px; background: var(--primary-bg); color: var(--text-light); border: 1px solid var(--accent-color);">
+                            <option value="2">2 Giocatori</option>
+                            <option value="3">3 Giocatori</option>
+                            <option value="4">4 Giocatori</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="addAICheckbox">
+                        <label for="addAICheckbox">Aggiungi giocatori AI</label>
+                    </div>
+                `;
+            
+                confirmBtn.textContent = 'Inizia Partita';
+                cancelBtn.style.display = 'none';
+
+                const handler = () => {
+                    const playerCount = parseInt(document.getElementById('playerCountSelect').value);
+                    const addAI = document.getElementById('addAICheckbox').checked;
+                    
+                    this.startNewGame(playerCount);
+                    
+                    if (addAI) {
+                        const aiCount = Math.min(4 - playerCount, 2); // Massimo 2 AI
+                        for (let i = 0; i < aiCount; i++) {
+                            setTimeout(() => this.addAIPlayer(), i * 500);
+                        }
+                    }
+                    
+                    modal.style.display = 'none';
+                    confirmBtn.removeEventListener('click', handler);
+                };
+
+                confirmBtn.addEventListener('click', handler);
+                modal.style.display = 'block';
+            }
+        
+            // Modifica l'evento DOMContentLoaded per mostrare il menu iniziale
+            document.addEventListener('DOMContentLoaded', () => {
+                window.monopolyGame = new MonopolyGame();
+                setTimeout(() => monopolyGame.showStartMenu(), 500);
+            });  
+    </script>
+</body>
+</html>

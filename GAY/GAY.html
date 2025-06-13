@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giordano AI</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="sidebar-open">
+  <div class="container">
+    <!-- Sidebar per le chat salvate -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>Chat salvate</h2>
+        <button id="closeSidebarBtn">✕</button>
+      </div>
+      <ul id="chatList">
+        <!-- Lista dinamica delle chat -->
+      </ul>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="main-content">
+      <header class="header">
+        <button id="toggleSidebarBtn">☰</button>
+        <h1>Giordano AI</h1>
+      </header>
+
+      <div id="chatWindow" class="chat-window">
+        <!-- Messaggi della chat -->
+      </div>
+
+      <form id="chatForm" class="chat-form">
+        <input type="text" id="userInput" placeholder="Scrivi un messaggio..." autocomplete="off" required />
+        <button type="submit">Invia</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Game Evolution</title>
+    <style>
+        :root {
+            --button-red: #ff1a1a;
+            --button-shadow: #b30000;
+            --background: #111;
+            --text-color: #fff;
+            --menu-bg: rgba(0, 0, 0, 0.8);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text-color);
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: background-color 0.3s ease;
+
+            /* ============================================== */
+            /* SEZIONE AGGIUNTIVA PER OTTIMIZZAZIONE GENERALE */
+            /* ============================================== */
+            
+            /* Disattiva lo Scroll */
+            overflow: hidden;
+
+            /* Disabilita selezione testo */
+                -webkit-user-select: none; /* Safari */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* IE10+/Edge */
+                 user-select: none; /* Standard */
+
+            /* Rimuove il flash blu su mobile */
+                -webkit-tap-highlight-color: transparent;
+                 tap-highlight-color: transparent;
+        }
+        
+        #gameContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Menu principale */
+        #mainMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--menu-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .menu-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--button-red);
+            text-shadow: 0 0 10px rgba(255, 26, 26, 0.7);
+            animation: pulse 2s infinite;
+        }
+        
+        .menu-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .menu-button {
+            background-color: var(--button-red);
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 0 var(--button-shadow);
+            min-width: 250px;
+            text-align: center;
+        }
+        
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--button-shadow);
+        }
+        
+        .menu-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--button-shadow);
+        }
+        
+        /* Pulsante Rosso */
+        #redButton {
+            width: 200px;
+            height: 200px;
+            background-color: var(--button-red);
+            border-radius: 50%;
+            box-shadow: 0 8px 0 var(--button-shadow),
+                        0 0 20px rgba(255, 26, 26, 0.5);
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            z-index: 2;
+            overflow: visible;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #redButton::before {
+            content: '';
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff6666 0%, var(--button-red) 70%);
+            z-index: -1;
+        }
+        
+        #redButton:active, #redButton.pressed {
+            transform: translate(-50%, -46%);
+            box-shadow: 0 4px 0 var(--button-shadow),
+                        0 0 10px rgba(255, 26, 26, 0.3);
+        }
+        
+        /* Contatore */
+        #counterContainer {
+            position: absolute;
+            top: 2rem;
+            width: 100%;
+            text-align: center;
+            z-index: 2;
+        }
+        
+        #counter {
+            font-size: 4rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            transition: transform 0.2s ease;
+        }
+        
+        /* Score nella modalità sfida */
+        #scoreContainer {
+            position: absolute;
+            top: 8rem;
+            width: 100%;
+            text-align: center;
+            z-index: 2;
+            display: none;
+        }
+        
+        #score {
+            font-size: 2rem;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        /* Effetto scia del pulsante */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 26, 26, 0.6);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: ripple-effect 1s ease-out forwards;
+            z-index: 1;
+        }
+        
+        /* Game Over */
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            display: none;
+        }
+        
+        #gameOverText {
+            font-size: 5rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            animation: pulse 1s infinite;
+        }
+        
+        .game-over-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        /* Animazioni */
+        @keyframes ripple-effect {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.8;
+            }
+            100% {
+                width: 500px;
+                height: 500px;
+                opacity: 0;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes bounce {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes flash {
+            0% {
+                background-color: var(--background);
+            }
+            25% {
+                background-color: rgba(255, 0, 0, 0.5);
+            }
+            100% {
+                background-color: var(--background);
+            }
+        }
+        
+        .bounce {
+            animation: bounce 0.3s ease;
+        }
+        
+        .flash {
+            animation: flash 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Principale -->
+    <div id="mainMenu">
+        <h1 class="menu-title">Clicker Game Evolution</h1>
+        <div class="menu-options">
+            <button class="menu-button" id="classicMode">Classic Mode</button>
+            <button class="menu-button" id="challengeMode">Challenge Mode</button>
+        </div>
+    </div>
+    
+    <!-- Container del Gioco -->
+    <div id="gameContainer">
+        <!-- Contatore -->
+        <div id="counterContainer">
+            <div id="counter">0</div>
+        </div>
+        
+        <!-- Score (solo per modalità sfida) -->
+        <div id="scoreContainer">
+            <div id="score">Record: 0</div>
+        </div>
+        
+        <!-- Pulsante Rosso -->
+        <div id="redButton" role="button" aria-label="Premi il pulsante rosso per aumentare il contatore"></div>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div id="gameOver">
+        <div id="gameOverText">GAME OVER</div>
+        <div class="game-over-options">
+            <button class="menu-button" id="restart">Ricomincia</button>
+            <button class="menu-button" id="backToMenu">Menu Principale</button>
+        </div>
+    </div>
+    
+    <script>
+        // Elementi DOM
+        const mainMenu = document.getElementById('mainMenu');
+        const classicModeButton = document.getElementById('classicMode');
+        const challengeModeButton = document.getElementById('challengeMode');
+        const gameContainer = document.getElementById('gameContainer');
+        const redButton = document.getElementById('redButton');
+        const counter = document.getElementById('counter');
+        const scoreContainer = document.getElementById('scoreContainer');
+        const score = document.getElementById('score');
+        const gameOverScreen = document.getElementById('gameOver');
+        const restartButton = document.getElementById('restart');
+        const backToMenuButton = document.getElementById('backToMenu');
+        
+        // Variabili di stato del gioco
+        let clickCount = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let gameMode = null;
+        let buttonSize = 200; // Dimensione del pulsante in pixel
+        
+        // Aggiorna lo score visualizzato
+        score.textContent = `Record: ${highScore}`;
+        
+        // Suoni del gioco (usando audio elements per caricamento lazy)
+        const clickSound = new Audio();
+        clickSound.src = 'data:audio/wav;base64,UklGRqwDAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YYgDAAAAAAAA//9TAFX/WQBdAF8AXwBdAFcATgA9ACgAEQD6/+P/zf+4/6X/lP+H/3r/cv9s/2z/b/91/3//jP+a/6v/wP/W/+7/BgAgADkAUgBrAIIAmQCvAMIA1QDnAPYAAgEKAQ4BDwEMAQcBAAH3AOwA3gDPAL4AqwCXAIEAawBUADwAJAAMALL/SgEL/5cBpv4+AQT/JgDW/iEAB/9qAML+fQDW/mkACv9AANH+VwAI/zQA5/4gAAv/FQDV/vr/FP/s/9T+4/8Y/8//0P67/yH/uP/F/q7/KP+h/8r+lf83/5b/vf6K/0X/g/+8/oH/UP9+/7b+ev9g/3n/s/53/2f/c/+1/nf/bv9v/7X+df94/2//sf5y/37/cP+y/nD/gv9w/7L+cf+G/3P/tP5x/4n/d/+0/nL/kP97/7f+df+S/4D/t/54/5X/hP+6/nv/l/+I/7z+ff+a/47/v/6C/53/k/+++YP/of+Y/8L+hv+j/5//w/6K/6b/pP/H/o7/qP+q/8j+k/+t/7H/zP6X/6//t//P/pz/s/+9/9L+of+3/8P/2P6n/7v/yv/b/qz/wP/S/9/+s//G/9r/4v64/8v/4v/p/r7/0v/r/+/+xP/Z//T/9P7M/+H//f/8/tT/6v8FAP/+3P/0/w4ABv/l//3/FwAN/+7/CAAhABT/9/8SACsAG/8AABwANQAj/woAJgBBAC3/FQAxAE0AN/8gADwAWQBC/ysASQBlAE3/NwBWAHEAWP9DAGQAgABm/1AAcwCPAHT/XgCCAJ8AhP9sAJEArwCU/3sAoQDAAKX/iwCyANEAtv+bAMQA4gDI/6wA1gD0ANv/vgDpAAUB7f/QAP0AFgEAAOMA';
+        
+        const gameOverSound = new Audio();
+        gameOverSound.src = 'data:audio/wav;base64,UklGRswEAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YagEAAB0SkpKdHR0dHR0SkpKSkoi3a6urt3d3d3dIiIiIiIi3a6urt3d3d3dIiIiIiIicg5SUlJycnJyck5OTk5OTiJKSkpKdHR0dCIiIiIiIiIi3d3d3SIiIiIiIiIiIiIiInJycnJOTk5OIiIiIiIiIiIiIiIicnJyck5OTk4iIiIiIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6u3d3d3d0iIiIiIiJyDlJSUnJycnJyTk5OTk5O3a6urq7d3d3d3SIiIiIiIiJKSkpK3a6urt3d3d3dIiIiIiIiIkpKSkrd3d3dIiIiIiIiIiIiInIOUlJScnJyck5OTk5OTt2urq6u3d3d3d0iIiIiIiIiSkpKSnR0dHR0SkpKSkpKdHR0dHR0SkpKSkpK3a6urq7d3d3d3SIiIiIiIiJycnJyTk5OTiIiIiIiIiIiIiIiInJycnJOTk5OIiIiIiIiIiIiIiIicnJyck5OTk4iIiIiIiIi3a6urt3d3d3dIt3d3d0i3a6urt3d3d3dIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6urt3d3d3dIiIiIiIiIkpKSkrdIiIiIiIiIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6urt3d3d3dIiIiIiIiIkpKSkp0dHR0dEpKSkpKSt2urq6u3d3d3d0iIiIiIiIiSkpKSnR0dHR0SkpKSkpKdHR0dHR0SkpKSkpK3a6urq7d3d3d3SIiIiIiIiJycnJyTk5OTiIiIiIiIiIiIiIiInJycnJOTk5OIiIiIiIiIiIiIiIicnJyck5OTk4iIiIiIiIi3a6urt3d3d3dIiIiIiIi3a6urt3d3d3dIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6urt3d3d3dIiIiIiIiIkpKSkrdIiIiIiIiIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6urt3d3d3dIiIiIiIiIkpKSkp0dHR0dEpKSkpKSt2urq6u3d3d3d0iIiIiIiIiSt2urq6u3d3d3d0iIiIiIiIi3a6urq7d3d3d3SIiIiIiIiJycnJyTk5OTiIiIiIiIiIiIiIiInJycnJOTk5OIiIiIiIiIiIiIiIicnJyck5OTk4iIiIiIiIi3a6urt3d3d3dIiIiIiIi3a6urt3d3d3dIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6urt3d3d3dIiIiIiIiIkpKSkrdIiIiIiIiIiIiIiIiIiJycnJyTk5OTiIiIiIiIiLdrq6urt3d3d3dIiIiIiIiIkpKSkp0dHR0dEpKSkpKSt2urq6u3d3d3d0iIiIiIiIiSkpKSnR0dHR0dEpKSkpKSkrcMTExcXFxcXFxMTExMTExcXFxcXFxMTExMTExMTExMXFxcXExMTExMTExMTExMTFxcXFxMTExMTExMTExMTExcXFxcTExMTExMTExMTExMXFxcXExMTExMTEx';
+        
+        // Caricamento iniziale
+        document.addEventListener('DOMContentLoaded', function() {
+            // Impostazione iniziale
+            redButton.style.display = 'none';
+            updateHighScore();
+        });
+        
+        // Event Listeners per la selezione della modalità
+        classicModeButton.addEventListener('click', function() {
+            startGame('classic');
+        });
+        
+        challengeModeButton.addEventListener('click', function() {
+            startGame('challenge');
+        });
+        
+        // Event Listener per il pulsante rosso
+        redButton.addEventListener('click', function(e) {
+            // Previeni il bubbling dell'evento click
+            e.stopPropagation();
+            handleButtonClick();
+        });
+        
+        // Event Listener per il Game Over nella modalità sfida
+        gameContainer.addEventListener('click', function(e) {
+            // Se siamo in modalità sfida e il click non è sul pulsante rosso
+            if (gameMode === 'challenge' && !gameOverScreen.contains(e.target) && 
+                !mainMenu.contains(e.target) && e.target !== redButton) {
+                gameOver();
+            }
+        });
+        
+        // Event Listeners per le opzioni di Game Over
+        restartButton.addEventListener('click', function() {
+            hideGameOver();
+            startGame(gameMode);
+        });
+        
+        backToMenuButton.addEventListener('click', function() {
+            hideGameOver();
+            showMainMenu();
+        });
+        
+        // Funzioni principali
+        function startGame(mode) {
+            gameMode = mode;
+            clickCount = 0;
+            updateCounter();
+            hideMainMenu();
+            showGame();
+            
+            if (mode === 'challenge') {
+                scoreContainer.style.display = 'block';
+                moveButtonToRandomPosition();
+            } else {
+                scoreContainer.style.display = 'none';
+                resetButtonPosition();
+            }
+        }
+        
+        function handleButtonClick() {
+            // Riproduce il suono di click
+            clickSound.currentTime = 0;
+            clickSound.play();
+            
+            // Aggiorna il contatore
+            clickCount++;
+            updateCounter();
+            
+            // Crea l'effetto di pressione del pulsante
+            redButton.classList.add('pressed');
+            setTimeout(() => {
+                redButton.classList.remove('pressed');
+            }, 100);
+            
+            // Crea l'effetto scia
+            createRippleEffect();
+            
+            // Se in modalità sfida, sposta il pulsante
+            if (gameMode === 'challenge') {
+                // Aggiorna il record se necessario
+                if (clickCount > highScore) {
+                    highScore = clickCount;
+                    localStorage.setItem('highScore', highScore);
+                    updateHighScore(true);
+                }
+                
+                // Sposta il pulsante
+                moveButtonToRandomPosition();
+            }
+        }
+        
+        function updateCounter() {
+            counter.textContent = clickCount;
+            counter.classList.add('bounce');
+            setTimeout(() => {
+                counter.classList.remove('bounce');
+            }, 300);
+        }
+        
+        function updateHighScore(animate = false) {
+            score.textContent = `Record: ${highScore}`;
+            if (animate) {
+                score.classList.add('bounce');
+                setTimeout(() => {
+                    score.classList.remove('bounce');
+                }, 300);
+            }
+        }
+        
+        function createRippleEffect() {
+            const ripple = document.createElement('div');
+            ripple.classList.add('ripple');
+            
+            // Posiziona la scia al centro del pulsante
+            const rect = redButton.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            ripple.style.left = centerX + 'px';
+            ripple.style.top = centerY + 'px';
+            
+            document.body.appendChild(ripple);
+            
+            // Rimuovi la scia dopo l'animazione
+            setTimeout(() => {
+                ripple.remove();
+            }, 1000);
+        }
+        
+        function moveButtonToRandomPosition() {
+            // Ottieni le dimensioni della finestra
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Calcola i margini per evitare che il pulsante esca dallo schermo
+            const margin = 50;
+            const maxX = windowWidth - buttonSize - margin;
+            const maxY = windowHeight - buttonSize - margin;
+            
+            // Genera posizioni casuali
+            const newX = Math.max(margin, Math.floor(Math.random() * maxX));
+            const newY = Math.max(margin, Math.floor(Math.random() * maxY));
+            
+            // Applica la nuova posizione
+            redButton.style.left = newX + 'px';
+            redButton.style.top = newY + 'px';
+            redButton.style.transform = 'translate(0, 0)';
+        }
+        
+        function resetButtonPosition() {
+            redButton.style.left = '50%';
+            redButton.style.top = '50%';
+            redButton.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        function gameOver() {
+            // Riproduce il suono di game over
+            gameOverSound.currentTime = 0;
+            gameOverSound.play();
+            
+            // Attiva l'effetto flash sul background
+            document.body.classList.add('flash');
+            setTimeout(() => {
+                document.body.classList.remove('flash');
+            }, 500);
+            
+            // Mostra la schermata di game over
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        function hideGameOver() {
+            gameOverScreen.style.display = 'none';
+        }
+        
+        function showMainMenu() {
+            mainMenu.style.display = 'flex';
+            redButton.style.display = 'none';
+        }
+        
+        function hideMainMenu() {
+            mainMenu.style.display = 'none';
+        }
+        
+        function showGame() {
+            redButton.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
