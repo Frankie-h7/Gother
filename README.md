@@ -70,6 +70,14 @@ Creo questi progetti nel tempo libero, spesso in modo spontaneo, per il puro pia
 
 ---
 
+## ⚠️ Disclaimer
+
+Alcuni progetti presenti in questo repository **potrebbero non funzionare correttamente** o risultare **incompleti**, perché mancano **file essenziali** (come asset multimediali, video o librerie pesanti) che **non è stato possibile caricare** su GitHub a causa del limite massimo di **100 MB per file singolo**.
+
+Se hai bisogno dei file mancanti per test o curiosità, puoi contattarmi direttamente.
+
+---
+
 ## 📌 Note finali
 
 - Tutti i progetti sono open source e modificabili liberamente.
